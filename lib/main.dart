@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'screens/curriculum_screen.dart';
+import 'models/course_item.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,116 +9,122 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '我的课表',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      home: CurriculumScreen(courseList: _generateSampleCourses()),
+      debugShowCheckedModeBanner: false,
     );
+  }
+
+  /// 生成示例课程数据
+  List<CourseItem> _generateSampleCourses() {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    
+    return [
+      // 周一课程
+      CourseItem(
+        title: '高等数学',
+        type: '必修',
+        location: '教学楼A101',
+        startTime: weekStart.add(const Duration(hours: 8)),
+        endTime: weekStart.add(const Duration(hours: 9, minutes: 30)),
+        count: 2,
+        color: Colors.blue[200]!,
+      ),
+      CourseItem(
+        title: '大学英语',
+        type: '必修',
+        location: '教学楼B201',
+        startTime: weekStart.add(const Duration(hours: 10, minutes: 30)),
+        endTime: weekStart.add(const Duration(hours: 12)),
+        count: 2,
+        color: Colors.green[200]!,
+      ),
+      
+      // 周二课程
+      CourseItem(
+        title: '数据结构',
+        type: '必修',
+        location: '实验楼C302',
+        startTime: weekStart.add(const Duration(days: 1, hours: 8, minutes: 50)),
+        endTime: weekStart.add(const Duration(days: 1, hours: 10, minutes: 20)),
+        count: 2,
+        color: Colors.orange[200]!,
+      ),
+      CourseItem(
+        title: '计算机网络',
+        type: '必修',
+        location: '教学楼A305',
+        startTime: weekStart.add(const Duration(days: 1, hours: 14, minutes: 20)),
+        endTime: weekStart.add(const Duration(days: 1, hours: 16, minutes: 40)),
+        count: 3,
+        color: Colors.purple[200]!,
+      ),
+      
+      // 周三课程
+      CourseItem(
+        title: '操作系统',
+        type: '必修',
+        location: '教学楼D401',
+        startTime: weekStart.add(const Duration(days: 2, hours: 8)),
+        endTime: weekStart.add(const Duration(days: 2, hours: 9, minutes: 30)),
+        count: 2,
+        color: Colors.pink[200]!,
+      ),
+      CourseItem(
+        title: '软件工程',
+        type: '选修',
+        location: '教学楼B103',
+        startTime: weekStart.add(const Duration(days: 2, hours: 13, minutes: 30)),
+        endTime: weekStart.add(const Duration(days: 2, hours: 15)),
+        count: 2,
+        color: Colors.teal[200]!,
+      ),
+      
+      // 周四课程
+      CourseItem(
+        title: '算法设计',
+        type: '必修',
+        location: '实验楼C205',
+        startTime: weekStart.add(const Duration(days: 3, hours: 9, minutes: 40)),
+        endTime: weekStart.add(const Duration(days: 3, hours: 11, minutes: 10)),
+        count: 2,
+        color: Colors.amber[200]!,
+      ),
+      
+      // 周五课程
+      CourseItem(
+        title: '数据库原理',
+        type: '必修',
+        location: '教学楼A202',
+        startTime: weekStart.add(const Duration(days: 4, hours: 8)),
+        endTime: weekStart.add(const Duration(days: 4, hours: 10, minutes: 20)),
+        count: 3,
+        color: Colors.cyan[200]!,
+      ),
+      CourseItem(
+        title: 'Web开发技术',
+        type: '选修',
+        location: '实验楼D501',
+        startTime: weekStart.add(const Duration(days: 4, hours: 14, minutes: 20)),
+        endTime: weekStart.add(const Duration(days: 4, hours: 16, minutes: 40)),
+        count: 3,
+        color: Colors.lime[200]!,
+      ),
+    ];
   }
 }
