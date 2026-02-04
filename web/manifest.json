@@ -1,6 +1,6 @@
 {
-    "name": "mysues",
-    "short_name": "mysues",
+    "name": "My SUES",
+    "short_name": "My SUES",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

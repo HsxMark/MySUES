@@ -402,7 +402,7 @@ class WeekSchedulePage extends StatelessWidget {
     return Positioned(
       left: left + 1,
       top: top + 1,
-      child: Container(
+      child: SizedBox(
         width: dayColWidth - 2,
         height: height - 2,
         child: Card(
