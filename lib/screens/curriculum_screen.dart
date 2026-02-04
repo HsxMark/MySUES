@@ -5,10 +5,7 @@ import '../models/course_item.dart';
 class CurriculumScreen extends StatefulWidget {
   final List<CourseItem> courseList;
 
-  const CurriculumScreen({
-    super.key,
-    required this.courseList,
-  });
+  const CurriculumScreen({super.key, required this.courseList});
 
   @override
   State<CurriculumScreen> createState() => _CurriculumScreenState();
@@ -77,7 +74,9 @@ class _CurriculumScreenState extends State<CurriculumScreen> {
         },
         itemBuilder: (context, index) {
           final weekOffset = index - 1000;
-          final pageWeekStart = _currentWeekStart.add(Duration(days: weekOffset * 7));
+          final pageWeekStart = _currentWeekStart.add(
+            Duration(days: weekOffset * 7),
+          );
           return WeekSchedulePage(
             baseDate: pageWeekStart,
             allCourses: widget.courseList,
@@ -106,27 +105,31 @@ class WeekSchedulePage extends StatelessWidget {
     required this.allCourses,
   });
 
-  /// 标准时间段配置（与MySHSMU一致）
+  /// 标准时间段配置（纵向时间轴，1-15节）
   static const List<TimeSlot> standardTimeSlots = [
-    TimeSlot(hour: 8, minute: 0, label: '08:00\n08:40'),
-    TimeSlot(hour: 8, minute: 50, label: '08:50\n09:30'),
-    TimeSlot(hour: 9, minute: 40, label: '09:40\n10:20'),
-    TimeSlot(hour: 10, minute: 30, label: '10:30\n11:10'),
-    TimeSlot(hour: 11, minute: 20, label: '11:20\n12:00'),
-    TimeSlot(hour: 13, minute: 30, label: '13:30\n14:10'),
-    TimeSlot(hour: 14, minute: 20, label: '14:20\n15:00'),
-    TimeSlot(hour: 15, minute: 10, label: '15:10\n15:50'),
-    TimeSlot(hour: 16, minute: 0, label: '16:00\n16:40'),
-    TimeSlot(hour: 16, minute: 50, label: '16:50\n17:30'),
-    TimeSlot(hour: 17, minute: 40, label: '17:40\n18:20'),
-    TimeSlot(hour: 18, minute: 30, label: '18:30\n19:10'),
-    TimeSlot(hour: 19, minute: 20, label: '19:20\n20:00'),
-    TimeSlot(hour: 20, minute: 10, label: '20:10\n20:50'),
+    TimeSlot(hour: 8, minute: 15, label: '08:15\n08:55'), // 1节
+    TimeSlot(hour: 8, minute: 55, label: '08:55\n09:35'), // 2节
+    TimeSlot(hour: 9, minute: 55, label: '09:55\n10:35'), // 3节
+    TimeSlot(hour: 10, minute: 35, label: '10:35\n11:15'), // 4节
+    TimeSlot(hour: 11, minute: 20, label: '11:20\n12:00'), // 5节
+    TimeSlot(hour: 13, minute: 20, label: '13:20\n14:00'), // 6节
+    TimeSlot(hour: 14, minute: 0, label: '14:00\n14:40'), // 7节
+    TimeSlot(hour: 15, minute: 0, label: '15:00\n15:40'), // 8节
+    TimeSlot(hour: 15, minute: 40, label: '15:40\n16:20'), // 9节
+    TimeSlot(hour: 16, minute: 35, label: '16:35\n17:15'), // 10节
+    TimeSlot(hour: 17, minute: 15, label: '17:15\n17:55'), // 11节
+    TimeSlot(hour: 18, minute: 10, label: '18:10\n18:50'), // 12节
+    TimeSlot(hour: 18, minute: 50, label: '18:50\n19:30'), // 13节
+    TimeSlot(hour: 19, minute: 35, label: '19:35\n20:15'), // 14节
+    TimeSlot(hour: 20, minute: 20, label: '20:20\n21:00'), // 15节
   ];
 
   @override
   Widget build(BuildContext context) {
-    final weekDates = List.generate(7, (index) => baseDate.add(Duration(days: index)));
+    final weekDates = List.generate(
+      7,
+      (index) => baseDate.add(Duration(days: index)),
+    );
     final today = DateTime.now();
 
     // 筛选本周课程
@@ -137,8 +140,7 @@ class WeekSchedulePage extends StatelessWidget {
         course.startTime.day,
       );
       final endOfWeek = baseDate.add(const Duration(days: 6));
-      return !courseDate.isBefore(baseDate) && 
-             !courseDate.isAfter(endOfWeek);
+      return !courseDate.isBefore(baseDate) && !courseDate.isAfter(endOfWeek);
     }).toList();
 
     return LayoutBuilder(
@@ -151,8 +153,15 @@ class WeekSchedulePage extends StatelessWidget {
         return Column(
           children: [
             // 表头：日期和星期
-            _buildHeader(context, weekDates, today, timeColWidth, dayColWidth, headerHeight),
-            
+            _buildHeader(
+              context,
+              weekDates,
+              today,
+              timeColWidth,
+              dayColWidth,
+              headerHeight,
+            ),
+
             // 课程表主体
             Expanded(
               child: SingleChildScrollView(
@@ -161,11 +170,12 @@ class WeekSchedulePage extends StatelessWidget {
                   children: [
                     // 时间列
                     _buildTimeColumn(timeColWidth, cellHeight),
-                    
+
                     // 课程网格
                     SizedBox(
                       width: constraints.maxWidth - timeColWidth,
                       child: _buildCourseGrid(
+                        context,
                         weekDates,
                         weekCourses,
                         dayColWidth,
@@ -191,8 +201,21 @@ class WeekSchedulePage extends StatelessWidget {
     double dayColWidth,
     double headerHeight,
   ) {
-    final monthNames = ['', '1月', '2月', '3月', '4月', '5月', '6月', 
-                       '7月', '8月', '9月', '10月', '11月', '12月'];
+    final monthNames = [
+      '',
+      '1月',
+      '2月',
+      '3月',
+      '4月',
+      '5月',
+      '6月',
+      '7月',
+      '8月',
+      '9月',
+      '10月',
+      '11月',
+      '12月',
+    ];
     final dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
     return Container(
@@ -216,14 +239,15 @@ class WeekSchedulePage extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // 星期标题
           ...List.generate(7, (index) {
             final date = weekDates[index];
-            final isToday = date.year == today.year &&
-                           date.month == today.month &&
-                           date.day == today.day;
-            
+            final isToday =
+                date.year == today.year &&
+                date.month == today.month &&
+                date.day == today.day;
+
             return Container(
               width: dayColWidth,
               decoration: BoxDecoration(
@@ -239,7 +263,9 @@ class WeekSchedulePage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: isToday ? Theme.of(context).colorScheme.primary : Colors.black87,
+                      color: isToday
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -247,7 +273,9 @@ class WeekSchedulePage extends StatelessWidget {
                     '${date.day}',
                     style: TextStyle(
                       fontSize: 10,
-                      color: isToday ? Theme.of(context).colorScheme.primary : Colors.black54,
+                      color: isToday
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.black54,
                     ),
                   ),
                 ],
@@ -276,10 +304,7 @@ class WeekSchedulePage extends StatelessWidget {
               child: Text(
                 slot.label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 9,
-                  height: 1.2,
-                ),
+                style: const TextStyle(fontSize: 9, height: 1.2),
               ),
             ),
           );
@@ -290,6 +315,7 @@ class WeekSchedulePage extends StatelessWidget {
 
   /// 构建课程网格
   Widget _buildCourseGrid(
+    BuildContext context,
     List<DateTime> weekDates,
     List<CourseItem> weekCourses,
     double dayColWidth,
@@ -313,7 +339,10 @@ class WeekSchedulePage extends StatelessWidget {
                     height: cellHeight,
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Colors.grey[300]!, width: 0.5),
+                        bottom: BorderSide(
+                          color: Colors.grey[300]!,
+                          width: 0.5,
+                        ),
                       ),
                     ),
                   );
@@ -322,10 +351,11 @@ class WeekSchedulePage extends StatelessWidget {
             );
           }),
         ),
-        
+
         // 课程卡片叠加层
         ...weekCourses.map((course) {
           return _buildCourseCard(
+            context,
             course,
             weekDates,
             dayColWidth,
@@ -338,6 +368,7 @@ class WeekSchedulePage extends StatelessWidget {
 
   /// 构建单个课程卡片
   Widget _buildCourseCard(
+    BuildContext context,
     CourseItem course,
     List<DateTime> weekDates,
     double dayColWidth,
@@ -349,7 +380,7 @@ class WeekSchedulePage extends StatelessWidget {
       course.startTime.month,
       course.startTime.day,
     );
-    
+
     int dayIndex = -1;
     for (int i = 0; i < weekDates.length; i++) {
       final weekDate = DateTime(
@@ -374,9 +405,9 @@ class WeekSchedulePage extends StatelessWidget {
 
     for (int i = 0; i < standardTimeSlots.length; i++) {
       final slot = standardTimeSlots[i];
-      if (courseTime.hour == slot.hour && 
+      if (courseTime.hour == slot.hour &&
           courseTime.minute >= slot.minute &&
-          courseTime.minute < slot.minute + 41) {
+          courseTime.minute < slot.minute + 40) {
         startSlot = i;
         break;
       }
@@ -402,52 +433,123 @@ class WeekSchedulePage extends StatelessWidget {
     return Positioned(
       left: left + 1,
       top: top + 1,
-      child: SizedBox(
-        width: dayColWidth - 2,
-        height: height - 2,
-        child: Card(
-          color: course.color,
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '(${course.type.length > 2 ? course.type.substring(0, 2) : course.type}) ${course.title}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.black87,
-                    height: 1.1,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (course.location.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+      child: GestureDetector(
+        onTap: () => _showCourseDetailsDialog(context, course),
+        child: SizedBox(
+          width: dayColWidth - 2,
+          height: height - 2,
+          child: Card(
+            color: course.color,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text(
-                    '@${course.location}',
+                    '(${course.type.length > 2 ? course.type.substring(0, 2) : course.type}) ${course.title}',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 8,
-                      color: Colors.black54,
+                      fontSize: 10,
+                      color: Colors.black87,
+                      height: 1.1,
                     ),
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (course.location.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '@${course.location}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 8,
+                        color: Colors.black54,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// 显示课程详情对话框
+void _showCourseDetailsDialog(BuildContext context, CourseItem course) {
+  final startTime =
+      '${course.startTime.hour.toString().padLeft(2, '0')}:${course.startTime.minute.toString().padLeft(2, '0')}';
+  final endTime =
+      '${course.endTime.hour.toString().padLeft(2, '0')}:${course.endTime.minute.toString().padLeft(2, '0')}';
+  final weekdays = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  final weekday = weekdays[course.startTime.weekday];
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(course.title),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCourseInfoRow(Icons.category, '类型', course.type),
+            if (course.teacher.isNotEmpty)
+              _buildCourseInfoRow(Icons.person, '教师', course.teacher),
+            _buildCourseInfoRow(
+              Icons.location_on,
+              '地点',
+              course.location.isNotEmpty ? course.location : '未设置',
+            ),
+            _buildCourseInfoRow(Icons.calendar_today, '星期', weekday),
+            _buildCourseInfoRow(
+              Icons.access_time,
+              '时间',
+              '$startTime - $endTime',
+            ),
+            _buildCourseInfoRow(Icons.timer, '节数', '${course.count}节'),
+            if (course.weekNumbers.isNotEmpty)
+              _buildCourseInfoRow(
+                Icons.date_range,
+                '周次',
+                course.weekNumbers.join(', '),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('关闭'),
+        ),
+      ],
+    ),
+  );
+}
+
+/// 构建课程信息行
+Widget _buildCourseInfoRow(IconData icon, String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Expanded(child: Text(value)),
+      ],
+    ),
+  );
 }
 
 /// 时间段模型
