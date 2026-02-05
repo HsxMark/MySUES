@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/score.dart';
 import '../services/score_service.dart';
 import 'import_pdf_screen.dart';
+import 'transcript_details_screen.dart';// Add this import
 
 class TranscriptScreen extends StatefulWidget {
   const TranscriptScreen({super.key});
@@ -156,6 +157,11 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                     _updateSemesters();
                   });
                 }
+              } else if (value == 'details') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TranscriptDetailsScreen()),
+                );
               }
               // TODO: Implement other menu actions
             },
