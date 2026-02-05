@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'screens/main_entry_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
       locale: const Locale('zh', 'CN'),
       // 切换到带底部导航的主界面
-      home: const MainEntryScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
