@@ -14,20 +14,16 @@ class NotificationsScreen extends StatelessWidget {
           ListTile(
             title: Text('课程提醒'),
             subtitle: Text('上课前15分钟提醒'),
-            trailing: Switch(value: true, onChanged: null), // Mocked
+            trailing: Switch(value: false, onChanged: null),
           ),
           ListTile(
             title: Text('考试提醒'),
             subtitle: Text('考试前1天提醒'),
-            trailing: Switch(value: true, onChanged: null), // Mocked
+            trailing: Switch(value: false, onChanged: null),
           ),
           ListTile(
             title: Text('成绩更新通知'),
-            trailing: Switch(value: false, onChanged: null), // Mocked
-          ),
-          ListTile(
-            title: Text('系统公告'),
-            trailing: Switch(value: true, onChanged: null), // Mocked
+            trailing: Switch(value: false, onChanged: null),
           ),
         ],
       ),
