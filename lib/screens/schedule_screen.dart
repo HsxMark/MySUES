@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart'; // Import Time models
@@ -69,66 +70,236 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   
   // _injectDemoCourses removed here
   
+  String _getTimeRange(Course course) {
+    if (_timeDetails.isEmpty) return '';
+    try {
+      final start = _timeDetails.firstWhere((t) => t.node == course.startNode);
+      final endNode = course.startNode + course.step - 1;
+      final end = _timeDetails.firstWhere((t) => t.node == endNode);
+      return '${start.startTime} - ${end.endTime}';
+    } catch (e) {
+      return '';
+    }
+  }
+
   void _showCourseDetail(BuildContext context, Course course) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return AlertDialog(
-          title: Text(course.courseName),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF5F5F7), // Light grey background
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          padding: const EdgeInsets.only(top: 8),
+          height: MediaQuery.of(context).size.height * 0.75, // Take up typical sheet height
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (course.room.isNotEmpty) 
-                ListTile(
-                  leading: const Icon(Icons.location_on),
-                  title: Text(course.room),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              if (course.teacher.isNotEmpty)
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: Text(course.teacher),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ListTile(
-                leading: const Icon(Icons.access_time),
-                title: Text('周${['一','二','三','四','五','六','日'][course.day-1]} ${course.nodeString}'),
-                subtitle: Text('${course.startWeek}-${course.endWeek}周'),
-                contentPadding: EdgeInsets.zero,
-              ),
+               // Handle bar
+               Center(
+                 child: Container(
+                   width: 40, 
+                   height: 5, 
+                   decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
+                 ),
+               ),
+               // Top buttons
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: [
+                     TextButton(
+                       onPressed: () {
+                          // Allow deleting
+                          _deleteCourse(context, course);
+                       },
+                       child: const Text('删除', style: TextStyle(color: Colors.red, fontSize: 16)),
+                     ),
+                     TextButton(
+                       onPressed: () {
+                         Navigator.pop(context);
+                         _editCourse(context, course);
+                       },
+                       child: const Text('编辑', style: TextStyle(color: Colors.red, fontSize: 16)),
+                     ),
+                   ],
+                 ),
+               ),
+               // Title
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
+                 child: Text(
+                   course.courseName,
+                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                 ),
+               ),
+               // Sub headers
+                Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: const [
+                     Text("详情", style: TextStyle(color: Colors.grey)),
+                     Text("以下内容可长按复制", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                   ],
+                 ),
+               ),
+               
+               // Info Card
+               Expanded(
+                 child: SingleChildScrollView(
+                   child: Column(
+                     children: [
+                       Container(
+                         margin: const EdgeInsets.symmetric(horizontal: 16),
+                         decoration: BoxDecoration(
+                           color: Colors.white,
+                           borderRadius: BorderRadius.circular(16),
+                         ),
+                         child: Column(
+                           children: [
+                             _buildDetailRow(
+                               icon: Icons.calendar_today_outlined, 
+                               content: '第 ${course.startWeek} - ${course.endWeek} 周',
+                               color: Colors.redAccent
+                             ),
+                             const Divider(height: 1, indent: 56),
+                             _buildDetailRow(
+                               icon: Icons.access_time, 
+                               content: '周${['一','二','三','四','五','六','日'][course.day-1]} ${course.nodeString} ${_getTimeRange(course)}',
+                               color: Colors.redAccent
+                             ),
+                             if (course.teacher.isNotEmpty) ...[
+                                const Divider(height: 1, indent: 56),
+                                _buildDetailRow(
+                                  icon: Icons.person_outline, 
+                                  content: course.teacher,
+                                  color: Colors.redAccent
+                                ),
+                             ],
+                             if (course.room.isNotEmpty) ...[
+                                const Divider(height: 1, indent: 56),
+                                _buildDetailRow(
+                                  icon: Icons.location_on_outlined, 
+                                  content: course.room,
+                                  color: Colors.redAccent
+                                ),
+                             ],
+                           ],
+                         ),
+                       ),
+                       
+                       const SizedBox(height: 16),
+                       // Actions Card
+                        Container(
+                         margin: const EdgeInsets.symmetric(horizontal: 16),
+                         decoration: BoxDecoration(
+                           color: Colors.white,
+                           borderRadius: BorderRadius.circular(16),
+                         ),
+                         child: Column(
+                           children: [
+                             _buildActionRow(
+                               icon: Icons.copy, 
+                               text: '复制课程名称',
+                               color: Colors.redAccent,
+                               onTap: () {
+                                 Clipboard.setData(ClipboardData(text: course.courseName));
+                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制课程名称')));
+                               }
+                             ),
+                             const Divider(height: 1, indent: 56),
+                             _buildActionRow(
+                               icon: Icons.copy, 
+                               text: '复制课程信息为文本',
+                               color: Colors.redAccent,
+                               onTap: () {
+                                 final info = '${course.courseName}\n周${['一','二','三','四','五','六','日'][course.day-1]} ${course.nodeString} ${_getTimeRange(course)}\n${course.teacher} ${course.room}';
+                                 Clipboard.setData(ClipboardData(text: info));
+                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制课程信息')));
+                               }
+                             ),
+                           ],
+                         ),
+                       ),
+                       const SizedBox(height: 30),
+                     ],
+                   ),
+                 ),
+               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('关闭'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
-                );
-                
-                // If result is strict string 'deleted', it was deleted
-                if (result == 'deleted') {
-                   _initData();
-                   return;
-                }
-                
-                if (result != null && result is Course) {
-                   await ScheduleDataService.updateCourse(result);
-                   _initData();
-                }
-              },
-              child: const Text('编辑'),
-            ),
-          ],
         );
       },
     );
+  }
+
+  Widget _buildDetailRow({required IconData icon, required String content, required Color color}) {
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(content, style: const TextStyle(fontSize: 16)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      onLongPress: () {
+         Clipboard.setData(ClipboardData(text: content));
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制')));
+      },
+    );
+  }
+  
+  Widget _buildActionRow({required IconData icon, required String text, required Color color, VoidCallback? onTap}) {
+       return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(text, style: const TextStyle(fontSize: 16, color: Colors.redAccent)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      onTap: onTap,
+    );
+  }
+
+  void _deleteCourse(BuildContext context, Course course) {
+      showDialog(
+        context: context, 
+        builder: (context) => AlertDialog(
+          title: const Text('删除课程'),
+          content: Text('确认要删除 "${course.courseName}" 吗？'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context); // Close sheet
+                await ScheduleDataService.deleteCourse(course.id);
+                _initData();
+              }, 
+              child: const Text('删除', style: TextStyle(color: Colors.red))
+            ),
+          ],
+        )
+      );
+  }
+  
+  Future<void> _editCourse(BuildContext context, Course course) async {
+     final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
+      );
+      
+      // If result is strict string 'deleted', it was deleted
+      if (result == 'deleted') {
+          _initData();
+          return;
+      }
+      
+      if (result != null && result is Course) {
+          await ScheduleDataService.updateCourse(result);
+          _initData();
+      }
   }
 
   int _calculateCurrentWeek(DateTime startDate) {
