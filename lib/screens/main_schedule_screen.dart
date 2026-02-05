@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/course_item.dart';
 import '../services/course_storage_service.dart';
 import 'add_course_screen.dart';
+import 'semester_settings_screen.dart';
 
 /// 主课程表界面（直接显示课程表）
 class MainScheduleScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _MainScheduleScreenState extends State<MainScheduleScreen> {
   int _currentPage = 1000;
   List<CourseItem> _baseCourses = [];
   bool _isLoading = true;
+  DateTime? _semesterStartDate; // 学期开始日期
 
   @override
   void initState() {
@@ -39,9 +41,11 @@ class _MainScheduleScreenState extends State<MainScheduleScreen> {
     });
 
     final courses = await CourseStorageService.loadCourses();
+    final semesterStart = await CourseStorageService.loadSemesterStartDate();
 
     setState(() {
       _baseCourses = courses;
+      _semesterStartDate = semesterStart;
       _isLoading = false;
     });
   }
@@ -62,12 +66,23 @@ class _MainScheduleScreenState extends State<MainScheduleScreen> {
   List<CourseItem> _generateAllCourseInstances() {
     final List<CourseItem> allInstances = [];
 
+    if (_semesterStartDate == null) {
+      // 如果没有设置学期开始日期，使用默认逻辑
+      return allInstances;
+    }
+
     for (var course in _baseCourses) {
       if (course.weekNumbers.isEmpty) continue;
 
       for (var weekNumber in course.weekNumbers) {
-        final weekOffset = weekNumber - _getCurrentWeekNumber();
-        final targetDate = course.startTime.add(Duration(days: weekOffset * 7));
+        // 计算该周次的周一日期
+        final weekMonday = _semesterStartDate!.add(
+          Duration(days: (weekNumber - 1) * 7),
+        );
+
+        // 根据课程设置的星期几，计算具体日期
+        final courseWeekday = course.startTime.weekday; // 1=周一, 7=周日
+        final courseDate = weekMonday.add(Duration(days: courseWeekday - 1));
 
         final instance = CourseItem(
           title: course.title,
@@ -75,16 +90,16 @@ class _MainScheduleScreenState extends State<MainScheduleScreen> {
           location: course.location,
           teacher: course.teacher,
           startTime: DateTime(
-            targetDate.year,
-            targetDate.month,
-            targetDate.day,
+            courseDate.year,
+            courseDate.month,
+            courseDate.day,
             course.startTime.hour,
             course.startTime.minute,
           ),
           endTime: DateTime(
-            targetDate.year,
-            targetDate.month,
-            targetDate.day,
+            courseDate.year,
+            courseDate.month,
+            courseDate.day,
             course.endTime.hour,
             course.endTime.minute,
           ),
@@ -100,19 +115,36 @@ class _MainScheduleScreenState extends State<MainScheduleScreen> {
     return allInstances;
   }
 
-  /// 获取当前周数
+  /// 获取当前周数（基于学期开始日期）
   int _getCurrentWeekNumber() {
+    if (_semesterStartDate == null) {
+      // 如果没有设置学期开始日期，返回1
+      return 1;
+    }
+
     final now = DateTime.now();
-    final firstDayOfYear = DateTime(now.year, 1, 1);
-    final daysSinceFirstDay = now.difference(firstDayOfYear).inDays;
-    return (daysSinceFirstDay / 7).ceil() + 1;
+    final daysSinceStart = now.difference(_semesterStartDate!).inDays;
+    final weekNumber = (daysSinceStart / 7).floor() + 1;
+
+    // 限制在1-20周范围内
+    if (weekNumber < 1) return 1;
+    if (weekNumber > 20) return 20;
+    return weekNumber;
   }
 
-  /// 计算周数
+  /// 计算周数（基于学期开始日期）
   int _getWeekNumber(DateTime date) {
-    final firstDayOfYear = DateTime(date.year, 1, 1);
-    final daysSinceFirstDay = date.difference(firstDayOfYear).inDays;
-    return (daysSinceFirstDay / 7).ceil() + 1;
+    if (_semesterStartDate == null) {
+      return 1;
+    }
+
+    final daysSinceStart = date.difference(_semesterStartDate!).inDays;
+    final weekNumber = (daysSinceStart / 7).floor() + 1;
+
+    // 限制在1-20周范围内
+    if (weekNumber < 1) return 1;
+    if (weekNumber > 20) return 20;
+    return weekNumber;
   }
 
   /// 添加课程
@@ -376,6 +408,31 @@ class _MainScheduleScreenState extends State<MainScheduleScreen> {
             onPressed: _showCourseManagement,
             tooltip: '课程管理',
           ),
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'semester_settings') {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SemesterSettingsScreen(),
+                  ),
+                );
+                await _loadCourses(); // 重新加载以更新周次
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'semester_settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings),
+                    SizedBox(width: 8),
+                    Text('学期设置'),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       body: allCourses.isEmpty
@@ -390,6 +447,34 @@ class _MainScheduleScreenState extends State<MainScheduleScreen> {
                     style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
+                  if (_semesterStartDate == null) ...[
+                    Text(
+                      '建议先设置学期开始日期',
+                      style: TextStyle(fontSize: 14, color: Colors.orange[700]),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const SemesterSettingsScreen(),
+                          ),
+                        );
+                        await _loadCourses();
+                      },
+                      icon: const Icon(Icons.settings),
+                      label: const Text('设置学期'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   Text(
                     '点击右下角按钮添加课程',
                     style: TextStyle(fontSize: 14, color: Colors.grey[500]),

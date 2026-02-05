@@ -204,9 +204,10 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     }
 
     // 计算开始和结束时间
-    final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final courseDate = weekStart.add(Duration(days: _selectedWeekday - 1));
+    // 注意：这里只是用于保存星期几的信息，具体日期会在显示时根据周次动态计算
+    // 使用一个固定的基准周（如2024年第1周）来保存星期几信息
+    final baseMonday = DateTime(2024, 1, 1); // 2024年1月1日是周一
+    final courseDate = baseMonday.add(Duration(days: _selectedWeekday - 1));
 
     final startTime = _getTimeBySlot(_startSlot);
     final endTime = _getEndTimeBySlot(_startSlot, _courseCount);
@@ -328,14 +329,22 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               controller: _weekNumbersController,
               decoration: const InputDecoration(
                 labelText: '上课周次',
-                hintText: '如：1,2,3 或 1-5,7,9-12',
+                hintText: '如：1,2,3 或 1-5,7,9-12（限1-20周）',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.calendar_today),
-                helperText: '支持单个周次(1,2,3)或范围(1-5)',
+                helperText: '一学期共20周，支持单个周次(1,2,3)或范围(1-5)',
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return '请输入上课周次';
+                }
+                // 验证周次范围
+                final weeks = _parseWeekNumbers(value);
+                if (weeks.isEmpty) {
+                  return '请输入有效的周次';
+                }
+                if (weeks.any((w) => w < 1 || w > 20)) {
+                  return '周次必须在1-20之间';
                 }
                 return null;
               },

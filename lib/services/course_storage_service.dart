@@ -5,6 +5,7 @@ import '../models/course_item.dart';
 /// 课程存储服务
 class CourseStorageService {
   static const String _coursesKey = 'user_courses';
+  static const String _semesterStartKey = 'semester_start_date';
 
   /// 保存课程列表
   static Future<void> saveCourses(List<CourseItem> courses) async {
@@ -17,7 +18,7 @@ class CourseStorageService {
   static Future<List<CourseItem>> loadCourses() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_coursesKey);
-    
+
     if (jsonString == null || jsonString.isEmpty) {
       return [];
     }
@@ -30,6 +31,29 @@ class CourseStorageService {
     } catch (e) {
       print('加载课程数据失败: $e');
       return [];
+    }
+  }
+
+  /// 保存学期开始日期
+  static Future<void> saveSemesterStartDate(DateTime date) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_semesterStartKey, date.toIso8601String());
+  }
+
+  /// 加载学期开始日期
+  static Future<DateTime?> loadSemesterStartDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dateString = prefs.getString(_semesterStartKey);
+
+    if (dateString == null || dateString.isEmpty) {
+      return null;
+    }
+
+    try {
+      return DateTime.parse(dateString);
+    } catch (e) {
+      print('加载学期开始日期失败: $e');
+      return null;
     }
   }
 

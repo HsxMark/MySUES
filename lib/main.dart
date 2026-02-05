@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/main_schedule_screen.dart';
 
 void main() {
@@ -20,6 +21,13 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
       ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+      locale: const Locale('zh', 'CN'),
       home: const MainScheduleScreen(),
       debugShowCheckedModeBanner: false,
     );
