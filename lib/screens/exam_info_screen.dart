@@ -177,16 +177,94 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
     }
   }
 
-  void _navigateToAddExam() async {
+  void _navigateToAddExam({Exam? existingExam}) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const AddExamScreen(),
+        builder: (context) => AddExamScreen(existingExam: existingExam),
       ),
     );
 
     if (result == true) {
       _loadExams();
     }
+  }
+
+  void _showExamDetails(Exam exam) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                exam.courseName,
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              _buildInfoRow(Icons.access_time, '时间', exam.timeString),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.location_on_outlined, '地点', exam.location),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.category_outlined, '类型', exam.type),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.info_outline, '状态', exam.status),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        // Confirm delete
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('确认删除'),
+                            content: const Text('删除后无法恢复，是否继续？'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('删除', style: TextStyle(color: Colors.red))),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await ExamService.deleteExam(exam);
+                          if (mounted) {
+                            Navigator.pop(context); // Close bottom sheet
+                            _loadExams();
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      label: const Text('删除', style: TextStyle(color: Colors.red)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context); // Close bottom sheet
+                        _navigateToAddExam(existingExam: exam);
+                      },
+                      icon: const Icon(Icons.edit),
+                      label: const Text('编辑'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16), // Bottom safe area spacer
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildFilterChip(String label) {
@@ -206,54 +284,57 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   Widget _buildExamCard(Exam exam) {
     final bool isTodayExam = _isToday(exam.timeString);
     
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      color: isTodayExam ? Colors.yellow[100] : null,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: isTodayExam ? const BorderSide(color: Colors.orange, width: 2) : BorderSide.none,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    exam.courseName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+    return InkWell(
+      onTap: () => _showExamDetails(exam),
+      child: Card(
+        elevation: 2,
+        margin: const EdgeInsets.only(bottom: 16.0),
+        color: isTodayExam ? Colors.yellow[100] : null,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isTodayExam ? const BorderSide(color: Colors.orange, width: 2) : BorderSide.none,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      exam.courseName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-                _buildStatusBadge(exam.status),
-              ],
-            ),
-            const Divider(height: 24),
-            _buildInfoRow(Icons.access_time, '时间', exam.timeString),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.location_on_outlined, '地点', exam.location),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.category_outlined, '类型', exam.type),
-            if (isTodayExam) ...[
-              const SizedBox(height: 8),
-              const Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
-                  SizedBox(width: 4),
-                  Text(
-                    '今日考试，请注意时间！',
-                    style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
+                  _buildStatusBadge(exam.status),
                 ],
               ),
+              const Divider(height: 24),
+              _buildInfoRow(Icons.access_time, '时间', exam.timeString),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.location_on_outlined, '地点', exam.location),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.category_outlined, '类型', exam.type),
+              if (isTodayExam) ...[
+                const SizedBox(height: 8),
+                const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      '今日考试，请注意时间！',
+                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
