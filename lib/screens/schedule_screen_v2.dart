@@ -101,14 +101,6 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
           ),
           actions: [
             TextButton(
-              onPressed: () async {
-                 await ScheduleDataService.deleteCourse(course.id);
-                 if (context.mounted) Navigator.pop(context);
-                 _initData();
-              },
-              child: const Text('删除', style: TextStyle(color: Colors.red)),
-            ),
-            TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('关闭'),
             ),
@@ -119,6 +111,13 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
                   context,
                   MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: course)),
                 );
+                
+                // If result is strict string 'deleted', it was deleted
+                if (result == 'deleted') {
+                   _initData();
+                   return;
+                }
+                
                 if (result != null && result is Course) {
                    await ScheduleDataService.updateCourse(result);
                    _initData();
@@ -142,6 +141,88 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
     return (diff / 7).floor() + 1;
   }
 
+  void _showScheduleManager(BuildContext context) async {
+    final tables = await ScheduleDataService.loadScheduleTables();
+    if (!context.mounted) return;
+    
+    showModalBottomSheet(
+      context: context, 
+      builder: (context) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                   const Text("切换课表", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                   IconButton(
+                     icon: const Icon(Icons.add),
+                     onPressed: () async {
+                       Navigator.pop(context);
+                       final newTable = await Navigator.push(
+                         context,
+                         MaterialPageRoute(builder: (c) => const ScheduleSettingsScreen()),
+                       );
+                       if (newTable != null && newTable is ScheduleTable) {
+                         await ScheduleDataService.addScheduleTable(newTable);
+                         await ScheduleDataService.setCurrentTableId(newTable.id);
+                         _initData();
+                       }
+                     },
+                   )
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: tables.length,
+                itemBuilder: (context, index) {
+                  final table = tables[index];
+                  final isCurrent = _currentTable?.id == table.id;
+                  return ListTile(
+                    title: Text(table.tableName),
+                    subtitle: Text("开学: ${table.startDate}"),
+                    trailing: isCurrent ? const Icon(Icons.check, color: Colors.blue) : null,
+                    selected: isCurrent,
+                    onTap: () async {
+                      await ScheduleDataService.setCurrentTableId(table.id);
+                      if (context.mounted) Navigator.pop(context);
+                      _initData();
+                    },
+                    onLongPress: () {
+                      showDialog(
+                        context: context, 
+                        builder: (context) => AlertDialog(
+                          title: const Text('删除课表'),
+                          content: Text('确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(context); // Close dialog
+                                await ScheduleDataService.deleteScheduleTable(table.id);
+                                if (context.mounted) {
+                                   Navigator.pop(context); // Close bottom sheet to avoid stale data
+                                   _initData(); // Refresh, _initData handles fallback if current is deleted
+                                }
+                              }, 
+                              child: const Text('删除', style: TextStyle(color: Colors.red))
+                            ),
+                          ],
+                        )
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -153,28 +234,70 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
     if (_currentTable == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('我的课表')),
-        body: const Center(child: Text('没有课表数据，请先创建课表')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('没有课表数据，请先创建课表'),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () async {
+                    final newTable = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (c) => const ScheduleSettingsScreen()),
+                    );
+                    if (newTable != null && newTable is ScheduleTable) {
+                      await ScheduleDataService.addScheduleTable(newTable);
+                      await ScheduleDataService.setCurrentTableId(newTable.id);
+                      _initData();
+                    }
+                }, 
+                child: const Text("新建课表")
+              )
+            ],
+          )
+        ),
       );
     }
     
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          children: [
-            Text(_currentTable!.tableName),
-            Text(
-              '第 $_currentWeek 周',
-              style: const TextStyle(fontSize: 12),
-            ),
-          ],
+        title: GestureDetector(
+          onTap: () => _showScheduleManager(context),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_currentTable!.tableName),
+              const Icon(Icons.arrow_drop_down)
+            ],
+          ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: () {
-              int todayWeek = _calculateCurrentWeek(_currentTable!.startDateObj);
-              _pageController.jumpToPage(todayWeek - 1);
+            icon: const Icon(Icons.add),
+            tooltip: '添加课程',
+            onPressed: () async {
+              if (_currentTable != null) {
+                final newCourse = Course(
+                  courseName: '', 
+                  day: 1, 
+                  startNode: 1, 
+                  startWeek: 1, 
+                  endWeek: 16, 
+                  color: '#2196F3',
+                  tableId: _currentTable!.id
+                );
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: null)), 
+                );
+                if (result != null && result is Course) {
+                  result.tableId = _currentTable!.id; // Ensure table ID is set
+                  await ScheduleDataService.addCourse(result);
+                  _initData();
+                }
+              }
             },
           ),
           IconButton(
@@ -208,27 +331,14 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () async {
+        child: const Icon(Icons.today),
+        tooltip: '回到本周',
+        onPressed: () {
            if (_currentTable != null) {
-             final newCourse = Course(
-               courseName: '', 
-               day: 1, 
-               startNode: 1, 
-               startWeek: 1, 
-               endWeek: 16, 
-               color: '#2196F3',
-               tableId: _currentTable!.id
-             );
-             final result = await Navigator.push(
-               context,
-               MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: newCourse)),
-             );
-             if (result != null && result is Course) {
-               result.tableId = _currentTable!.id; // Ensure table ID is set
-               await ScheduleDataService.addCourse(result);
-               _initData();
-             }
+              int todayWeek = _calculateCurrentWeek(_currentTable!.startDateObj);
+              // clamp to valid range
+              final targetPage = (todayWeek - 1).clamp(0, _currentTable!.maxWeek - 1);
+              _pageController.jumpToPage(targetPage);
            }
         },
       ),

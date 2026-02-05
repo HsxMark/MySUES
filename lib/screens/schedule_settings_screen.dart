@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/schedule_table.dart';
 
 class ScheduleSettingsScreen extends StatefulWidget {
-  final ScheduleTable table;
+  final ScheduleTable? table; // Null for new table
 
-  const ScheduleSettingsScreen({super.key, required this.table});
+  const ScheduleSettingsScreen({super.key, this.table});
 
   @override
   State<ScheduleSettingsScreen> createState() => _ScheduleSettingsScreenState();
@@ -19,10 +19,17 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.table.tableName);
-    _maxWeekController = TextEditingController(text: widget.table.maxWeek.toString());
-    _nodesController = TextEditingController(text: widget.table.nodes.toString());
-    _startDate = widget.table.startDate;
+    if (widget.table != null) {
+      _nameController = TextEditingController(text: widget.table!.tableName);
+      _maxWeekController = TextEditingController(text: widget.table!.maxWeek.toString());
+      _nodesController = TextEditingController(text: widget.table!.nodes.toString());
+      _startDate = widget.table!.startDate;
+    } else {
+      _nameController = TextEditingController(text: '新课表');
+      _maxWeekController = TextEditingController(text: '20');
+      _nodesController = TextEditingController(text: '15'); // Default to 15
+      _startDate = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).toIso8601String().split('T')[0];
+    }
   }
 
   @override
@@ -93,13 +100,23 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
 
   void _save() {
     final maxWeek = int.tryParse(_maxWeekController.text) ?? 20;
-    final nodes = int.tryParse(_nodesController.text) ?? 12;
+    final nodes = int.tryParse(_nodesController.text) ?? 15;
 
-    widget.table.tableName = _nameController.text;
-    widget.table.startDate = _startDate;
-    widget.table.maxWeek = maxWeek;
-    widget.table.nodes = nodes;
-
-    Navigator.pop(context, widget.table);
+    if (widget.table != null) {
+      widget.table!.tableName = _nameController.text;
+      widget.table!.startDate = _startDate;
+      widget.table!.maxWeek = maxWeek;
+      widget.table!.nodes = nodes;
+      Navigator.pop(context, widget.table);
+    } else {
+      final newTable = ScheduleTable(
+        tableName: _nameController.text,
+        startDate: _startDate,
+        maxWeek: maxWeek,
+        nodes: nodes,
+        timeTableId: 1, // Default time table
+      );
+       Navigator.pop(context, newTable);
+    }
   }
 }

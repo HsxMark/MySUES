@@ -47,6 +47,17 @@ class ScheduleDataService {
       await saveScheduleTables(tables);
     }
   }
+
+  static Future<void> deleteScheduleTable(int id) async {
+    final tables = await loadScheduleTables();
+    tables.removeWhere((t) => t.id == id);
+    await saveScheduleTables(tables);
+    
+    // Also delete courses for this table
+    final allCourses = await loadCourses();
+    allCourses.removeWhere((c) => c.tableId == id);
+    await saveCourses(allCourses);
+  }
   
   static Future<int> getCurrentTableId() async {
     final prefs = await SharedPreferences.getInstance();

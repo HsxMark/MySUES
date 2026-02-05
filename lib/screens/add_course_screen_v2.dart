@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/course.dart';
+import '../services/schedule_service.dart';
 
 class AddCourseScreenV2 extends StatefulWidget {
   final Course? course; // 编辑模式传入对象
@@ -78,6 +79,13 @@ class _AddCourseScreenV2State extends State<AddCourseScreenV2> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.course == null ? '添加课程' : '编辑课程'),
+        actions: [
+          if (widget.course != null)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _deleteCourse,
+            )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -254,5 +262,26 @@ class _AddCourseScreenV2State extends State<AddCourseScreenV2> {
 
       Navigator.pop(context, course);
     }
+  }
+
+  void _deleteCourse() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除课程'),
+        content: Text('确认要删除课程 "${widget.course!.courseName}" 吗？'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              await ScheduleDataService.deleteCourse(widget.course!.id);
+              if (mounted) Navigator.pop(context, 'deleted'); // Return signal
+            },
+            child: const Text('删除', style: TextStyle(color: Colors.red)),
+          )
+        ],
+      )
+    );
   }
 }
