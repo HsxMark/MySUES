@@ -69,6 +69,69 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
   
   // _injectDemoCourses removed here
   
+  void _showCourseDetail(BuildContext context, Course course) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(course.courseName),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (course.room.isNotEmpty) 
+                ListTile(
+                  leading: const Icon(Icons.location_on),
+                  title: Text(course.room),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              if (course.teacher.isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.person),
+                  title: Text(course.teacher),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ListTile(
+                leading: const Icon(Icons.access_time),
+                title: Text('周${['一','二','三','四','五','六','日'][course.day-1]} ${course.nodeString}'),
+                subtitle: Text('${course.startWeek}-${course.endWeek}周'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                 await ScheduleDataService.deleteCourse(course.id);
+                 if (context.mounted) Navigator.pop(context);
+                 _initData();
+              },
+              child: const Text('删除', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('关闭'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: course)),
+                );
+                if (result != null && result is Course) {
+                   await ScheduleDataService.updateCourse(result);
+                   _initData();
+                }
+              },
+              child: const Text('编辑'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   int _calculateCurrentWeek(DateTime startDate) {
     // 简单的周次计算逻辑
     // 确保startDate是周一
@@ -277,16 +340,7 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
                               width: dayColWidth - 1, // spacing
                               height: course.step * _cellHeight - 1, // spacing
                               child: GestureDetector(
-                                onTap: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: course)),
-                                  );
-                                  if (result != null && result is Course) {
-                                     await ScheduleDataService.updateCourse(result);
-                                     _initData();
-                                  }
-                                },
+                                onTap: () => _showCourseDetail(context, course),
                                 child: Container(
                                   margin: const EdgeInsets.all(1),
                                   padding: const EdgeInsets.all(2),

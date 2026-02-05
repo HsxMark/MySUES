@@ -78,12 +78,6 @@ class _AddCourseScreenV2State extends State<AddCourseScreenV2> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.course == null ? '添加课程' : '编辑课程'),
-        actions: [
-          TextButton(
-            onPressed: _saveCourse,
-            child: const Text('保存', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -206,6 +200,16 @@ class _AddCourseScreenV2State extends State<AddCourseScreenV2> {
                 }).toList(),
               ),
               const SizedBox(height: 40),
+              
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: FilledButton(
+                  onPressed: _saveCourse,
+                  child: const Text('保存', style: TextStyle(fontSize: 18)),
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
