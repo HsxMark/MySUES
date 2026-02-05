@@ -274,46 +274,82 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: '添加课程',
-            onPressed: () async {
-              if (_currentTable != null) {
-                final newCourse = Course(
-                  courseName: '', 
-                  day: 1, 
-                  startNode: 1, 
-                  startWeek: 1, 
-                  endWeek: 16, 
-                  color: '#2196F3',
-                  tableId: _currentTable!.id
-                );
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: null)), 
-                );
-                if (result != null && result is Course) {
-                  result.tableId = _currentTable!.id; // Ensure table ID is set
-                  await ScheduleDataService.addCourse(result);
-                  _initData();
-                }
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu),
+            tooltip: '菜单',
+            onSelected: (value) async {
+              switch (value) {
+                case 'import':
+                  // 待实现导入功能
+                  break;
+                case 'add':
+                  if (_currentTable != null) {
+                    final newCourse = Course(
+                      courseName: '', 
+                      day: 1, 
+                      startNode: 1, 
+                      startWeek: 1, 
+                      endWeek: 16, 
+                      color: '#2196F3',
+                      tableId: _currentTable!.id
+                    );
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: null)), 
+                    );
+                    if (result != null && result is Course) {
+                      result.tableId = _currentTable!.id; // Ensure table ID is set
+                      await ScheduleDataService.addCourse(result);
+                      _initData();
+                    }
+                  }
+                  break;
+                case 'settings':
+                  if (_currentTable != null) {
+                    final newTable = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!)),
+                    );
+                    if (newTable != null && newTable is ScheduleTable) {
+                      await ScheduleDataService.updateScheduleTable(newTable);
+                      _initData();
+                    }
+                  }
+                  break;
               }
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () async {
-              if (_currentTable != null) {
-                final newTable = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!)),
-                );
-                if (newTable != null && newTable is ScheduleTable) {
-                  await ScheduleDataService.updateScheduleTable(newTable);
-                  _initData();
-                }
-              }
-            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'import',
+                child: Row(
+                  children: [
+                    Icon(Icons.download),
+                    SizedBox(width: 12),
+                    Text('导入课表'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'add',
+                child: Row(
+                  children: [
+                    Icon(Icons.add),
+                    SizedBox(width: 12),
+                    Text('添加课程'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings),
+                    SizedBox(width: 12),
+                    Text('课表设置'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

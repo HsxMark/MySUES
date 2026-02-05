@@ -24,7 +24,7 @@ class ScheduleTable {
   ScheduleTable({
     this.id = 0,
     required this.tableName,
-    this.nodes = 12, // 默认改为12节，通常大学是12-13节
+    this.nodes = 12, 
     this.background = '',
     this.timeTableId = 1,
     required this.startDate,
