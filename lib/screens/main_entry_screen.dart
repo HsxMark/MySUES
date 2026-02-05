@@ -54,7 +54,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: '个人中心',
+            label: '我',
           ),
         ],
       ),
