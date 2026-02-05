@@ -24,7 +24,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   // State variables
   int _day = 1; // 1-7
   int _startNode = 1;
-  int _step = 2;
+  int _endNode = 2; 
   int _type = 0; // 0: All, 1: Odd, 2: Even
   Color _selectedColor = Colors.blue;
 
@@ -51,7 +51,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       
       _day = c.day;
       _startNode = c.startNode;
-      _step = c.step;
+      _endNode = c.startNode + c.step - 1;
       _type = c.type;
       _selectedColor = c.colorObj;
     } else {
@@ -61,6 +61,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       _startWeekController = TextEditingController(text: '1');
       _endWeekController = TextEditingController(text: '16');
       _selectedColor = _colors[0];
+      _startNode = 1;
+      _endNode = 2;
     }
   }
 
@@ -110,46 +112,57 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
+                      DropdownButtonFormField<int>(
+                        value: _day,
+                        decoration: const InputDecoration(labelText: '星期'),
+                        items: List.generate(7, (index) => DropdownMenuItem(
+                          value: index + 1,
+                          child: Text(['周一','周二','周三','周四','周五','周六','周日'][index]),
+                        )).toList(),
+                        onChanged: (v) => setState(() => _day = v!),
+                      ),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
                            Expanded(
                              child: DropdownButtonFormField<int>(
-                               key: ValueKey(_day),
-                               initialValue: _day,
-                               decoration: const InputDecoration(labelText: '星期'),
-                               items: List.generate(7, (index) => DropdownMenuItem(
+                               value: _startNode,
+                               decoration: const InputDecoration(labelText: '开始节次'),
+                               items: List.generate(15, (index) => DropdownMenuItem(
                                  value: index + 1,
-                                 child: Text(['周一','周二','周三','周四','周五','周六','周日'][index]),
+                                 child: Text('第 ${index + 1} 节'),
                                )).toList(),
-                               onChanged: (v) => setState(() => _day = v!),
+                               onChanged: (v) {
+                                 setState(() {
+                                    _startNode = v!;
+                                    if (_endNode < _startNode) {
+                                      _endNode = _startNode;
+                                    }
+                                 });
+                               },
                              ),
                            ),
                            const SizedBox(width: 16),
                            Expanded(
                              child: DropdownButtonFormField<int>(
-                               key: ValueKey(_startNode),
-                               initialValue: _startNode,
-                               decoration: const InputDecoration(labelText: '开始节次'),
-                               items: List.generate(12, (index) => DropdownMenuItem(
+                               value: _endNode,
+                               decoration: const InputDecoration(labelText: '结束节次'),
+                               items: List.generate(15, (index) => DropdownMenuItem(
                                  value: index + 1,
                                  child: Text('第 ${index + 1} 节'),
                                )).toList(),
-                               onChanged: (v) => setState(() => _startNode = v!),
+                               onChanged: (v) {
+                                  setState(() {
+                                     _endNode = v!; 
+                                     if (_endNode < _startNode) {
+                                       _startNode = _endNode;
+                                     }
+                                  });
+                               }
                              ),
                            ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<int>(
-                         key: ValueKey(_step),
-                         initialValue: _step,
-                         decoration: const InputDecoration(labelText: '持续节数'),
-                         items: [1, 2, 3, 4].map((e) => DropdownMenuItem(
-                           value: e,
-                           child: Text('$e 节'),
-                         )).toList(),
-                         onChanged: (v) => setState(() => _step = v!),
-                       ),
                     ],
                   ),
                 ),
@@ -248,6 +261,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       final endWeek = int.tryParse(_endWeekController.text) ?? 16;
       
       final colorHex = '#${_selectedColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+      
+      final step = _endNode - _startNode + 1;
 
       final course = Course(
         id: widget.course?.id ?? 0,
@@ -256,7 +271,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         room: _roomController.text,
         teacher: _teacherController.text,
         startNode: _startNode,
-        step: _step,
+        step: step,
         startWeek: startWeek,
         endWeek: endWeek,
         type: _type,

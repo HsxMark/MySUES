@@ -178,12 +178,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                 ),
                 const PopupMenuItem(
-                  value: 'jwc',
+                  value: 'clear',
                   child: Row(
                     children: [
-                      Icon(Icons.school, color: Colors.blueAccent),
+                      Icon(Icons.delete_outline, color: Colors.grey),
                       SizedBox(width: 10),
-                      Text('从教务处导入'),
+                      Text('清空所有数据'),
                     ],
                   ),
                 ),
@@ -194,16 +194,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                       Icon(Icons.info_outline, color: Colors.grey),
                       SizedBox(width: 10),
                       Text('详情'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'clear',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Text('清空所有数据'),
                     ],
                   ),
                 ),

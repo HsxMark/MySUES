@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/exam.dart';
 import '../services/exam_service.dart';
 import 'add_exam_screen.dart';
@@ -97,15 +98,33 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
               return [
                 const PopupMenuItem(
                   value: 'add',
-                  child: Text('添加自定义考试'),
+                  child: Row(
+                    children: [
+                      Icon(Icons.add, color: Colors.grey),
+                      SizedBox(width: 10),
+                      Text('添加自定义考试'),
+                    ],
+                  ),
                 ),
                 const PopupMenuItem(
                   value: 'clear',
-                  child: Text('清除已结束'),
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.grey),
+                      SizedBox(width: 10),
+                      Text('清除已结束'),
+                    ],
+                  ),
                 ),
                 const PopupMenuItem(
                   value: 'details',
-                  child: Text('详情'),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.grey),
+                      SizedBox(width: 10),
+                      Text('详情'),
+                    ],
+                  ),
                 ),
               ];
             },
@@ -192,37 +211,39 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   void _showExamDetails(Exam exam) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF5F5F7), // Light grey background
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          padding: const EdgeInsets.only(top: 8),
+          height: MediaQuery.of(context).size.height * 0.75, // Take up typical sheet height
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                exam.courseName,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              _buildInfoRow(Icons.access_time, '时间', exam.timeString),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.location_on_outlined, '地点', exam.location),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.category_outlined, '类型', exam.type),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.info_outline, '状态', exam.status),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        // Confirm delete
+               // Handle bar
+               Center(
+                 child: Container(
+                   width: 40, 
+                   height: 5, 
+                   decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
+                 ),
+               ),
+               // Top buttons
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: [
+                     TextButton(
+                       onPressed: () async {
+                          // Confirm delete
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
@@ -241,29 +262,142 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                             _loadExams();
                           }
                         }
-                      },
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      label: const Text('删除', style: TextStyle(color: Colors.red)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context); // Close bottom sheet
-                        _navigateToAddExam(existingExam: exam);
-                      },
-                      icon: const Icon(Icons.edit),
-                      label: const Text('编辑'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16), // Bottom safe area spacer
+                       },
+                       child: const Text('删除', style: TextStyle(color: Colors.red, fontSize: 16)),
+                     ),
+                     TextButton(
+                       onPressed: () {
+                         Navigator.pop(context);
+                         _navigateToAddExam(existingExam: exam);
+                       },
+                       child: const Text('编辑', style: TextStyle(color: Colors.redAccent, fontSize: 16)),
+                     ),
+                   ],
+                 ),
+               ),
+               // Title
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
+                 child: Text(
+                   exam.courseName,
+                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                 ),
+               ),
+               // Sub headers
+                Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: const [
+                     Text("详情", style: TextStyle(color: Colors.grey)),
+                     Text("以下内容可长按复制", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                   ],
+                 ),
+               ),
+               
+               // Info Card
+               Expanded(
+                 child: SingleChildScrollView(
+                   child: Column(
+                     children: [
+                       Container(
+                         margin: const EdgeInsets.symmetric(horizontal: 16),
+                         decoration: BoxDecoration(
+                           color: Colors.white,
+                           borderRadius: BorderRadius.circular(16),
+                         ),
+                         child: Column(
+                           children: [
+                             _buildDetailRow(
+                               icon: Icons.access_time, 
+                               content: exam.timeString,
+                               color: Colors.redAccent
+                             ),
+                             const Divider(height: 1, indent: 56),
+                             _buildDetailRow(
+                               icon: Icons.location_on_outlined, 
+                               content: exam.location,
+                               color: Colors.redAccent
+                             ),
+                             const Divider(height: 1, indent: 56),
+                             _buildDetailRow(
+                               icon: Icons.category_outlined,
+                               content: exam.type,
+                               color: Colors.redAccent
+                             ),
+                             const Divider(height: 1, indent: 56),
+                             _buildDetailRow(
+                               icon: Icons.info_outline,
+                               content: exam.status,
+                               color: Colors.redAccent
+                             ),
+                           ],
+                         ),
+                       ),
+                       
+                       const SizedBox(height: 16),
+                       // Actions Card
+                        Container(
+                         margin: const EdgeInsets.symmetric(horizontal: 16),
+                         decoration: BoxDecoration(
+                           color: Colors.white,
+                           borderRadius: BorderRadius.circular(16),
+                         ),
+                         child: Column(
+                           children: [
+                             _buildActionRow(
+                               icon: Icons.copy, 
+                               text: '复制考试名称',
+                               color: Colors.redAccent,
+                               onTap: () {
+                                 Clipboard.setData(ClipboardData(text: exam.courseName));
+                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制考试名称')));
+                               }
+                             ),
+                             const Divider(height: 1, indent: 56),
+                             _buildActionRow(
+                               icon: Icons.copy, 
+                               text: '复制考试信息为文本',
+                               color: Colors.redAccent,
+                               onTap: () {
+                                 final info = '${exam.courseName}\n时间: ${exam.timeString}\n地点: ${exam.location}';
+                                 Clipboard.setData(ClipboardData(text: info));
+                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制考试信息')));
+                               }
+                             ),
+                           ],
+                         ),
+                       ),
+                       const SizedBox(height: 30),
+                     ],
+                   ),
+                 ),
+               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDetailRow({required IconData icon, required String content, required Color color}) {
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(content, style: const TextStyle(fontSize: 16)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      onLongPress: () {
+         Clipboard.setData(ClipboardData(text: content));
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制')));
+      },
+    );
+  }
+  
+  Widget _buildActionRow({required IconData icon, required String text, required Color color, VoidCallback? onTap}) {
+       return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(text, style: const TextStyle(fontSize: 16, color: Colors.redAccent)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      onTap: onTap,
     );
   }
 
