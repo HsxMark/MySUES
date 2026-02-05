@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mysues/services/theme_service.dart';
 
 class DisplaySettingsScreen extends StatefulWidget {
   const DisplaySettingsScreen({super.key});
@@ -10,7 +11,8 @@ class DisplaySettingsScreen extends StatefulWidget {
 
 class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   // ThemeMode: 0 = System, 1 = Light, 2 = Dark
-  int _themeModeIndex = 0; 
+  // Now managed by ThemeService
+  
   bool _liquidGlassEnabled = false;
   String _fontSelection = '默认';
 
@@ -23,19 +25,16 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _themeModeIndex = prefs.getInt('theme_mode') ?? 0;
       _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
       _fontSelection = prefs.getString('app_font') ?? '默认';
     });
   }
 
   Future<void> _saveThemeMode(int index) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('theme_mode', index);
-    setState(() {
-      _themeModeIndex = index;
-    });
-    // Note: In a real app, you would notify the root App widget to rebuild here.
+    await ThemeService().updateThemeMode(index);
+    // No need to setState regarding theme here, as global theme change will trigger rebuild of app
+    // However, to update the UI on this screen immediately if it doesn't rebuild automatically:
+    setState(() {});
   }
 
   Future<void> _saveLiquidGlass(bool value) async {
@@ -48,6 +47,11 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentMode = ThemeService().themeMode;
+    final int themeModeIndex = currentMode == ThemeMode.system
+        ? 0
+        : (currentMode == ThemeMode.light ? 1 : 2);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('界面与显示'),
@@ -57,9 +61,9 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
           _buildSectionHeader('外观'),
           ListTile(
             title: const Text('深色模式'),
-            subtitle: Text(_getThemeModeText(_themeModeIndex)),
+            subtitle: Text(_getThemeModeText(themeModeIndex)),
             trailing: const Icon(Icons.chevron_right),
-            onTap: _showThemePicker,
+            onTap: () => _showThemePicker(themeModeIndex),
           ),
           const Divider(),
           _buildSectionHeader('字体'),
@@ -107,7 +111,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     }
   }
 
-  void _showThemePicker() {
+  void _showThemePicker(int currentIndex) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -119,7 +123,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 title: const Text('跟随系统'),
                 leading: Radio<int>(
                   value: 0,
-                  groupValue: _themeModeIndex,
+                  groupValue: currentIndex,
                   onChanged: (v) {
                     _saveThemeMode(v!);
                     Navigator.pop(context);
@@ -134,7 +138,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 title: const Text('浅色模式'),
                 leading: Radio<int>(
                   value: 1,
-                  groupValue: _themeModeIndex,
+                  groupValue: currentIndex,
                   onChanged: (v) {
                     _saveThemeMode(v!);
                     Navigator.pop(context);
@@ -149,7 +153,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 title: const Text('深色模式'),
                 leading: Radio<int>(
                   value: 2,
-                  groupValue: _themeModeIndex,
+                  groupValue: currentIndex,
                   onChanged: (v) {
                     _saveThemeMode(v!);
                     Navigator.pop(context);

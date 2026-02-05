@@ -37,7 +37,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           });
         },
         type: BottomNavigationBarType.fixed, // 超过3个item时需要这个，或者设置selectedItemColor等
-        selectedItemColor: Theme.of(context).primaryColor,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(

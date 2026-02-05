@@ -27,8 +27,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if we are in dark mode
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: SizedBox(
           width: 100,
@@ -36,6 +39,9 @@ class _SplashScreenState extends State<SplashScreen> {
           child: SvgPicture.asset(
             'assets/images/sanxuanyi.svg',
             fit: BoxFit.contain,
+            colorFilter: isDark 
+                ? const ColorFilter.mode(Colors.white, BlendMode.srcIn) 
+                : null,
           ),
         ),
       ),
