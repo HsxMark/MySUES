@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/score.dart';
+import 'import_pdf_screen.dart';
 
 class TranscriptScreen extends StatefulWidget {
   const TranscriptScreen({super.key});
@@ -9,98 +10,7 @@ class TranscriptScreen extends StatefulWidget {
 }
 
 class _TranscriptScreenState extends State<TranscriptScreen> {
-  // Mock 数据
-  final List<Score> _allScores = [
-    // 2023-2024-1 学期
-    Score(
-      courseName: '高等数学 A',
-      credit: 5.0,
-      score: 92,
-      gradePoint: 4.0,
-      semester: '2023-2024-1',
-    ),
-    Score(
-      courseName: '大学英语 I',
-      credit: 3.0,
-      score: 88,
-      gradePoint: 3.7,
-      semester: '2023-2024-1',
-    ),
-    Score(
-      courseName: 'C语言程序设计',
-      credit: 4.0,
-      score: 95,
-      gradePoint: 4.0,
-      semester: '2023-2024-1',
-    ),
-    Score(
-      courseName: '思想道德修养',
-      credit: 2.0,
-      score: 85,
-      gradePoint: 3.3,
-      semester: '2023-2024-1',
-    ),
-    Score(
-      courseName: '体育 I',
-      credit: 1.0,
-      score: 80,
-      gradePoint: 3.0,
-      semester: '2023-2024-1',
-    ),
-
-    // 2023-2024-2 学期
-    Score(
-      courseName: '线性代数',
-      credit: 3.5,
-      score: 86,
-      gradePoint: 3.3,
-      semester: '2023-2024-2',
-    ),
-    Score(
-      courseName: '大学物理 A',
-      credit: 4.5,
-      score: 78,
-      gradePoint: 2.7,
-      semester: '2023-2024-2',
-    ),
-    Score(
-      courseName: '面向对象程序设计',
-      credit: 4.0,
-      score: 91,
-      gradePoint: 4.0,
-      semester: '2023-2024-2',
-    ),
-    Score(
-      courseName: '近代史纲要',
-      credit: 2.0,
-      score: 89,
-      gradePoint: 3.7,
-      semester: '2023-2024-2',
-    ),
-
-    // 2024-2025-1 学期
-    Score(
-      courseName: '数据结构',
-      credit: 4.0,
-      score: 94,
-      gradePoint: 4.0,
-      semester: '2024-2025-1',
-    ),
-    Score(
-      courseName: '概率论与数理统计',
-      credit: 3.5,
-      score: 82,
-      gradePoint: 3.0,
-      semester: '2024-2025-1',
-    ),
-    Score(
-      courseName: '计算机组成原理',
-      credit: 4.0,
-      score: 75,
-      gradePoint: 2.3,
-      semester: '2024-2025-1',
-    ),
-  ];
+  final List<Score> _allScores = [];
 
   late String _selectedSemester;
   late List<String> _semesters;
@@ -165,7 +75,15 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
-              // TODO: Implement menu actions
+              if (value == 'pdf') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ImportPdfScreen(),
+                  ),
+                );
+              }
+              // TODO: Implement other menu actions
             },
             itemBuilder: (BuildContext context) {
               return [
