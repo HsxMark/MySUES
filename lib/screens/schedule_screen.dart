@@ -3,17 +3,17 @@ import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart'; // Import Time models
 import '../services/schedule_service.dart';
-import 'add_course_screen_v2.dart';
+import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
 
-class ScheduleScreenV2 extends StatefulWidget {
-  const ScheduleScreenV2({super.key});
+class ScheduleScreen extends StatefulWidget {
+  const ScheduleScreen({super.key});
 
   @override
-  State<ScheduleScreenV2> createState() => _ScheduleScreenV2State();
+  State<ScheduleScreen> createState() => _ScheduleScreenState();
 }
 
-class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
+class _ScheduleScreenState extends State<ScheduleScreen> {
   late PageController _pageController;
   int _currentWeek = 1;
   ScheduleTable? _currentTable;
@@ -109,7 +109,7 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
                 Navigator.pop(context);
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: course)),
+                  MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
                 );
                 
                 // If result is strict string 'deleted', it was deleted
@@ -284,18 +284,9 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
                   break;
                 case 'add':
                   if (_currentTable != null) {
-                    final newCourse = Course(
-                      courseName: '', 
-                      day: 1, 
-                      startNode: 1, 
-                      startWeek: 1, 
-                      endWeek: 16, 
-                      color: '#2196F3',
-                      tableId: _currentTable!.id
-                    );
                     final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (c) => AddCourseScreenV2(course: null)), 
+                      MaterialPageRoute(builder: (c) => AddCourseScreen(course: null)), 
                     );
                     if (result != null && result is Course) {
                       result.tableId = _currentTable!.id; // Ensure table ID is set
@@ -367,7 +358,6 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.today),
         tooltip: '回到本周',
         onPressed: () {
            if (_currentTable != null) {
@@ -377,6 +367,7 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
               _pageController.jumpToPage(targetPage);
            }
         },
+        child: const Icon(Icons.today),
       ),
     );
   }
@@ -403,7 +394,7 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
                     final isToday = DateTime.now().day == date.day && DateTime.now().month == date.month && DateTime.now().year == date.year;
                     return Container(
                       width: dayColWidth,
-                      color: isToday ? Colors.blue.withOpacity(0.1) : null,
+                      color: isToday ? Colors.blue.withValues(alpha: 0.1) : null,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -435,7 +426,7 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
                             height: _cellHeight,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.1)))
+                                border: Border(bottom: BorderSide(color: Colors.grey.withValues(alpha: 0.1)))
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -467,7 +458,7 @@ class _ScheduleScreenV2State extends State<ScheduleScreenV2> {
                                top: (i + 1) * _cellHeight,
                                left: 0, 
                                right: 0,
-                               child: Divider(height: 1, color: Colors.grey.withOpacity(0.2)),
+                               child: Divider(height: 1, color: Colors.grey.withValues(alpha: 0.2)),
                              );
                           }),
                           

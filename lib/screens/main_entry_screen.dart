@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'schedule_screen_v2.dart';
+import 'schedule_screen.dart';
 import 'transcript_screen.dart';
 import 'exam_info_screen.dart';
 import 'profile_screen.dart';
@@ -16,7 +16,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
   
   // 页面列表
   final List<Widget> _pages = [
-    const ScheduleScreenV2(),
+    const ScheduleScreen(),
     const TranscriptScreen(),
     const ExamInfoScreen(),
     const ProfileScreen(),

@@ -7,7 +7,6 @@ import '../models/time_table.dart';
 class ScheduleDataService {
   static const String _tablesKey = 'schedule_tables';
   static const String _coursesKey = 'schedule_courses'; // 新的课程存储Key
-  static const String _timeTablesKey = 'time_tables';
   static const String _timeDetailsKey = 'time_details';
   static const String _currentTableIdKey = 'current_table_id';
 
@@ -141,7 +140,7 @@ class ScheduleDataService {
     // This function assumes 'details' is the ALL list or we read-modify-write.
     // Let's implement read-modify-write for simplicity in usage.
     
-    final allDetails = await loadTimeDetails(); 
+    // final allDetails = await loadTimeDetails(); 
     // This is tricky if we want to save a subset. 
     // Let's change this to: save ALL time details.
     
@@ -157,14 +156,12 @@ class ScheduleDataService {
 
   // 初始化默认数据
   static Future<void> initDefaultData() async {
-    final prefs = await SharedPreferences.getInstance();
-    
     // Check tables
     final tables = await loadScheduleTables();
     if (tables.isEmpty) {
       // 创建默认时间表
       // 1. TimeTable
-      final timeTable = TimeTable(id: 1, name: '默认作息');
+      // final timeTable = TimeTable(id: 1, name: '默认作息');
       // Save TimeTable (need to impl saveTimeTables if managing multiple, but here just check details)
       
       // 2. Default Details
