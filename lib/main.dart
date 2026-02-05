@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/main_schedule_screen.dart';
+import 'screens/schedule_screen_v2.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,7 +29,9 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
       locale: const Locale('zh', 'CN'),
-      home: const MainScheduleScreen(),
+      // 切换到新版课表界面
+      // 如需回滚，请改为 MainScheduleScreen()
+      home: const ScheduleScreenV2(),
       debugShowCheckedModeBanner: false,
     );
   }
