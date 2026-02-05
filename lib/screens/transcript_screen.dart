@@ -119,13 +119,28 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     }
   }
 
+  // 根据分数计算绩点
+  double _getGradePoint(double score) {
+    if (score >= 90) return 4.0;
+    if (score >= 85) return 3.7;
+    if (score >= 82) return 3.3;
+    if (score >= 78) return 3.0;
+    if (score >= 75) return 2.7;
+    if (score >= 71) return 2.3;
+    if (score >= 66) return 2.0;
+    if (score >= 62) return 1.5;
+    if (score >= 60) return 1.0;
+    return 0.0;
+  }
+
   // 计算GPA helper
   double _calculateGPA(List<Score> scores) {
     if (scores.isEmpty) return 0.0;
     double totalPoints = 0;
     double totalCredits = 0;
     for (var score in scores) {
-      totalPoints += score.gradePoint * score.credit;
+      double gp = _getGradePoint(score.score);
+      totalPoints += gp * score.credit;
       totalCredits += score.credit;
     }
     return totalCredits == 0 ? 0.0 : totalPoints / totalCredits;
@@ -144,7 +159,51 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     final semesterGPA = _calculateGPA(semesterScores);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('成绩单'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('成绩单'),
+        centerTitle: true,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              // TODO: Implement menu actions
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem(
+                  value: 'pdf',
+                  child: Row(
+                    children: [
+                      Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                      SizedBox(width: 10),
+                      Text('从PDF导入'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'jwc',
+                  child: Row(
+                    children: [
+                      Icon(Icons.school, color: Colors.blueAccent),
+                      SizedBox(width: 10),
+                      Text('从教务处导入'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'details',
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.grey),
+                      SizedBox(width: 10),
+                      Text('详情'),
+                    ],
+                  ),
+                ),
+              ];
+            },
+          ),
+        ],
+      ),
       body: _semesters.isEmpty
           ? const Center(child: Text("暂无成绩数据"))
           : Column(
@@ -338,7 +397,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                 ),
                 Text(
-                  "绩点: ${score.gradePoint}",
+                  "绩点: ${_getGradePoint(score.score)}",
                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
               ],
