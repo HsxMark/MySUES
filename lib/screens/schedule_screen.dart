@@ -446,7 +446,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.menu),
             tooltip: '菜单',
             onSelected: (value) async {
               switch (value) {
