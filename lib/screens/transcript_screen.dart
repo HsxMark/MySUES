@@ -183,7 +183,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                     children: [
                       Icon(Icons.delete_outline, color: Colors.grey),
                       SizedBox(width: 10),
-                      Text('清空所有数据'),
+                      Text('清空成绩'),
                     ],
                   ),
                 ),

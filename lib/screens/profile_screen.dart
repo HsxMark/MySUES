@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/models/student_info.dart';
 import 'package:mysues/screens/profile_edit_screen.dart';
+import 'package:mysues/screens/settings/settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -108,6 +109,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildUserInfoSection(context),
           const SizedBox(height: 16),
           _buildProgressSection(context),
+          const SizedBox(height: 16),
+          _buildConnectionStatusCard(context),
           const SizedBox(height: 16),
           const _SettingsTile(),
           const _AboutTile(),
@@ -333,6 +336,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ],
     );
   }
+
+  Widget _buildConnectionStatusCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.sync_alt, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text(
+                      '教务连接状态',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: const Text(
+                    '正常',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.0),
+              child: Divider(height: 1),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '上次连接时间',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                Text(
+                  '2026-02-05 10:00',
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 14,
+                    fontFamily: Platform.isIOS ? 'Courier' : null,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _SettingsTile extends StatelessWidget {
@@ -345,7 +414,10 @@ class _SettingsTile extends StatelessWidget {
       title: const Text('设置'),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () {
-        // TODO: Navigate to settings screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+        );
       },
     );
   }
