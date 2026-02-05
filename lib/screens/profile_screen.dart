@@ -23,9 +23,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   File? _avatarFile;
   String? _major;
+  String? _nickname;
   
   static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _majorPrefsKey = 'user_major';
+  static const String _nicknamePrefsKey = 'user_nickname';
 
   @override
   void initState() {
@@ -50,6 +52,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _avatarFile = null;
         });
     }
+
+    // Load Nickname
+    setState(() {
+      _nickname = prefs.getString(_nicknamePrefsKey);
+    });
 
     // Load Major
     final savedMajor = prefs.getString(_majorPrefsKey);
@@ -161,7 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        name ?? '未知',
+                        (_nickname != null && _nickname!.isNotEmpty) ? _nickname! : (name ?? '未知'),
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
