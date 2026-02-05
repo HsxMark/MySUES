@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/exam.dart';
+import '../services/exam_service.dart';
+import 'add_exam_screen.dart';
 
 class ExamInfoScreen extends StatefulWidget {
   const ExamInfoScreen({super.key});
@@ -9,43 +11,44 @@ class ExamInfoScreen extends StatefulWidget {
 }
 
 class _ExamInfoScreenState extends State<ExamInfoScreen> {
-  // Mock data
-  final List<Exam> _allExams = [
-    Exam(
-      courseName: '材料分析方法',
-      timeString: '2025-09-05 08:15',
-      location: '松江校区 教学楼F楼 F106多 E5',
-      type: '补考',
-      status: '已结束',
-    ),
-    Exam(
-      courseName: '机器学习',
-      timeString: '2025-11-12 12:15~14:15',
-      location: '松江校区 教学楼F楼 F320多 L10',
-      type: '期末',
-      status: '已结束',
-    ),
-    Exam(
-      courseName: '高等数学',
-      timeString: '2026-06-15 09:00~11:00',
-      location: '松江校区 教学楼A楼 A101',
-      type: '期末',
-      status: '未结束',
-    ),
-    Exam(
-      courseName: '大学英语',
-      timeString: '2026-02-05 13:00~15:00',
-      location: '松江校区 教学楼B楼 B202',
-      type: '期末',
-      status: '未结束',
-    ),
-  ];
+  // Data list
+  List<Exam> _allExams = [];
 
-  String _filterStatus = '全部'; // '全部', '未结束', '已结束'
+  @override
+  void initState() {
+    super.initState();
+    _loadExams();
+  }
+
+  Future<void> _loadExams() async {
+    final exams = await ExamService.loadExams();
+    if (mounted) {
+      setState(() {
+        _allExams = exams;
+      });
+    }
+  }
+
+  String _filterStatus = '全部';
 
   List<Exam> get _filteredExams {
-    // 1. Sort by time (String comparison works for YYYY-MM-DD format)
-    _allExams.sort((a, b) => a.timeString.compareTo(b.timeString));
+    _allExams.sort((a, b) {
+      final bool aFinished = a.status == '已结束';
+      final bool bFinished = b.status == '已结束';
+
+      // Put unfinished exams before finished exams
+      if (aFinished != bFinished) {
+        return aFinished ? 1 : -1;
+      }
+
+      // If both are unfinished, sort ascending (closer to today first)
+      if (!aFinished) {
+        return a.timeString.compareTo(b.timeString);
+      }
+
+      // If both are finished, sort descending (closer to today first)
+      return b.timeString.compareTo(a.timeString);
+    });
 
     // 2. Filter
     if (_filterStatus == '全部') {
@@ -75,6 +78,39 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       appBar: AppBar(
         title: const Text('考试信息'),
         centerTitle: true,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'add':
+                  _navigateToAddExam();
+                  break;
+                case 'clear':
+                  _clearFinishedExams();
+                  break;
+                case 'details':
+                  // Placeholder
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem(
+                  value: 'add',
+                  child: Text('添加自定义考试'),
+                ),
+                const PopupMenuItem(
+                  value: 'clear',
+                  child: Text('清除已结束'),
+                ),
+                const PopupMenuItem(
+                  value: 'details',
+                  child: Text('详情'),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -129,6 +165,28 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _clearFinishedExams() async {
+    await ExamService.clearFinishedExams();
+    _loadExams();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已清除所有已结束的考试')),
+      );
+    }
+  }
+
+  void _navigateToAddExam() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AddExamScreen(),
+      ),
+    );
+
+    if (result == true) {
+      _loadExams();
+    }
   }
 
   Widget _buildFilterChip(String label) {

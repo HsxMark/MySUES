@@ -1,1 +1,2 @@
-CFBundleDisplayName = "My SUES";
+"CFBundleDisplayName" = "My SUES";
+"CFBundleName" = "My SUES";

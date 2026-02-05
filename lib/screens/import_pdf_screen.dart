@@ -135,24 +135,6 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
     // 我们需要一个游标来遍历文本
     int currentIndex = 0;
     int currentSemesterIndex = 0; // 0..columnCount-1
-    // 对应的学期名称列表，需要根据页面进度更新吗？
-    // 实际上通常PDF提取出的文本顺序是：HeaderLine -> BodyText.
-    // 我们假设 detectedSemesters 是按顺序排列的 S1, S2, S3, S4...
-    // 每一行对应 columnCount 个学期。
-    // 但是这里 detectedSemesters 可能包含多个页面的所有学期？
-    // 最稳妥的方式：只维护 0..columnCount-1 的索引，映射到 "Col 1", "Col 2"...
-    // 然后根据 detectedSemesters 的数量，去推断。
-    // 简化方案：使用 "Index % columnCount" 确定是第几列。
-    // 至于具体的学期名：
-    // 如果 detectedSemesters 有 4 个，正好对应 4 列。
-    // 如果有 5 个？(比如跨页)。
-    // 实际上，我们很难将流式文本精确对应到特定的 Header 字符串位置，除非我们按块切分。
-    // 考虑到用户报告的 MD 文件结构：Headers 集中在顶部（或者每页顶部）。
-    // 我们可以尝试将 valid matches 分配给 semestres[idx % detected.length] 
-    // 但如果 detected 长度随页面增加...
-    // 暂时策略：使用 detectedSemesters[idx % detectedSemesters.length] 
-    // 前提是 detectedSemesters 的数量是 columnCount 的倍数 (通常是 4)。
-    // 如果不足，补齐?
     
     List<String> activeSemesters = [...detectedSemesters];
     // 确保至少有 columnCount 个
@@ -200,13 +182,6 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
         blankStart += blankMatch.end;
       }
       
-      // 3.2 提取课程名
-      // 课程名是 Gap 中最后一次 "以下空白" 之后的内容 (或者是全部 Gap)
-      // 需要小心：Gap 可能包含 "课程 学分..." 表头，需要剔除
-      // 简单做法：取 Gap 的最后一行作为课程名？
-      // 不行，课程名可能换行（如 习近平...）。
-      // 正确做法：从 Gap 中剔除 "以下空白" 及其之前的内容。
-      // 剔除 "干扰词" (如表头)。
       
       String rawName = gap;
       int lastBlankIndex = gap.lastIndexOf('以下空白');
@@ -228,24 +203,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
       
       // 如果名字是空的，可能是异常情况或者 parsing 错位
       if (courseName.isNotEmpty) {
-          // 确定学期
-          // 这里有一个难点：activeSemesters 可能包含多页的 headers (如 8 个)。
-          // 我们怎么知道当前在第几页？
-          // 简单假设：总是 4 列循环。
-          // 第 0,1,2,3 列对应 activeSemesters[0,1,2,3]。
-          // 翻页后？
-          // 如果 detectedSemesters 是 [S1, S2, S3, S4, S5, S6, S7, S8]
-          // 那么 currentSemesterIndex 应该不仅仅是 mod 4，而是累加？
-          // 但是 currentSemesterIndex 在 "换行重置" 时逻辑是 mod columnCount。
-          // 这是一个矛盾。
-          // "列索引" (0-3) 和 "学期池索引" 是不同的。
-          // 实际上，每一页的 "第1列" 对应不同的学期。
-          
-          // 妥协方案：只用 columnCount (4) 来做 mod，区分左右位置。
-          // 而具体的 "学期名"，我们需要找到最近的一个 header。
-          // 反向搜索：在 match.start 之前最近的一个 "学期Pattern" 匹配。
-          // 这是一个更稳健的方法！
-          
+
           String semesterName = _findSemesterForColumn(text, match.start, currentSemesterIndex % columnCount, detectedSemesters, columnCount);
           
           Score score = _createScore(courseName, match, semesterName);
@@ -261,11 +219,6 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
   
   // 根据当前位置和列索引找到对应的学期名
   String _findSemesterForColumn(String text, int position, int columnIndex, List<String> allSemesters, int columnCount) {
-      // 策略：
-      // 1. 我们知道当前是第 columnIndex 列 (例如 0, 1, 2, 3)
-      // 2. 在 position 之前查找最近出现的 header.
-      // 3. 如果找到了 header 组，取其中第 columnIndex 个。
-      
       // 截取当前位置之前的文本
       String preText = text.substring(0, position);
       
@@ -277,58 +230,6 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
           return allSemesters.isNotEmpty ? allSemesters[columnIndex % allSemesters.length] : "未知学期";
       }
       
-      // 找到最后出现的一组 header
-      // 通常 header 是成组出现的 (4个)。
-      // 我们找离 position 最近的一个 header，然后推断它属于第几列，从而找到同一行的第 columnIndex 列的 header。
-      
-      // 简化：假设 header 总是成组出现，且顺序是 0, 1, 2, 3.
-      // 找到最后一个 match。
-      // 判断这个 match 是该组的第几个？
-      // 我们可以看 matches 的总数。
-      // 比如找到了 7 个 matches.
-      // 最后一组应该是 4,5,6,7.
-      // 当前是第 columnIndex 列。
-      // 所以应该对应 matches 中的 (totalMatches / columnCount) * columnCount + columnIndex... ?
-      // 不太可靠。
-      
-      // 更简单的策略：
-      // 既然页面 Header 重复出现 S1 S2 S3 S4.
-      // 那么无论哪一页，第0列总是对应 detectedSemesters 的第 0, 4, 8... 个吗？
-      // 不一定，不同页可能显示不同学年。
-      
-      // 最最稳妥的策略：
-      // 直接使用 detectedSemesters。
-      // 假设 detectedSemesters 包含了 S1...SN.
-      // 我们的 currentSemesterIndex 是全局递增的吗？
-      // 不，我们的 currentSemesterIndex 在每一行会被 "Visual Layout" 重置 (mod 4)。
-      // 但是，我们可以根据 "match index" 在所有 matches 中的进度来估算？不行。
-      
-      // 回归 text position：
-      // 在 preText 中找到所有 Headers。
-      // 假设 headers 是按阅读顺序排列的。
-      // 最后一个 header 是 matches.last.
-      // 如果 matches.length 是 N.
-      // 我们处于 N 之后的某个位置。
-      // 该位置属于第 columnIndex 列。
-      // 那么对应的 header 应该是最近的一组 headers 里的第 columnIndex 个。
-      // 最近的一组 headers 也就是 matches[ matches.length - 1 - (matches.length % columnCount) ... ] ?
-      // 比如，找到了 5 个 header. (S1, S2, S3, S4, S5).
-      // 当前在 S5 下面。
-      // Col 0 -> S5. Col 1 -> S6?
-      // 如果我们能确定 "current active headers block".
-      
-      // 算法：
-      // 倒序遍历 matches.
-      // 如果我们假定 headers 是按行排列的。
-      // 找到最近的一个 headerM.
-      // 如果 headerM 是第 k 列的 header。
-      // 那么我们需要的 header 是 headerM 附近的第 columnIndex 列的 header。
-      
-      // 考虑到 PDF 提取文本的顺序： HeaderRow -> BodyRow -> BodyRow
-      // 所以最近的 Headers 肯定就是当前页的 Headers。
-      // 取 matches 的最后 columnCount 个 (或者少于这个数)。
-      // 如果 matches.length >= 4. 取最后 4 个。 [S_a, S_b, S_c, S_d].
-      // return list[columnIndex].
       
       int count = matches.length;
       if (count == 0) return "未知学期";
