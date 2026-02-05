@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/score.dart';
+import '../services/score_service.dart';
 import 'import_pdf_screen.dart';
 
 class TranscriptScreen extends StatefulWidget {
@@ -14,16 +15,43 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   late String _selectedSemester;
   late List<String> _semesters;
+  bool _isLoading = true;
+  String? _lastImportTime;
+  String? _lastImportMethod;
 
   @override
   void initState() {
     super.initState();
-    // 提取所有学期并去重、排序
+    // 初始化默认值
+    _semesters = [];
+    _selectedSemester = '无数据';
+    _loadScores();
+  }
+
+  Future<void> _loadScores() async {
+    final scores = await ScoreService.loadScores();
+    final importInfo = await ScoreService.loadImportInfo();
+    if (!mounted) return;
+    
+    setState(() {
+      _allScores.clear();
+      _allScores.addAll(scores);
+      _lastImportTime = importInfo['time'];
+      _lastImportMethod = importInfo['method'];
+      _updateSemesters();
+      _isLoading = false;
+    });
+  }
+
+  void _updateSemesters() {
     _semesters = _allScores.map((e) => e.semester).toSet().toList();
-    _semesters.sort((a, b) => b.compareTo(a)); // 倒序排列，最新的在前面
+    _semesters.sort((a, b) => b.compareTo(a)); // 倒序排列
 
     if (_semesters.isNotEmpty) {
-      _selectedSemester = _semesters.first;
+      // 保持之前的选择，如果之前选的还在列表里
+      if (!_semesters.contains(_selectedSemester)) {
+         _selectedSemester = _semesters.first;
+      }
     } else {
       _selectedSemester = '无数据';
     }
@@ -84,20 +112,49 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 );
                 
                 if (result != null && result is List<Score> && mounted) {
+                   final now = DateTime.now();
+                   final timeStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+                   const methodStr = "PDF文件";
+
                    setState(() {
                      _allScores.clear();
                      _allScores.addAll(result);
-                     
-                     // 刷新学期列表
-                    _semesters = _allScores.map((e) => e.semester).toSet().toList();
-                    _semesters.sort((a, b) => b.compareTo(a));
-                    
-                    if (_semesters.isNotEmpty) {
-                      _selectedSemester = _semesters.first;
-                    } else {
-                      _selectedSemester = '无数据';
-                    }
+                     _lastImportTime = timeStr;
+                     _lastImportMethod = methodStr;
+                     _updateSemesters();
                    });
+                   await ScoreService.saveScores(_allScores);
+                   await ScoreService.saveImportInfo(timeStr, methodStr);
+                }
+              } else if (value == 'clear') {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('确认清空'),
+                    content: const Text('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('取消'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: const Text('确认清空'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  await ScoreService.clearScores();
+                  if (!mounted) return;
+                  setState(() {
+                    _allScores.clear();
+                    _lastImportTime = null;
+                    _lastImportMethod = null;
+                    _updateSemesters();
+                  });
                 }
               }
               // TODO: Implement other menu actions
@@ -134,12 +191,24 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                     ],
                   ),
                 ),
+                const PopupMenuItem(
+                  value: 'clear',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.grey),
+                      SizedBox(width: 10),
+                      Text('清空所有数据'),
+                    ],
+                  ),
+                ),
               ];
             },
           ),
         ],
       ),
-      body: _semesters.isEmpty
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : _semesters.isEmpty
           ? const Center(child: Text("暂无成绩数据，点击右上方按钮进行导入"))
           : Column(
               children: [
@@ -187,7 +256,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 // 成绩列表
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
                     itemCount: semesterScores.length,
                     itemBuilder: (context, index) {
                       final score = semesterScores[index];
@@ -195,6 +264,20 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                     },
                   ),
                 ),
+                
+                // 底部注释
+                if (_lastImportTime != null && _lastImportMethod != null)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      "上次导入成绩时间$_lastImportTime，导入方式$_lastImportMethod",
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
               ],
             ),
     );

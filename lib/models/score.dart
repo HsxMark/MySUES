@@ -12,4 +12,24 @@ class Score {
     required this.gradePoint,
     required this.semester,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'courseName': courseName,
+      'credit': credit,
+      'score': score,
+      'gradePoint': gradePoint,
+      'semester': semester,
+    };
+  }
+
+  factory Score.fromJson(Map<String, dynamic> json) {
+    return Score(
+      courseName: json['courseName'] ?? '',
+      credit: (json['credit'] as num?)?.toDouble() ?? 0.0,
+      score: (json['score'] as num?)?.toDouble() ?? 0.0,
+      gradePoint: (json['gradePoint'] as num?)?.toDouble() ?? 0.0,
+      semester: json['semester'] ?? '',
+    );
+  }
 }

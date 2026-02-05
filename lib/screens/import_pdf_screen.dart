@@ -23,12 +23,25 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
 
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
+        // Android 上 FileType.custom 结合 allowedExtensions 可能会导致部分机型无响应
+        // 改为 FileType.any 并在代码中校验扩展名
+        type: Platform.isAndroid ? FileType.any : FileType.custom,
+        allowedExtensions: Platform.isAndroid ? null : ['pdf'],
       );
 
       if (result != null) {
         File file = File(result.files.single.path!);
+        
+        // Android 手动检查后缀名
+        if (Platform.isAndroid && !file.path.toLowerCase().endsWith('.pdf')) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('请选择 PDF 文件')),
+            );
+          }
+          return;
+        }
+
         setState(() {
           _statusMessage = '正在读取文件...';
         });
