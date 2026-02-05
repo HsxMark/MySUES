@@ -1,7 +1,382 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+import '../models/score.dart';
 
-class ImportPdfScreen extends StatelessWidget {
+class ImportPdfScreen extends StatefulWidget {
   const ImportPdfScreen({super.key});
+
+  @override
+  State<ImportPdfScreen> createState() => _ImportPdfScreenState();
+}
+
+class _ImportPdfScreenState extends State<ImportPdfScreen> {
+  bool _isLoading = false;
+  String? _statusMessage;
+
+  Future<void> _pickAndProcessPdf() async {
+    setState(() {
+      _isLoading = true;
+      _statusMessage = '正在选择文件...';
+    });
+
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+
+      if (result != null) {
+        File file = File(result.files.single.path!);
+        setState(() {
+          _statusMessage = '正在读取文件...';
+        });
+
+        final List<int> bytes = await file.readAsBytes();
+        
+        setState(() {
+          _statusMessage = '正在解析内容...';
+        });
+
+        final List<Score> scores = await _extractAndParsePdf(bytes);
+
+        if (!mounted) return;
+
+        if (scores.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('未能在PDF中找到有效的成绩数据')),
+          );
+        } else {
+          // 成功解析，返回数据
+          Navigator.pop(context, scores);
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('导入失败: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _statusMessage = null;
+        });
+      }
+    }
+  }
+
+  Future<List<Score>> _extractAndParsePdf(List<int> bytes) async {
+    final PdfDocument document = PdfDocument(inputBytes: bytes);
+    String text = PdfTextExtractor(document).extractText();
+    document.dispose();
+
+    return _parseTranscriptTextStream(text);
+  }
+
+  /// 使用流式处理来解析复杂的PDF文本
+  List<Score> _parseTranscriptTextStream(String text) {
+    List<Score> scores = [];
+    
+    // 1. 预处理：移除页眉页脚等干扰信息
+    // 移除 "第 x 页 共 y 页", 日期, "留学生专用"
+    text = text.replaceAll(RegExp(r'第\s*\d+\s*页\s*共\s*\d+\s*页'), '');
+    text = text.replaceAll(RegExp(r'\d{4}年\d{2}月\d{2}日'), '');
+    text = text.replaceAll(RegExp(r'留学生专用'), '');
+    text = text.replaceAll(RegExp(r'学院：.*'), '');
+    text = text.replaceAll(RegExp(r'姓名：.*'), '');
+    
+    // 2. 识别列数和学期表头
+    // 查找包含 "课程" "学分" 重复出现的行，确定列数
+    int columnCount = 4; // 默认为4列，常见格式
+    
+    // 尝试找学期定义
+    // 简单策略：按顺序收集所有出现的学年学期字符串，存入列表
+    // 比如：第一学年(2023.09--2024.01)
+    final semesterPattern = RegExp(r'(?:第[一二三四五]学年)?\((\d{4}\.\d{2}--\d{4}\.\d{2})\)');
+    List<String> detectedSemesters = [];
+    
+    final lines = text.split('\n');
+    for (var line in lines) {
+       final matches = semesterPattern.allMatches(line);
+       for (var m in matches) {
+           detectedSemesters.add(m.group(0)!);
+       }
+       
+       // 检测列数
+       int headerCount = '课程'.allMatches(line).length;
+       if (headerCount > 1) {
+           columnCount = headerCount;
+       }
+    }
+    
+    // 如果没有检测到足够的学期头，就循环使用
+    if (detectedSemesters.isEmpty) detectedSemesters.add("未知学期");
+    
+    // 3. 流式解析课程
+    // 正则匹配课程数据块: 学分(float) 学时(int) 成绩(str) 绩点(float)
+    final dataBlockPattern = RegExp(r'(\d+(?:\.\d+)?)\s+(\d+)\s+([A-Z][+-]?|\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)');
+    final blankPattern = RegExp(r'以下空白');
+    
+    // 我们需要一个游标来遍历文本
+    int currentIndex = 0;
+    int currentSemesterIndex = 0; // 0..columnCount-1
+    // 对应的学期名称列表，需要根据页面进度更新吗？
+    // 实际上通常PDF提取出的文本顺序是：HeaderLine -> BodyText.
+    // 我们假设 detectedSemesters 是按顺序排列的 S1, S2, S3, S4...
+    // 每一行对应 columnCount 个学期。
+    // 但是这里 detectedSemesters 可能包含多个页面的所有学期？
+    // 最稳妥的方式：只维护 0..columnCount-1 的索引，映射到 "Col 1", "Col 2"...
+    // 然后根据 detectedSemesters 的数量，去推断。
+    // 简化方案：使用 "Index % columnCount" 确定是第几列。
+    // 至于具体的学期名：
+    // 如果 detectedSemesters 有 4 个，正好对应 4 列。
+    // 如果有 5 个？(比如跨页)。
+    // 实际上，我们很难将流式文本精确对应到特定的 Header 字符串位置，除非我们按块切分。
+    // 考虑到用户报告的 MD 文件结构：Headers 集中在顶部（或者每页顶部）。
+    // 我们可以尝试将 valid matches 分配给 semestres[idx % detected.length] 
+    // 但如果 detected 长度随页面增加...
+    // 暂时策略：使用 detectedSemesters[idx % detectedSemesters.length] 
+    // 前提是 detectedSemesters 的数量是 columnCount 的倍数 (通常是 4)。
+    // 如果不足，补齐?
+    
+    List<String> activeSemesters = [...detectedSemesters];
+    // 确保至少有 columnCount 个
+    while (activeSemesters.length < columnCount) {
+        activeSemesters.add(activeSemesters.lastOrNull ?? "未知学期");
+    }
+    
+    // 查找所有数据块匹配
+    final allMatches = dataBlockPattern.allMatches(text).toList();
+    
+    int lastMatchEnd = 0;
+    
+    for (int i = 0; i < allMatches.length; i++) {
+      final match = allMatches[i];
+      
+      // 获取两个匹配之间的文本 (Gap)
+      String gap = text.substring(lastMatchEnd, match.start);
+      
+      // 3.1 处理 Gap 中的 "以下空白" 和 换行
+      // 我们在 gap 中查找 "以下空白"
+      int blankStart = 0;
+      while (true) {
+        final blankMatch = blankPattern.firstMatch(gap.substring(blankStart));
+        if (blankMatch == null) break;
+        
+        // 找到一个空白，跳过一个学期
+        currentSemesterIndex++;
+        
+        // 检查这个空白后面是否紧跟换行 (意味着这一行结束，后面都是空白)
+        // 绝对索引
+        int relativeEnd = blankStart + blankMatch.end; // inside gap substring
+        String afterBlank = gap.substring(relativeEnd);
+        
+        if (afterBlank.trimLeft().startsWith('\n') || afterBlank.trim().isEmpty && i < allMatches.length ) {
+             // 如果是行末空白，填充剩余列直到换行
+             // 怎么判断是行末？看 gap 后续是否有换行符
+             if (afterBlank.contains('\n')) {
+                 // 填充直到下一行起始 (idx % col == 0)
+                 while (currentSemesterIndex % columnCount != 0) {
+                     currentSemesterIndex++;
+                 }
+             }
+        }
+        
+        blankStart += blankMatch.end;
+      }
+      
+      // 3.2 提取课程名
+      // 课程名是 Gap 中最后一次 "以下空白" 之后的内容 (或者是全部 Gap)
+      // 需要小心：Gap 可能包含 "课程 学分..." 表头，需要剔除
+      // 简单做法：取 Gap 的最后一行作为课程名？
+      // 不行，课程名可能换行（如 习近平...）。
+      // 正确做法：从 Gap 中剔除 "以下空白" 及其之前的内容。
+      // 剔除 "干扰词" (如表头)。
+      
+      String rawName = gap;
+      int lastBlankIndex = gap.lastIndexOf('以下空白');
+      if (lastBlankIndex != -1) {
+          rawName = gap.substring(lastBlankIndex + 4);
+      }
+      
+      // 清理 rawName
+      String courseName = rawName.trim();
+      
+      // 如果包含表头 "课程 学分..."，剔除之
+      if (courseName.contains("课程") && courseName.contains("学分")) {
+          // 找到最后一个表头关键字的位置，取其后的内容
+          int headerIdx = courseName.lastIndexOf("绩点");
+          if (headerIdx != -1) {
+              courseName = courseName.substring(headerIdx + 2).trim();
+          }
+      }
+      
+      // 如果名字是空的，可能是异常情况或者 parsing 错位
+      if (courseName.isNotEmpty) {
+          // 确定学期
+          // 这里有一个难点：activeSemesters 可能包含多页的 headers (如 8 个)。
+          // 我们怎么知道当前在第几页？
+          // 简单假设：总是 4 列循环。
+          // 第 0,1,2,3 列对应 activeSemesters[0,1,2,3]。
+          // 翻页后？
+          // 如果 detectedSemesters 是 [S1, S2, S3, S4, S5, S6, S7, S8]
+          // 那么 currentSemesterIndex 应该不仅仅是 mod 4，而是累加？
+          // 但是 currentSemesterIndex 在 "换行重置" 时逻辑是 mod columnCount。
+          // 这是一个矛盾。
+          // "列索引" (0-3) 和 "学期池索引" 是不同的。
+          // 实际上，每一页的 "第1列" 对应不同的学期。
+          
+          // 妥协方案：只用 columnCount (4) 来做 mod，区分左右位置。
+          // 而具体的 "学期名"，我们需要找到最近的一个 header。
+          // 反向搜索：在 match.start 之前最近的一个 "学期Pattern" 匹配。
+          // 这是一个更稳健的方法！
+          
+          String semesterName = _findSemesterForColumn(text, match.start, currentSemesterIndex % columnCount, detectedSemesters, columnCount);
+          
+          Score score = _createScore(courseName, match, semesterName);
+          scores.add(score);
+      }
+      
+      lastMatchEnd = match.end;
+      currentSemesterIndex++;
+    }
+
+    return scores;
+  }
+  
+  // 根据当前位置和列索引找到对应的学期名
+  String _findSemesterForColumn(String text, int position, int columnIndex, List<String> allSemesters, int columnCount) {
+      // 策略：
+      // 1. 我们知道当前是第 columnIndex 列 (例如 0, 1, 2, 3)
+      // 2. 在 position 之前查找最近出现的 header.
+      // 3. 如果找到了 header 组，取其中第 columnIndex 个。
+      
+      // 截取当前位置之前的文本
+      String preText = text.substring(0, position);
+      
+      // 查找所有 header 的位置
+      final pattern = RegExp(r'(?:第[一二三四五]学年)?\((\d{4}\.\d{2}--\d{4}\.\d{2})\)');
+      final matches = pattern.allMatches(preText).toList();
+      
+      if (matches.isEmpty) {
+          return allSemesters.isNotEmpty ? allSemesters[columnIndex % allSemesters.length] : "未知学期";
+      }
+      
+      // 找到最后出现的一组 header
+      // 通常 header 是成组出现的 (4个)。
+      // 我们找离 position 最近的一个 header，然后推断它属于第几列，从而找到同一行的第 columnIndex 列的 header。
+      
+      // 简化：假设 header 总是成组出现，且顺序是 0, 1, 2, 3.
+      // 找到最后一个 match。
+      // 判断这个 match 是该组的第几个？
+      // 我们可以看 matches 的总数。
+      // 比如找到了 7 个 matches.
+      // 最后一组应该是 4,5,6,7.
+      // 当前是第 columnIndex 列。
+      // 所以应该对应 matches 中的 (totalMatches / columnCount) * columnCount + columnIndex... ?
+      // 不太可靠。
+      
+      // 更简单的策略：
+      // 既然页面 Header 重复出现 S1 S2 S3 S4.
+      // 那么无论哪一页，第0列总是对应 detectedSemesters 的第 0, 4, 8... 个吗？
+      // 不一定，不同页可能显示不同学年。
+      
+      // 最最稳妥的策略：
+      // 直接使用 detectedSemesters。
+      // 假设 detectedSemesters 包含了 S1...SN.
+      // 我们的 currentSemesterIndex 是全局递增的吗？
+      // 不，我们的 currentSemesterIndex 在每一行会被 "Visual Layout" 重置 (mod 4)。
+      // 但是，我们可以根据 "match index" 在所有 matches 中的进度来估算？不行。
+      
+      // 回归 text position：
+      // 在 preText 中找到所有 Headers。
+      // 假设 headers 是按阅读顺序排列的。
+      // 最后一个 header 是 matches.last.
+      // 如果 matches.length 是 N.
+      // 我们处于 N 之后的某个位置。
+      // 该位置属于第 columnIndex 列。
+      // 那么对应的 header 应该是最近的一组 headers 里的第 columnIndex 个。
+      // 最近的一组 headers 也就是 matches[ matches.length - 1 - (matches.length % columnCount) ... ] ?
+      // 比如，找到了 5 个 header. (S1, S2, S3, S4, S5).
+      // 当前在 S5 下面。
+      // Col 0 -> S5. Col 1 -> S6?
+      // 如果我们能确定 "current active headers block".
+      
+      // 算法：
+      // 倒序遍历 matches.
+      // 如果我们假定 headers 是按行排列的。
+      // 找到最近的一个 headerM.
+      // 如果 headerM 是第 k 列的 header。
+      // 那么我们需要的 header 是 headerM 附近的第 columnIndex 列的 header。
+      
+      // 考虑到 PDF 提取文本的顺序： HeaderRow -> BodyRow -> BodyRow
+      // 所以最近的 Headers 肯定就是当前页的 Headers。
+      // 取 matches 的最后 columnCount 个 (或者少于这个数)。
+      // 如果 matches.length >= 4. 取最后 4 个。 [S_a, S_b, S_c, S_d].
+      // return list[columnIndex].
+      
+      int count = matches.length;
+      if (count == 0) return "未知学期";
+      
+      // 找到这一页的起始 header index
+      // 假设每页也是 columnCount 个 header
+      int startIdx = (count - 1) ~/ columnCount * columnCount;
+      
+      // 如果 startIdx + columnIndex 存在
+      if (startIdx + columnIndex < count) {
+          return matches.elementAt(startIdx + columnIndex).group(0)!;
+      } else {
+          // Fallback
+          return matches.last.group(0)!;
+      }
+  }
+  
+  bool _isValidCourseName(String name) {
+      if (name.contains("课程") && name.contains("学分")) return false;
+      if (name.trim() == "以下空白") return false;
+      if (name.trim().isEmpty) return false;
+      return true;
+  }
+
+  Score _createScore(String name, RegExpMatch match, String semester) {
+      name = name.replaceAll("以下空白", "").trim();
+      
+      double credit = double.tryParse(match.group(1)!) ?? 0.0;
+      String scoreStr = match.group(3)!;
+      double gradePoint = double.tryParse(match.group(4)!) ?? 0.0;
+      
+      double scoreVal = _convertScore(scoreStr);
+      
+      return Score(
+          courseName: name,
+          credit: credit,
+          score: scoreVal,
+          gradePoint: gradePoint, 
+          semester: semester,
+      );
+  }
+  
+  double _convertScore(String s) {
+      double? v = double.tryParse(s);
+      if (v != null) return v;
+      
+      switch (s.toUpperCase()) {
+          case 'A': return 90; 
+          case 'A-': return 87; 
+          case 'B+': return 83; 
+          case 'B': return 79; 
+          case 'B-': return 76; 
+          case 'C+': return 73; 
+          case 'C': return 68; 
+          case 'C-': return 64; 
+          case 'D': return 60; 
+          case 'F': return 0;
+          case 'P': return 60; 
+          default: return 0;
+      }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +388,18 @@ class ImportPdfScreen extends StatelessWidget {
         ),
         title: const Text('导入成绩单'),
       ),
-      body: Padding(
+      body: _isLoading 
+        ? Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(_statusMessage ?? '处理中...'),
+                ],
+            ),
+        )
+        : Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -58,9 +444,7 @@ class ImportPdfScreen extends StatelessWidget {
             ),
             const SizedBox(height: 48),
             ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Implement file picking logic
-              },
+              onPressed: _pickAndProcessPdf,
               icon: const Icon(Icons.upload_file),
               label: const Text('选择文件'),
               style: ElevatedButton.styleFrom(

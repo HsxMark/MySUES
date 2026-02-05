@@ -49,7 +49,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     double totalPoints = 0;
     double totalCredits = 0;
     for (var score in scores) {
-      double gp = _getGradePoint(score.score);
+      double gp = score.gradePoint;
       totalPoints += gp * score.credit;
       totalCredits += score.credit;
     }
@@ -74,14 +74,31 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'pdf') {
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ImportPdfScreen(),
                   ),
                 );
+                
+                if (result != null && result is List<Score> && mounted) {
+                   setState(() {
+                     _allScores.clear();
+                     _allScores.addAll(result);
+                     
+                     // 刷新学期列表
+                    _semesters = _allScores.map((e) => e.semester).toSet().toList();
+                    _semesters.sort((a, b) => b.compareTo(a));
+                    
+                    if (_semesters.isNotEmpty) {
+                      _selectedSemester = _semesters.first;
+                    } else {
+                      _selectedSemester = '无数据';
+                    }
+                   });
+                }
               }
               // TODO: Implement other menu actions
             },
@@ -123,7 +140,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         ],
       ),
       body: _semesters.isEmpty
-          ? const Center(child: Text("暂无成绩数据"))
+          ? const Center(child: Text("暂无成绩数据，点击右上方按钮进行导入"))
           : Column(
               children: [
                 // 顶部总览卡片
