@@ -102,103 +102,95 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         title: const Text('成绩单'),
         centerTitle: true,
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'pdf') {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ImportPdfScreen(),
-                  ),
-                );
-                
-                if (result != null && result is List<Score> && mounted) {
-                   final now = DateTime.now();
-                   final timeStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
-                   const methodStr = "PDF文件";
-
-                   setState(() {
-                     _allScores.clear();
-                     _allScores.addAll(result);
-                     _lastImportTime = timeStr;
-                     _lastImportMethod = methodStr;
-                     _updateSemesters();
-                   });
-                   await ScoreService.saveScores(_allScores);
-                   await ScoreService.saveImportInfo(timeStr, methodStr);
-                }
-              } else if (value == 'clear') {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('确认清空'),
-                    content: const Text('确定要清空所有成绩数据吗？此操作不可撤销。'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('取消'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
-                        child: const Text('确认清空'),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirm == true) {
-                  await ScoreService.clearScores();
-                  if (!mounted) return;
-                  setState(() {
-                    _allScores.clear();
-                    _lastImportTime = null;
-                    _lastImportMethod = null;
-                    _updateSemesters();
-                  });
-                }
-              } else if (value == 'details') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TranscriptDetailsScreen()),
-                );
-              }
-              // TODO: Implement other menu actions
+          MenuAnchor(
+            builder: (BuildContext context, MenuController controller, Widget? child) {
+              return IconButton(
+                onPressed: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+                icon: const Icon(Icons.more_vert),
+                tooltip: '菜单',
+              );
             },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem(
-                  value: 'pdf',
-                  child: Row(
-                    children: [
-                      Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-                      SizedBox(width: 10),
-                      Text('从PDF导入'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'clear',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Text('清空成绩'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'details',
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Text('详情'),
-                    ],
-                  ),
-                ),
-              ];
-            },
+            menuChildren: [
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ImportPdfScreen(),
+                    ),
+                  );
+                  
+                  if (result != null && result is List<Score> && mounted) {
+                     final now = DateTime.now();
+                     final timeStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+                     const methodStr = "PDF文件";
+
+                     setState(() {
+                       _allScores.clear();
+                       _allScores.addAll(result);
+                       _lastImportTime = timeStr;
+                       _lastImportMethod = methodStr;
+                       _updateSemesters();
+                     });
+                     await ScoreService.saveScores(_allScores);
+                     await ScoreService.saveImportInfo(timeStr, methodStr);
+                  }
+                },
+                child: const Text('从PDF导入'),
+              ),
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.delete_outline, color: Colors.grey),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('确认清空'),
+                      content: const Text('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('取消'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                          child: const Text('确认清空'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
+                    await ScoreService.clearScores();
+                    if (!mounted) return;
+                    setState(() {
+                      _allScores.clear();
+                      _lastImportTime = null;
+                      _lastImportMethod = null;
+                      _updateSemesters();
+                    });
+                  }
+                },
+                child: const Text('清空成绩'),
+              ),
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.info_outline, color: Colors.grey),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TranscriptDetailsScreen()),
+                  );
+                },
+                child: const Text('详情'),
+              ),
+            ],
           ),
         ],
       ),

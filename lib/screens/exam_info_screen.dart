@@ -80,54 +80,36 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         title: const Text('考试信息'),
         centerTitle: true,
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'add':
+          MenuAnchor(
+            builder: (BuildContext context, MenuController controller, Widget? child) {
+              return IconButton(
+                onPressed: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+                icon: const Icon(Icons.more_vert),
+                tooltip: '菜单',
+              );
+            },
+            menuChildren: [
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.add, color: Colors.grey),
+                onPressed: () {
                   _navigateToAddExam();
-                  break;
-                case 'clear':
+                },
+                child: const Text('添加自定义考试'),
+              ),
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.delete_outline, color: Colors.grey),
+                onPressed: () {
                   _clearFinishedExams();
-                  break;
-                case 'details':
-                  // Placeholder
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem(
-                  value: 'add',
-                  child: Row(
-                    children: [
-                      Icon(Icons.add, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Text('添加自定义考试'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'clear',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Text('清除已结束'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'details',
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Text('详情'),
-                    ],
-                  ),
-                ),
-              ];
-            },
+                },
+                child: const Text('清除已结束'),
+              ),
+            ],
           ),
         ],
       ),
