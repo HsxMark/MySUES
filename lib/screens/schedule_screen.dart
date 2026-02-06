@@ -6,6 +6,8 @@ import '../models/time_table.dart'; // Import Time models
 import '../services/schedule_service.dart';
 import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
+import 'import_classpdf_screen.dart'; // Import
+import 'login_webview_screen.dart'; // Import
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -445,14 +447,56 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ),
         centerTitle: true,
         actions: [
-          PopupMenuButton<String>(
-            tooltip: '菜单',
-            onSelected: (value) async {
-              switch (value) {
-                case 'import':
-                  // 待实现导入功能
-                  break;
-                case 'add':
+          MenuAnchor(
+            builder: (BuildContext context, MenuController controller, Widget? child) {
+              return IconButton(
+                onPressed: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+                icon: const Icon(Icons.more_vert),
+                tooltip: '菜单',
+              );
+            },
+            menuChildren: [
+              SubmenuButton(
+                leadingIcon: const Icon(Icons.download),
+                menuChildren: [
+                  MenuItemButton(
+                    leadingIcon: const Icon(Icons.sync_alt),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (c) => const LoginWebviewScreen()),
+                      );
+                      if (result == true) {
+                        _initData();
+                      }
+                    },
+                    child: const Text('从教务导入'),
+                  ),
+                  MenuItemButton(
+                    leadingIcon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (c) => const ImportClassPdfScreen()),
+                      );
+                      if (result != null) {
+                        _initData();
+                      }
+                    },
+                    child: const Text('从PDF导入'),
+                  ),
+                ],
+                child: const Text('导入课表'),
+              ), 
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.add),
+                onPressed: () async {
                   if (_currentTable != null) {
                     final result = await Navigator.push(
                       context,
@@ -464,8 +508,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       _initData();
                     }
                   }
-                  break;
-                case 'settings':
+                },
+                child: const Text('添加课程'),
+              ),
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.settings),
+                onPressed: () async {
                   if (_currentTable != null) {
                     final newTable = await Navigator.push(
                       context,
@@ -476,39 +524,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       _initData();
                     }
                   }
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'import',
-                child: Row(
-                  children: [
-                    Icon(Icons.download),
-                    SizedBox(width: 12),
-                    Text('导入课表'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'add',
-                child: Row(
-                  children: [
-                    Icon(Icons.add),
-                    SizedBox(width: 12),
-                    Text('添加课程'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings),
-                    SizedBox(width: 12),
-                    Text('课表设置'),
-                  ],
-                ),
+                },
+                child: const Text('课表设置'),
               ),
             ],
           ),

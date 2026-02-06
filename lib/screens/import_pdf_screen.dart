@@ -319,9 +319,9 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.info,
+              Icons.picture_as_pdf,
               size: 80,
-              color: Colors.blueGrey,
+              color: Colors.redAccent,
             ),
             const SizedBox(height: 24),
             const Text(
