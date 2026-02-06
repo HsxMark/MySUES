@@ -10,11 +10,7 @@ class DisplaySettingsScreen extends StatefulWidget {
 }
 
 class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
-  // ThemeMode: 0 = System, 1 = Light, 2 = Dark
-  // Now managed by ThemeService
-  
   bool _liquidGlassEnabled = false;
-  String _fontSelection = '默认';
 
   @override
   void initState() {
@@ -26,14 +22,11 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
-      _fontSelection = prefs.getString('app_font') ?? '默认';
     });
   }
 
   Future<void> _saveThemeMode(int index) async {
     await ThemeService().updateThemeMode(index);
-    // No need to setState regarding theme here, as global theme change will trigger rebuild of app
-    // However, to update the UI on this screen immediately if it doesn't rebuild automatically:
     setState(() {});
   }
 
@@ -51,6 +44,9 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     final int themeModeIndex = currentMode == ThemeMode.system
         ? 0
         : (currentMode == ThemeMode.light ? 1 : 2);
+    
+    final currentFontFamily = ThemeService().fontFamily;
+    final fontName = _getFontName(currentFontFamily);
 
     return Scaffold(
       appBar: AppBar(
@@ -69,9 +65,9 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
           _buildSectionHeader('字体'),
           ListTile(
             title: const Text('字体样式'),
-            subtitle: Text(_fontSelection),
+            subtitle: Text(fontName),
             trailing: const Icon(Icons.chevron_right),
-            onTap: _showFontPicker,
+            onTap: () => _showFontPicker(currentFontFamily),
           ),
           const Divider(),
           _buildSectionHeader('实验性功能'),
@@ -109,6 +105,13 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
       default:
         return '跟随系统';
     }
+  }
+
+  String _getFontName(String? family) {
+    if (family == null) return '系统默认';
+    if (family == 'HarmonyOS Sans') return 'HarmonyOS Sans';
+    if (family == 'MiSans') return 'MiSans';
+    return family;
   }
 
   void _showThemePicker(int currentIndex) {
@@ -171,29 +174,30 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     );
   }
 
-  void _showFontPicker() {
-    // Mock font picker
+  void _showFontPicker(String? currentFamily) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
+        // Helper to build list tiles
+        Widget buildTile(String title, String? family) {
+          final isSelected = currentFamily == family;
+          return ListTile(
+            title: Text(title),
+            trailing: isSelected ? const Icon(Icons.check, color: Colors.blue) : null,
+            onTap: () async {
+              await ThemeService().updateFontFamily(family);
+              if (mounted) Navigator.pop(context);
+            },
+          );
+        }
+
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                title: const Text('默认'),
-                onTap: () {
-                  setState(() => _fontSelection = '默认');
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('圆体 (Mock)'),
-                onTap: () {
-                  setState(() => _fontSelection = '圆体');
-                  Navigator.pop(context);
-                },
-              ),
+              buildTile('系统默认', null),
+              buildTile('鸿蒙字体', 'HarmonyOS Sans'),
+              buildTile('小米字体', 'MiSans'),
             ],
           ),
         );

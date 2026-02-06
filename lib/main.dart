@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
           title: '我的课表',
           themeMode: ThemeService().themeMode,
           theme: ThemeData(
+            fontFamily: ThemeService().fontFamily,
             colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.blue,
               brightness: Brightness.light,
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
             appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
           ),
           darkTheme: ThemeData(
+            fontFamily: ThemeService().fontFamily,
             colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.blue,
               brightness: Brightness.dark,

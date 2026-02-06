@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/models/student_info.dart';
 import 'package:mysues/screens/profile_edit_screen.dart';
 import 'package:mysues/screens/settings/settings_screen.dart';
+import 'package:mysues/screens/about_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -433,7 +434,10 @@ class _AboutTile extends StatelessWidget {
       title: const Text('关于'),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () {
-        // TODO: Navigate to about screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AboutScreen()),
+        );
       },
     );
   }
