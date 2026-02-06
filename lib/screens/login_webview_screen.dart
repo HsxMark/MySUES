@@ -112,16 +112,19 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   }
   
   Future<void> _checkPageContent() async {
-    final String? title = await _controller.getTitle();
-    if (title != null) {
-      if (title.contains("登录") || title.contains("Login")) {
-        setState(() => _currentStep = "请登录您的账号");
-      } else if (title.contains("Sues") || title.contains("工程大")) {
-        setState(() => _currentStep = "登录成功，点击下方按钮提取数据");
-      }
+    final String? url = await _controller.currentUrl();
+    if (url != null && url.contains("/student/home")) {
+        setState(() => _currentStep = "登录成功，请点击下方按钮提取数据");
+    } else {
+        final String? title = await _controller.getTitle();
+        if (title != null) {
+          if (title.contains("登录") || title.contains("Login")) {
+            setState(() => _currentStep = "请登录您的账号");
+          } 
+        }
     }
   }
-  
+
   Future<String> _getCookieString() async {
     final String result = await _controller.runJavaScriptReturningResult('document.cookie') as String;
     return _decodeJsString(result);
@@ -164,12 +167,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         debugPrint("New system check failed: $e");
       }
 
-      final newTable = ScheduleTable(
-          id: DateTime.now().millisecondsSinceEpoch,
-          tableName: "Web导入课表",
-          startDate: "2024-09-02", 
-          maxWeek: 20
-      );
+      final int tableId = DateTime.now().millisecondsSinceEpoch;
       
       final parser = CourseParser();
       List<dynamic> courses = [];
@@ -180,7 +178,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
            final jsonUrl = "$targetBase/student/for-std/course-table/semester/$semesterId/print-data?semesterId=$semesterId&hasExperiment=true";
            final jsonStr = await _academicClient.fetchHtmlWithCookie(jsonUrl, cookie);
            if (jsonStr != null && jsonStr.startsWith('{')) {
-              courses = parser.parse(jsonStr, newTable.id);
+              courses = parser.parse(jsonStr, tableId);
               _showSnack("检测到新系统数据");
            }
          } catch(e) {
@@ -198,7 +196,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
            );
         }
         if (html != null && html.isNotEmpty) {
-             courses = parser.parse(html, newTable.id);
+             courses = parser.parse(html, tableId);
         }
       }
       
@@ -206,6 +204,30 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         _showSnack("未检测到有效课表数据");
         return;
       }
+
+      // Selecting Start Date
+      if (!mounted) return;
+      final DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2030),
+        helpText: "请选择本学期第一周的周一",
+      );
+
+      if (pickedDate == null) {
+         _showSnack("已取消导入");
+         return;
+      }
+      
+      final String startDateStr = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+
+      final newTable = ScheduleTable(
+          id: tableId,
+          tableName: "Web导入课表",
+          startDate: startDateStr, 
+          maxWeek: 20
+      );
 
       await ScheduleDataService.addScheduleTable(newTable);
       for (var c in courses) {
@@ -401,30 +423,77 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-             ElevatedButton.icon(
-                 onPressed: _extractCourse, 
-                 icon: const Icon(Icons.calendar_month),
-                 label: const Text("课表")
-             ),
-             ElevatedButton.icon(
-                 onPressed: _extractScore, 
-                 icon: const Icon(Icons.score),
-                 label: const Text("成绩")
-             ),
-             ElevatedButton.icon(
-                 onPressed: _extractExam, 
-                 icon: const Icon(Icons.assignment),
-                 label: const Text("考试")
-             ),
-             ElevatedButton.icon(
-                 onPressed: _extractInfo, 
-                 icon: const Icon(Icons.person),
-                 label: const Text("信息")
-             ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (context) => SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 12),
+                        const Text(
+                          "请选择要提取的内容",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        ListTile(
+                          leading: const Icon(Icons.person),
+                          title: const Text("提取个人信息"),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _extractInfo();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.calendar_month),
+                          title: const Text("提取课表"),
+                          subtitle: const Text("需选择开学日期"),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _extractCourse();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.score),
+                          title: const Text("提取成绩"),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _extractScore();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.assignment),
+                          title: const Text("提取考试安排"),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _extractExam();
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.menu_open),
+              label: const Text("提取菜单", style: TextStyle(fontSize: 16)),
+            ),
+          ),
         ),
       ),
     );
