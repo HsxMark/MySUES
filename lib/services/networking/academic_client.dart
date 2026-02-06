@@ -113,12 +113,17 @@ class AcademicClient {
     }
   }
 
-  Future<String?> fetchHtmlWithCookie(String url, String cookie) async {
+  Future<String?> fetchHtmlWithCookie(String url, String cookie, {Map<String, String>? headers}) async {
     try {
+      final Map<String, dynamic> requestHeaders = {'Cookie': cookie};
+      if (headers != null) {
+        requestHeaders.addAll(headers);
+      }
+      
       final response = await _dio.get(
         url,
         options: Options(
-          headers: {'Cookie': cookie},
+          headers: requestHeaders,
           followRedirects: true,
           validateStatus: (status) => status != null && status < 500,
         )
@@ -130,16 +135,21 @@ class AcademicClient {
     }
   }
 
-  Future<String?> postHtmlWithCookie(String url, String cookie, {Map<String, dynamic>? data}) async {
+  Future<String?> postHtmlWithCookie(String url, String cookie, {Map<String, dynamic>? data, Map<String, String>? headers}) async {
     try {
+      final Map<String, dynamic> requestHeaders = {
+        'Cookie': cookie,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+      if (headers != null) {
+        requestHeaders.addAll(headers);
+      }
+
       final response = await _dio.post(
         url,
         data: data,
         options: Options(
-          headers: {
-            'Cookie': cookie,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+          headers: requestHeaders,
           followRedirects: true,
           validateStatus: (status) => status != null && status < 500,
         )

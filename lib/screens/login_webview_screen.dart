@@ -7,6 +7,7 @@ import '../services/parsers/score_parser.dart';
 import '../services/parsers/exam_parser.dart';
 import '../services/parsers/student_info_parser.dart';
 import '../models/schedule_table.dart';
+import '../models/course.dart';
 import '../services/schedule_service.dart';
 import '../services/score_service.dart';
 import '../services/exam_service.dart';
@@ -24,7 +25,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   final AcademicClient _academicClient = AcademicClient();
   
   bool _isLoading = true;
-  String _currentStep = '请登录 WebVPN / 教务系统';
+  String _currentStep = '请登录 教务系统';
   
   // URLs
   static const String initialUrl = 'https://webvpn.sues.edu.cn/login';
@@ -126,42 +127,110 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   }
 
   Future<String> _getCookieString() async {
-    final String result = await _controller.runJavaScriptReturningResult('document.cookie') as String;
-    return _decodeJsString(result);
+    // Only use document.cookie which is available via JS
+    // Note: This misses HttpOnly cookies, so for API calls that require session,
+    // we should use _fetchWithXhr to execute requests inside the WebView context.
+    try {
+      final String result = await _controller.runJavaScriptReturningResult('document.cookie') as String;
+      return _decodeJsString(result);
+    } catch (e) {
+      return "";
+    }
   }
+
+  // Execute a synchronous XHR request inside the WebView to leverage its full cookie/session context
+  Future<String?> _fetchWithXhr(String url) async {
+    try {
+      // Escape the URL for JS string
+      final safeUrl = url.replaceAll("'", "\\'");
+      final js = """
+        (function() {
+          try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '$safeUrl', false);
+            // Add Referer hack if needed via headers? 
+            // XHR automatically sends cookies.
+            xhr.send();
+            return xhr.responseText;
+          } catch(e) {
+            return 'JS_ERROR: ' + e.toString();
+          }
+        })();
+      """;
+      
+      final result = await _controller.runJavaScriptReturningResult(js);
+      String response = _decodeJsString(result.toString());
+      
+      if (response.startsWith("JS_ERROR:")) {
+         debugPrint("WebView XHR Failed: $response");
+         return null;
+      }
+      return response;
+    } catch (e) {
+      debugPrint("WebView Eval Failed: $e");
+      return null;
+    }
+  }
+
 
   Future<void> _extractCourse() async {
     try {
       // Use detected URL or fallback to known hex
       String targetBase = _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
       
-      _showSnack("正在通过WebVPN接口提取课表...");
+      _showSnack("正在尝试提取数据的 Semester ID...");
       final cookie = await _getCookieString();
+      
+      // Get UserAgent from WebView to avoid "Environment Security Check" failure
+      String userAgent = "";
+      try {
+        final uaResult = await _controller.runJavaScriptReturningResult("navigator.userAgent");
+        userAgent = _decodeJsString(uaResult.toString());
+        debugPrint("WebView UA: $userAgent");
+      } catch (e) {
+        debugPrint("Failed to get UA: $e");
+      }
       
       String? html;
       String? semesterId;
       
       // Attempt 1: New System (Student)
       try {
-        html = await _academicClient.fetchHtmlWithCookie(
-          "$targetBase/student/for-std/course-table", 
-          cookie
-        );
+        // Try getting HTML/Data from WebView directly first (most reliable for SPAs/VPNs)
+        try {
+           final webHtml = await _controller.runJavaScriptReturningResult("document.documentElement.outerHTML");
+           html = _decodeJsString(webHtml as String);
+        } catch (e) {
+           debugPrint("WebView HTML fetch failed: $e");
+        }
         
-        // Extract semester ID from JS: var semesters = JSON.parse('...');
+        // Logic to find semester ID from HTML or JS context
         if (html != null) {
-           final semMatch = RegExp(r"var semesters = JSON\.parse\('([^']*)'\)").firstMatch(html);
+           // Regex 1: Standard var semesters = JSON.parse(...)
+           var semMatch = RegExp(r"var semesters = JSON\.parse\('([^']*)'\)").firstMatch(html!);
            if (semMatch != null) {
               String semJsonStr = semMatch.group(1) ?? "";
-              semJsonStr = semJsonStr.replaceAll(r'\"', '"'); // Unescape
-              List<dynamic> sems = jsonDecode(semJsonStr);
-              // Pick the largest ID (latest semester)
-              if (sems.isNotEmpty) {
-                 sems.sort((a, b) => (b['id'] as int).compareTo(a['id'] as int));
-                 semesterId = sems.first['id'].toString();
-                 debugPrint("Detected Semester ID: $semesterId");
-              }
+              semJsonStr = semJsonStr.replaceAll(r'\"', '"'); 
+              try {
+                List<dynamic> sems = jsonDecode(semJsonStr);
+                if (sems.isNotEmpty) {
+                   // Find the one marked as current if possible, or just max id
+                   // Sues usually has `id`
+                   sems.sort((a, b) => (b['id'] as int).compareTo(a['id'] as int));
+                   semesterId = sems.first['id'].toString();
+                }
+              } catch (e) { print("Parse semesters error: $e"); }
            }
+           
+           // Regex 2: Look for 'semesterId' in the rendered HTML
+           if (semesterId == null) {
+               final semIdMatch = RegExp(r'"semester"\s*:\s*\{\s*"id"\s*:\s*(\d+)').firstMatch(html!);
+               if (semIdMatch != null) semesterId = semIdMatch.group(1);
+           }
+        }
+
+        if (semesterId != null) {
+             debugPrint("Detected Semester ID: $semesterId");
         }
       } catch (e) {
         debugPrint("New system check failed: $e");
@@ -171,69 +240,222 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       
       final parser = CourseParser();
       List<dynamic> courses = [];
+      String debugResponse = "";
+
+      // Headers construction for consistent identity
+      Map<String, String> extraHeaders = {
+        'Referer': "$targetBase/student/for-std/course-table",
+        'Accept': 'application/json, text/plain, */*',
+        if (userAgent.isNotEmpty) 'User-Agent': userAgent,
+      };
 
       // If found semesterId, fetch JSON data
       if (semesterId != null) {
          try {
+           _showSnack("检测到 ID: $semesterId，正在请求数据...");
            final jsonUrl = "$targetBase/student/for-std/course-table/semester/$semesterId/print-data?semesterId=$semesterId&hasExperiment=true";
-           final jsonStr = await _academicClient.fetchHtmlWithCookie(jsonUrl, cookie);
-           if (jsonStr != null && jsonStr.startsWith('{')) {
-              courses = parser.parse(jsonStr, tableId);
-              _showSnack("检测到新系统数据");
+           
+           // Use XHR from WebView to ensure HttpOnly cookies are sent
+           final jsonStr = await _fetchWithXhr(jsonUrl);
+           
+           if (jsonStr != null) {
+              if (jsonStr.trim().startsWith('{')) {
+                  courses = parser.parse(jsonStr, tableId);
+                  if (courses.isNotEmpty) _showSnack("检测到新系统数据 (${courses.length} 门课)");
+              } else {
+                  debugResponse = jsonStr.substring(0, jsonStr.length > 200 ? 200 : jsonStr.length);
+                  debugPrint("Expect JSON but got: $debugResponse");
+              }
            }
          } catch(e) {
            debugPrint("JSON Fetch failed: $e");
+           _showSnack("请求遇到错误: $e");
          }
       }
 
       // Fallback: Parse HTML (Old EAMS or whatever html we have)
       if (courses.isEmpty) {
-        if (html == null || !html.contains("table")) {
-           // Try fetching old eams if new one failed completely
-           html = await _academicClient.fetchHtmlWithCookie(
-             "$targetBase/eams/courseTableForStd.action", 
-             cookie
-           );
-        }
-        if (html != null && html.isNotEmpty) {
-             courses = parser.parse(html, tableId);
-        }
+         // Only try fetching old EAMS if we haven't already extracted something
+         if (html == null || !html!.contains("table")) {
+             debugPrint("Trying fallback EAMS HTML fetch...");
+             // EAMS usually works with standard cookies (non-HttpOnly might suffer)
+             // But let's try XHR for it too if possible, or fallback to Client
+             // XHR might fail for cross-origin redirects if any.
+             // Sticking to Client for EAMS as it might be safer for heavy HTML? 
+             // Actually XHR is better for session.
+             final eamsUrl = "$targetBase/eams/courseTableForStd.action";
+             final eamsHtml = await _fetchWithXhr(eamsUrl);
+             
+             if (eamsHtml != null) {
+               html = eamsHtml;
+             } else {
+                // Last resort Client
+                html = await _academicClient.fetchHtmlWithCookie(
+                  eamsUrl, 
+                  cookie,
+                  headers: {
+                    'Referer': "$targetBase/eams/home.action",
+                    if (userAgent.isNotEmpty) 'User-Agent': userAgent,
+                  }
+                );
+             }
+         }
+         if (html != null && html!.isNotEmpty) {
+             // Try parsing as HTML
+             var legacyCourses = parser.parse(html!, tableId);
+             if (legacyCourses.isNotEmpty) {
+                courses = legacyCourses;
+             }
+         }
       }
       
+      // Manual ID Fallback
       if (courses.isEmpty) {
-        _showSnack("未检测到有效课表数据");
+        if (!mounted) return;
+        
+        String dialogContent = "未能自动检测到数据。";
+        if (debugResponse.isNotEmpty) {
+           dialogContent += "\n\n上次请求返回非JSON数据:\n$debugResponse\n\n可能是登录已过期或接口被拦截。";
+        }
+        dialogContent += "\n\n如果您知道 Semester ID (如 602)，请尝试手动输入：";
+
+        final TextEditingController idController = TextEditingController();
+        final String? manualId = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("手动尝试"),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(dialogContent, style: const TextStyle(fontSize: 12)),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: idController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Semester ID",
+                      hintText: "查看抓包 print-data 中的 ID",
+                      border: OutlineInputBorder()
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("取消")),
+              TextButton(onPressed: () => Navigator.pop(context, idController.text), child: const Text("确定")),
+            ],
+          ),
+        );
+
+        if (manualId != null && manualId.isNotEmpty) {
+           try {
+             _showSnack("正在请求 ID: $manualId ...");
+             final jsonUrl = "$targetBase/student/for-std/course-table/semester/$manualId/print-data?semesterId=$manualId&hasExperiment=true";
+             
+             // XHR again
+             final jsonStr = await _fetchWithXhr(jsonUrl);
+
+             if (jsonStr != null && jsonStr.trim().startsWith('{')) {
+                courses = parser.parse(jsonStr, tableId);
+             } else {
+                 String failReason = jsonStr != null 
+                    ? jsonStr.substring(0, jsonStr.length > 100 ? 100 : jsonStr.length) 
+                    : "空响应";
+                 _showSnack("请求失败: 返回内容不是 JSON ($failReason)");
+             }
+           } catch (e) {
+             debugPrint("Manual ID fetch failed: $e");
+             _showSnack("请求异常: $e");
+           }
+        }
+      }
+
+      if (courses.isEmpty) {
+        _showSnack("最终提取失败，请确保已登录并在课表页面");
         return;
       }
 
-      // Selecting Start Date
-      if (!mounted) return;
-      final DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2020),
-        lastDate: DateTime(2030),
-        helpText: "请选择本学期第一周的周一",
-      );
-
-      if (pickedDate == null) {
-         _showSnack("已取消导入");
-         return;
+      if (courses.isEmpty) {
+        _showSnack("未检测到有效课表数据，请确认已登录并处于课表页面");
+        return;
       }
-      
-      final String startDateStr = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+
+      // Try automatic info fetching (Semester Name & Start Date)
+      String tableName = "Web导入课表";
+      String? startDateStr;
+
+      if (semesterId != null) {
+          try {
+             _showSnack("正在获取学期详情...");
+             // e.g. /student/ws/semester/get/602
+             final semInfoUrl = "$targetBase/student/ws/semester/get/$semesterId";
+             final semInfoStr = await _fetchWithXhr(semInfoUrl);
+             
+             if (semInfoStr != null && semInfoStr.startsWith('{')) {
+                 final semInfo = jsonDecode(semInfoStr);
+                 if (semInfo['nameZh'] != null) {
+                    tableName = semInfo['nameZh'];
+                 }
+                 if (semInfo['startDate'] != null) {
+                    startDateStr = semInfo['startDate'];
+                 }
+             }
+          } catch (e) {
+             debugPrint("Semester info fetch failed: $e");
+          }
+      }
+
+      // Selecting Start Date (If not auto-detected)
+      if (startDateStr == null) {
+        if (!mounted) return;
+        
+        final DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2030),
+          helpText: "请选择本学期第一周的周一",
+        );
+
+        if (pickedDate == null) {
+           _showSnack("已取消导入");
+           return;
+        }
+        startDateStr = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+      } else {
+         _showSnack("自动获取开学日期: $startDateStr");
+      }
 
       final newTable = ScheduleTable(
           id: tableId,
-          tableName: "Web导入课表",
-          startDate: startDateStr, 
+          tableName: tableName,
+          startDate: startDateStr!, 
           maxWeek: 20
       );
 
       await ScheduleDataService.addScheduleTable(newTable);
+      
+      // Update courses with the actual ID assigned by the service (it uses auto-increment)
+      // Note: newTable.id is updated in place by addScheduleTable
+      final int realTableId = newTable.id;
+      debugPrint("Saving courses to Table ID: $realTableId (Original: $tableId)");
+      
       for (var c in courses) {
-        // Cast dynamic to Course
-        await ScheduleDataService.addCourse(c as dynamic); 
+        // Update tableId matches the saved table
+        if (c is Course) {
+            c.tableId = realTableId;
+            await ScheduleDataService.addCourse(c);
+        } else if (c is Map) {
+            // Should be Course objects, but just in case of dynamic
+             await ScheduleDataService.addCourse(c as dynamic); 
+        }
       }
+      
+      // Auto-switch to the new table
+      await ScheduleDataService.setCurrentTableId(realTableId);
       
       _showSnack("成功导入 ${courses.length} 门课程！");
       _recordSyncTime();

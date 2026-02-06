@@ -30,10 +30,8 @@ class CourseParser {
       List<Course> courseList = [];
 
       for (var activity in activities) {
-         if (activity['room'] == null) continue;
-
          final String name = activity['courseName'] ?? '';
-         final String room = activity['room'] ?? '';
+         final String room = activity['room'] ?? '未知地点';
          final int day = activity['weekday'] ?? 1;
          final String teacher = (activity['teachers'] as List?)?.map((e) => e.toString()).join(' ') ?? '';
          // final String note = activity['lessonRemark'] ?? '';
@@ -46,15 +44,19 @@ class CourseParser {
          final int endNodeOriginal = activity['endUnit'] ?? 1;
          final List<dynamic> weekIndexes = activity['weekIndexes'] ?? [];
 
+         // Robust parsing of week indexes
+         List<int> validWeeks = [];
+         for(var w in weekIndexes) {
+            if (w is int) {
+                validWeeks.add(w);
+            } else if (w is String) {
+                final p = int.tryParse(w);
+                if (p != null) validWeeks.add(p);
+            }
+         }
+
          // Convert weekIndexes to ranges (startWeek, endWeek, type)
-         // Logic: group continuous weeks. 
-         // But MySUES Course model usually takes single range.
-         // If weeks are fragmented (e.g. 1, 2, 4, 5), we might need multiple course entries
-         // or specific logic.
-         // SUESParser2 uses `Common.weekIntList2WeekBeanList`.
-         // We will implement a simple converter here.
-         
-         List<_WeekRange> weekRanges = _convertWeeksToRanges(weekIndexes.map((e) => e as int).toList());
+         List<_WeekRange> weekRanges = _convertWeeksToRanges(validWeeks);
 
          for (var range in weekRanges) {
            // Handle splitting noon (<=5 and >=6)
