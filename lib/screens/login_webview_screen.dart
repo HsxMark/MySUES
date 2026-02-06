@@ -147,11 +147,14 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         (function() {
           try {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', '$safeUrl', false);
-            // Add Referer hack if needed via headers? 
-            // XHR automatically sends cookies.
+            xhr.open('GET', '$safeUrl', false); // Synchronous
+            xhr.setRequestHeader('Accept', 'application/json, text/plain, */*');
             xhr.send();
-            return xhr.responseText;
+            if (xhr.status >= 200 && xhr.status < 300) {
+               return xhr.responseText;
+            } else {
+               return 'JS_ERROR: HTTP ' + xhr.status + ' ' + xhr.statusText;
+            }
           } catch(e) {
             return 'JS_ERROR: ' + e.toString();
           }
@@ -159,10 +162,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       """;
       
       final result = await _controller.runJavaScriptReturningResult(js);
-      String response = _decodeJsString(result.toString());
+      String response = "";
+      if (result is String) {
+         response = _decodeJsString(result);
+      } else {
+         response = result.toString(); // Should be a string representation or fallback
+      }
       
       if (response.startsWith("JS_ERROR:")) {
-         debugPrint("WebView XHR Failed: $response");
+         debugPrint("WebView XHR Failed for $url: $response");
          return null;
       }
       return response;
@@ -360,6 +368,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
              if (jsonStr != null && jsonStr.trim().startsWith('{')) {
                 courses = parser.parse(jsonStr, tableId);
+                // Important: Update semesterId so subsequent info fetching works
+                semesterId = manualId;
              } else {
                  String failReason = jsonStr != null 
                     ? jsonStr.substring(0, jsonStr.length > 100 ? 100 : jsonStr.length) 
@@ -392,9 +402,12 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
              _showSnack("正在获取学期详情...");
              // e.g. /student/ws/semester/get/602
              final semInfoUrl = "$targetBase/student/ws/semester/get/$semesterId";
-             final semInfoStr = await _fetchWithXhr(semInfoUrl);
+             debugPrint("Fetching info from: $semInfoUrl");
              
-             if (semInfoStr != null && semInfoStr.startsWith('{')) {
+             final semInfoStr = await _fetchWithXhr(semInfoUrl);
+             debugPrint("Semester Info Response: $semInfoStr");
+
+             if (semInfoStr != null && semInfoStr.trim().startsWith('{')) {
                  final semInfo = jsonDecode(semInfoStr);
                  if (semInfo['nameZh'] != null) {
                     tableName = semInfo['nameZh'];
@@ -402,9 +415,12 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                  if (semInfo['startDate'] != null) {
                     startDateStr = semInfo['startDate'];
                  }
+             } else {
+                 _showSnack("获取学期详情失败: 响应为空或格式错误");
              }
           } catch (e) {
              debugPrint("Semester info fetch failed: $e");
+             _showSnack("获取学期详情异常: $e");
           }
       }
 
