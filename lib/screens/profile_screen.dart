@@ -8,6 +8,16 @@ import 'package:mysues/models/student_info.dart';
 import 'package:mysues/screens/profile_edit_screen.dart';
 import 'package:mysues/screens/settings/settings_screen.dart';
 import 'package:mysues/screens/about_screen.dart';
+import 'package:mysues/screens/login_webview_screen.dart'; // Import this
+import '../services/networking/academic_client.dart';
+import '../services/parsers/course_parser.dart';
+import '../services/parsers/score_parser.dart';
+import '../services/parsers/exam_parser.dart';
+import '../services/schedule_service.dart';
+import '../services/score_service.dart';
+import '../services/exam_service.dart';
+import '../models/schedule_table.dart';
+import '../models/course.dart'; // Ensure Course is imported
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,21 +25,26 @@ class ProfileScreen extends StatefulWidget {
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
-
+ 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final bool isLoggedIn = true; // TODO: Replace with actual auth state
-  final String? studentId = "051523117"; // TODO: Replace with actual user data
-  final String? name = "王俊桦"; // TODO: Replace with actual user data
-  final int currentWeek = 6; // TODO: Replace with actual data
-  final int totalWeeks = 20; // TODO: Replace with actual data
+  // Mock data removed. Initialized to null.
+  String? _studentId;
+  String? _name; 
+  int _currentWeek = 1; // Default
+  int _totalWeeks = 20; // Default
 
   File? _avatarFile;
   String? _major;
   String? _nickname;
+  String? _lastSyncTime;
   
+  static const String _studentIdKey = 'student_id';
   static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _majorPrefsKey = 'user_major';
   static const String _nicknamePrefsKey = 'user_nickname';
+  static const String _lastSyncTimeKey = 'last_sync_time_academic';
+  
+  bool get _isLoggedIn => _studentId != null && _studentId!.isNotEmpty;
 
   @override
   void initState() {
@@ -40,6 +55,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     
+    setState(() {
+      _studentId = prefs.getString(_studentIdKey);
+      _nickname = prefs.getString(_nicknamePrefsKey);
+      _name = _nickname; // Use nickname as name for now, or fetch separate 'real_name' if saved
+      // Usually nickname is user set alias, name is real name. 
+      // If we extract name from system, we might want to save to 'user_nickname' or a new 'real_name'.
+      // StudentInfoParser creates 'name'. LoginWebview saves to 'user_nickname'.
+      // So _nickname matches extracted name.
+      
+      _major = prefs.getString(_majorPrefsKey);
+      _lastSyncTime = prefs.getString(_lastSyncTimeKey);
+      
+      // Calculate week? 
+      // Need a way to set start date. For now keeping defaults or logic based on saved start date?
+      // ScheduleDataService could provide current week.
+      // _currentWeek = await ScheduleDataService.calculateCurrentWeek();
+      // For now, leave defaults as placeholders until Schedule logic is fully linked.
+    });
+
     // Load Avatar
     final path = prefs.getString(_avatarPrefsKey);
     if (path != null) {
@@ -66,9 +100,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _major = savedMajor;
       });
-    } else if (studentId != null) {
+    } else if (_studentId != null) {
       // Fallback to calculation from ID if not saved
-      final info = StudentInfoHelper.parseStudentId(studentId!);
+      final info = StudentInfoHelper.parseStudentId(_studentId!);
       setState(() {
         _major = info['major'] ?? '未知';
       });
@@ -76,18 +110,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _navigateToEditProfile() async {
-    if (studentId == null) return;
+    if (_studentId == null) return;
     
     // Calculate default major to pass if not set
-    final info = StudentInfoHelper.parseStudentId(studentId!);
+    final info = StudentInfoHelper.parseStudentId(_studentId!);
     final defaultMajor = info['major'] ?? '未知';
 
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ProfileEditScreen(
-          name: name ?? '未知',
-          studentId: studentId!,
+          name: _name ?? '未知',
+          studentId: _studentId!,
           defaultMajor: defaultMajor,
         ),
       ),
@@ -109,8 +143,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           _buildUserInfoSection(context),
           const SizedBox(height: 16),
-          _buildProgressSection(context),
-          const SizedBox(height: 16),
+          // Only show progress if logged in
+           if (_isLoggedIn) ...[
+             _buildProgressSection(context),
+             const SizedBox(height: 16),
+           ],
           _buildConnectionStatusCard(context),
           const SizedBox(height: 16),
           const _SettingsTile(),
@@ -124,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildUserInfoSection(BuildContext context) {
-    if (!isLoggedIn || studentId == null) {
+    if (!_isLoggedIn || _studentId == null) {
       return Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -132,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.all(24.0),
           child: Center(
             child: Text(
-              '请登录查看',
+              '请连接教务系统同步信息',
               style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ),
@@ -140,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    final info = StudentInfoHelper.parseStudentId(studentId!);
+    final info = StudentInfoHelper.parseStudentId(_studentId!);
 
     return GestureDetector(
       onTap: _navigateToEditProfile,
@@ -172,12 +209,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        (_nickname != null && _nickname!.isNotEmpty) ? _nickname! : (name ?? '未知'),
+                        (_nickname != null && _nickname!.isNotEmpty) ? _nickname! : (_name ?? '未知'),
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        studentId!,
+                        _studentId!,
                         style: const TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
@@ -222,14 +259,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProgressSection(BuildContext context) {
     // Semester Progress
-    final double semesterProgress = currentWeek / totalWeeks;
+    final double semesterProgress = _currentWeek / _totalWeeks;
     final int semesterPercentage = (semesterProgress * 100).round();
 
     // University Progress Calculation
     String universityProgress = "0%";
-    if (studentId != null && studentId!.length >= 6) {
+    if (_studentId != null && _studentId!.length >= 6) {
       try {
-        final yearStr = studentId!.substring(4, 6);
+        final yearStr = _studentId!.substring(4, 6);
         final int entranceYear = 2000 + (int.tryParse(yearStr) ?? 0);
         final int currentYear = 2026;
         final int currentMonth = 2; // Feb
@@ -287,7 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         strokeWidth: 8,
                       ),
                       Text(
-                        '${currentWeek}/${totalWeeks}',
+                        '${_currentWeek}/${_totalWeeks}',
                         style: const TextStyle(fontSize: 10),
                       ),
                     ],
@@ -342,68 +379,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.sync_alt, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Text(
-                      '教务连接状态',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+      child: InkWell(
+        onTap: _navigateToWebLogin, // Changed to navigate to WebLogin
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.sync_alt, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      const Text(
+                        '教务连接',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
-                  child: const Text(
-                    '正常',
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.3) : Colors.orange.withOpacity(0.3)
+                      ),
+                    ),
+                    child: Text(
+                      (_lastSyncTime != null) ? '已连接' : '未连接',
+                      style: TextStyle(
+                        color: (_lastSyncTime != null) ? Colors.green : Colors.orange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Divider(height: 1),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    '上次同步时间',
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  Text(
+                    _lastSyncTime ?? '点击同步数据',
                     style: TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      color: Colors.grey[800],
+                      fontSize: 14,
+                      fontFamily: Platform.isIOS ? 'Courier' : null,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12.0),
-              child: Divider(height: 1),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '上次连接时间',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                Text(
-                  '2026-02-05 10:00',
-                  style: TextStyle(
-                    color: Colors.grey[800],
-                    fontSize: 14,
-                    fontFamily: Platform.isIOS ? 'Courier' : null,
-                  ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
+
+  void _navigateToWebLogin() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginWebviewScreen()),
+    );
+    // Refresh timestamp after return specific key update
+    _loadData(); 
+  }
+} // End of class
+
 
 class _SettingsTile extends StatelessWidget {
   const _SettingsTile();

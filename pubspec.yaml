@@ -42,6 +42,12 @@ dependencies:
   flutter_svg: ^2.0.7
   path_provider: ^2.1.5
   url_launcher: ^6.3.2
+  dio: ^5.9.1
+  dio_cookie_manager: ^3.3.0
+  cookie_jar: ^4.0.8
+  html: ^0.15.6
+  webview_flutter: ^4.13.1
+  webview_flutter_android: ^4.10.11
 
 dev_dependencies:
   flutter_test:
