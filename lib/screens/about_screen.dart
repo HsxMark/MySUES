@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mysues/screens/about/user_agreement_screen.dart';
+import 'package:mysues/screens/about/privacy_policy_screen.dart';
+import 'package:mysues/screens/about/feature_intro_screen.dart';
+import 'package:mysues/screens/about/changelog_screen.dart';
+import 'package:mysues/screens/about/sponsor_screen.dart';
+import 'package:mysues/screens/about/open_source_license_screen.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
-
-  Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      debugPrint('Could not launch $url');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,18 +24,15 @@ class AboutScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Container(
-                   width: 80,
-                   height: 80,
-                   decoration: BoxDecoration(
-                     color: Theme.of(context).primaryColor.withOpacity(0.1),
-                     shape: BoxShape.circle,
-                   ),
-                   child: Icon(Icons.school, size: 40, color: Theme.of(context).primaryColor),
+                Image.asset(
+                  'assets/images/MySUES-1024x1024@1x.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  '我的课表',
+                  '苏伊士',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -49,64 +45,28 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           
-          const Text(
-            '字体致谢',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
           Card(
+            clipBehavior: Clip.antiAlias,
             elevation: 0,
-            color: Theme.of(context).cardColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(color: Colors.grey.withOpacity(0.2)),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   _buildFontInfo(
-                     context,
-                     'HarmonyOS Sans', 
-                     '华为软件技术有限公司', 
-                     '遵循 HarmonyOS Sans 字体授权协议'
-                   ),
-                   const Padding(
-                     padding: EdgeInsets.symmetric(vertical: 12.0),
-                     child: Divider(height: 1),
-                   ),
-                   _buildFontInfo(
-                     context,
-                     'MiSans',
-                     '小米科技有限责任公司',
-                     '遵循 MiSans 字体知识产权许可协议'
-                   ),
-                ],
-              ),
+            child: Column(
+              children: [
+                _buildOptionItem(context, '用户协议', const UserAgreementScreen()),
+                const Divider(height: 1, indent: 16),
+                _buildOptionItem(context, '隐私政策', const PrivacyPolicyScreen()),
+                const Divider(height: 1, indent: 16),
+                _buildOptionItem(context, '功能介绍', const FeatureIntroScreen()),
+                const Divider(height: 1, indent: 16),
+                _buildOptionItem(context, '版本更新', const ChangelogScreen()),
+                const Divider(height: 1, indent: 16),
+                _buildOptionItem(context, '开源致谢', const OpenSourceLicenseScreen()),
+                const Divider(height: 1, indent: 16),
+                _buildOptionItem(context, '作者', const SponsorScreen()),
+              ],
             ),
-          ),
-          
-          const SizedBox(height: 24),
-          const Text(
-            '开发者',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 0,
-            color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.withOpacity(0.2)),
-            ),
-             child: ListTile(
-               leading: const Icon(Icons.code, size: 32),
-               title: const Text('HsxMark'),
-               subtitle: const Text('github.com/HsxMark'),
-               trailing: const Icon(Icons.open_in_new, size: 16),
-               onTap: () => _launchUrl('https://github.com/HsxMark'),
-             ),
           ),
           
           const SizedBox(height: 48),
@@ -121,38 +81,16 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFontInfo(BuildContext context, String name, String provider, String license) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text('免费商用', style: TextStyle(fontSize: 10, color: Colors.blue)),
-            )
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '由 $provider 提供',
-          style: TextStyle(fontSize: 13),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          license,
-          style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
-        ),
-      ],
+  Widget _buildOptionItem(BuildContext context, String title, Widget page) {
+    return ListTile(
+      title: Text(title),
+      trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => page),
+        );
+      },
     );
   }
 }
