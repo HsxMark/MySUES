@@ -28,6 +28,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   
   bool _isLoading = true;
   bool _hasStartedAutoFetch = false;
+  bool _isDataChanged = false;
   // 区分当前是“抓取课表”还是“抓取个人信息”
   bool _isFetchingInfo = false; 
 
@@ -183,7 +184,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       }
 
       if (semesterIds.isEmpty) {
-        _showSnack("未找到学期列表，请确认页面已加载完毕");
+        _showSnack("未找到学期列表，请重试");
         setState(() {
            _currentStep = "抓取失败，请重试"; 
            _hasStartedAutoFetch = false; // Allow retry
@@ -400,7 +401,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
       // 3. Always parse Student ID from course data (ignoring local cache)
       String? studentId;
-      _showSnack("正在解析学生ID...");
+      _showSnack("正在解析...");
       
       // Use the first (usually latest) semester to fetch course table data which contains the ID
       final latestSemester = semesterIds.first;
@@ -423,23 +424,29 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         }
       }
       
-      if (studentId == null) throw "无法从课表数据中解析学生ID";
+      if (studentId == null) throw "无法从课表数据中解析...";
 
-      _showSnack("正在通过 JSON 接口提取成绩 (共${semesterIds.length}个学期)...");
+      _showSnack("正在提取成绩 (共${semesterIds.length}个学期)...");
       
       // 4. Fetch Scores
       final scores = await FetchScoreService.fetchAllScores(
           _controller, targetBase, studentId, semesterIds);
       
       if (scores.isEmpty) {
-        final msg = "未检测到成绩数据 (ID:$studentId, 学期数:${semesterIds.length})";
+        final msg = "未检测到成绩数据 (学期数:${semesterIds.length})";
         debugPrint(msg);
         _showSnack(msg);
         return;
       }
       
       await ScoreService.saveScores(scores);
+      
+      final now = DateTime.now();
+      final timeStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+      await ScoreService.saveImportInfo(timeStr, "教务系统");
+
       _showSnack("成功导入 ${scores.length} 条成绩记录！");
+      _isDataChanged = true;
       _recordSyncTime();
     } catch (e) {
       debugPrint("Extract score error: $e");
@@ -466,6 +473,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       _showSnack(msg);
       setState(() => _currentStep = msg);
       
+      _isDataChanged = true;
       _recordSyncTime();
     } catch (e) {
       debugPrint("Extract Exam Error: $e");
@@ -542,9 +550,14 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("WebVPN 网页提取"),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, _isDataChanged);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("WebVPN 网页提取"),
         actions: [
             IconButton(
                 icon: const Icon(Icons.delete_outline),
@@ -660,6 +673,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
