@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/score.dart';
 import '../services/score_service.dart';
 import 'import_pdf_screen.dart';
-import 'transcript_details_screen.dart';// Add this import
+import 'transcript_details_screen.dart';
+import 'login_webview_screen.dart';
 
 class TranscriptScreen extends StatefulWidget {
   const TranscriptScreen({super.key});
@@ -121,6 +122,21 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               );
             },
             menuChildren: [
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.sync_alt),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginWebviewScreen(),
+                    ),
+                  );
+                  if (result == true && mounted) {
+                    await _loadScores();
+                  }
+                },
+                child: const Text('从教务处导入'),
+              ),
               MenuItemButton(
                 leadingIcon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
                 onPressed: () async {
