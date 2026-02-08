@@ -9,12 +9,16 @@ class ProfileEditScreen extends StatefulWidget {
   final String name;
   final String studentId;
   final String defaultMajor;
+  final String defaultCollege;
+  final String defaultClass;
 
   const ProfileEditScreen({
     super.key,
     required this.name,
     required this.studentId,
     required this.defaultMajor,
+    required this.defaultCollege,
+    required this.defaultClass,
   });
 
   @override
@@ -25,15 +29,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   File? _avatarFile;
   String? _nickname;
   late String _major;
+  late String _college;
+  late String _className;
   
   static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _nicknamePrefsKey = 'user_nickname';
   static const String _majorPrefsKey = 'user_major';
+  static const String _collegePrefsKey = 'user_college';
+  static const String _classPrefsKey = 'user_class';
 
   @override
   void initState() {
     super.initState();
     _major = widget.defaultMajor;
+    _college = widget.defaultCollege;
+    _className = widget.defaultClass;
     _loadData();
   }
 
@@ -62,10 +72,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       setState(() {
         _major = savedMajor;
       });
-    } else {
-      // If no saved major, we treat the passed defaultMajor (calculated) as current
-      // We don't necessarily save it yet unless user confirms, or we can lazy save.
-      // Requirements say "First time login calculate".
+    }
+
+    // Load College
+    final savedCollege = prefs.getString(_collegePrefsKey);
+    if (savedCollege != null && savedCollege.isNotEmpty) {
+      setState(() {
+        _college = savedCollege;
+      });
+    }
+
+    // Load Class
+    final savedClass = prefs.getString(_classPrefsKey);
+    if (savedClass != null && savedClass.isNotEmpty) {
+      setState(() {
+        _className = savedClass;
+      });
     }
   }
 
@@ -176,6 +198,76 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
+  Future<void> _updateCollege() async {
+    final TextEditingController controller = TextEditingController(text: _college);
+    final String? newCollege = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('修改学院'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: '请输入学院名称'),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('保存'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newCollege != null && newCollege.trim().isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_collegePrefsKey, newCollege.trim());
+      setState(() {
+        _college = newCollege.trim();
+      });
+    }
+  }
+
+  Future<void> _updateClass() async {
+    final TextEditingController controller = TextEditingController(text: _className);
+    final String? newClass = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('修改班级'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: '请输入班级名称'),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('保存'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newClass != null && newClass.trim().isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_classPrefsKey, newClass.trim());
+      setState(() {
+        _className = newClass.trim();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -200,10 +292,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
           const Divider(),
           _buildInfoItem(
+            label: '学院', 
+            value: (_college.isEmpty) ? '未设置' : _college,
+            isEditable: true,
+            onTap: _updateCollege,
+          ),
+          const Divider(),
+          _buildInfoItem(
             label: '专业', 
             value: _major,
             isEditable: true,
             onTap: _updateMajor,
+          ),
+          const Divider(),
+          _buildInfoItem(
+            label: '班级', 
+            value: (_className.isEmpty) ? '未设置' : _className,
+            isEditable: true,
+            onTap: _updateClass,
           ),
         ],
       ),

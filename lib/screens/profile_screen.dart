@@ -35,12 +35,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   File? _avatarFile;
   String? _major;
+  String? _college;
+  String? _className;
   String? _nickname;
   String? _lastSyncTime;
   
   static const String _studentIdKey = 'student_id';
   static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _majorPrefsKey = 'user_major';
+  static const String _collegePrefsKey = 'user_college';
+  static const String _classPrefsKey = 'user_class';
   static const String _nicknamePrefsKey = 'user_nickname';
   static const String _lastSyncTimeKey = 'last_sync_time_academic';
   
@@ -65,6 +69,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // So _nickname matches extracted name.
       
       _major = prefs.getString(_majorPrefsKey);
+      _college = prefs.getString(_collegePrefsKey);
+      _className = prefs.getString(_classPrefsKey);
       _lastSyncTime = prefs.getString(_lastSyncTimeKey);
       
       // Calculate week? 
@@ -115,6 +121,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Calculate default major to pass if not set
     final info = StudentInfoHelper.parseStudentId(_studentId!);
     final defaultMajor = info['major'] ?? '未知';
+    
+    // Pass current value or '未设置'
+    final currentCollege = _college ?? '未设置';
+    final currentClass = _className ?? '未设置';
 
     await Navigator.push(
       context,
@@ -123,6 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           name: _name ?? '未知',
           studentId: _studentId!,
           defaultMajor: defaultMajor,
+          defaultCollege: currentCollege,
+          defaultClass: currentClass,
         ),
       ),
     );
@@ -230,8 +242,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                   _buildCompactInfoItem('学院', _college ?? '未知'),
+                   _buildCompactInfoItem('专业', _major ?? info['major'] ?? '未知'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildCompactInfoItem('班级', _className ?? '未知'),
                   _buildCompactInfoItem('年级', info['grade'] ?? '未知'),
-                  _buildCompactInfoItem('专业', _major ?? info['major'] ?? '未知'),
                 ],
               ),
             ],
