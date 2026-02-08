@@ -115,11 +115,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   Future<void> _checkPageContent() async {
     final String? url = await _controller.currentUrl();
     if (url != null && (url.contains("/student/home") || url.contains("/student/for-std/course-table"))) {
-        if (!_hasStartedAutoFetch) {
-           _hasStartedAutoFetch = true;
-           setState(() => _currentStep = "登录成功，正在准备抓取...");
-           _startAutoFetch();
-        }
+       // Only update UI text, do NOT auto start fetch
+       setState(() => _currentStep = "登录成功，请点击下方按钮提取数据");
     } else {
         final String? title = await _controller.getTitle();
         if (title != null) {
@@ -143,6 +140,10 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   }
 
   Future<void> _startAutoFetch() async {
+    // Prevent multiple triggers
+    if (_hasStartedAutoFetch) return;
+    _hasStartedAutoFetch = true;
+
     try {
       String targetBase = _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
       
@@ -299,9 +300,19 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         // Set as current table
         await ScheduleDataService.setCurrentTableId(table.id);
         
+        // 统计实际课程门数（去重）
+        final uniqueCount = courses.map((c) => c.courseName).toSet().length;
+
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("成功导入 ${courses.length} 门课程！")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("成功导入 $uniqueCount 门课程 (共 ${courses.length} 条记录)")));
         _recordSyncTime();
+
+        // Cleanup: Clear WebView cache and cookies to protect privacy and ensure fresh state next time
+        await _controller.clearCache();
+        await _controller.clearLocalStorage();
+        final cookieManager = WebViewCookieManager();
+        await cookieManager.clearCookies();
+        
         Navigator.pop(context, true); // Return success
       }
 

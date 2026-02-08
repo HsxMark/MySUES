@@ -347,6 +347,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ],
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              child: Text("长按删除课表", style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ),
             Expanded(
               child: ListView.builder(
                 itemCount: tables.length,
