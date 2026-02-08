@@ -97,7 +97,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             child: Text('课表显示设置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
           ),
           SwitchListTile(
-            title: const Text('节数栏显示时间'),
+            title: const Text('显示课程时间'),
             value: _showTime,
             onChanged: (v) => setState(() => _showTime = v),
           ),

@@ -98,39 +98,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   double _calculateTop(Course course) {
-    if (course.startTime != null && course.startTime!.isNotEmpty && _timeDetails.isNotEmpty) {
-       try {
-         final nodeDetail = _timeDetails.firstWhere((d) => d.node == course.startNode, orElse: () => _timeDetails.first);
-         final standardStart = _parseTime(nodeDetail.startTime);
-         final standardEnd = _parseTime(nodeDetail.endTime);
-         final duration = standardEnd - standardStart;
-         
-         if (duration > 0) {
-            final courseStart = _parseTime(course.startTime!);
-            final diff = courseStart - standardStart;
-             double offset = (diff / duration) * _cellHeight;
-             return (course.startNode - 1) * _cellHeight + offset;
-         }
-       } catch (_) {}
-    }
+    // 强制使用节次计算，避免因课件时间包含课间休息导致色块错位
     return (course.startNode - 1) * _cellHeight;
   }
   
   double _calculateHeight(Course course) {
-     if (course.startTime != null && course.endTime != null && 
-         course.startTime!.isNotEmpty && course.endTime!.isNotEmpty && _timeDetails.isNotEmpty) {
-        try {
-           final nodeDetail = _timeDetails.firstWhere((d) => d.node == course.startNode, orElse: () => _timeDetails.first);
-           final standardStart = _parseTime(nodeDetail.startTime);
-           final standardEnd = _parseTime(nodeDetail.endTime);
-           final standardDuration = standardEnd - standardStart;
-           
-           if (standardDuration > 0) {
-              final cDuration = _parseTime(course.endTime!) - _parseTime(course.startTime!);
-              return (cDuration / standardDuration) * _cellHeight;
-           }
-        } catch (_) {}
-     }
+     // 强制使用节次计算，避免因课件时间包含课间休息导致色块超出网格
      return course.step * _cellHeight;
   }
 
@@ -681,7 +654,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                   "${index + 1}", 
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
                                 ),
-                                if (_currentTable!.showTime && detail.startTime.isNotEmpty) ...[
+                                if (detail.startTime.isNotEmpty) ...[
                                    Text(detail.startTime, style: const TextStyle(fontSize: 9, color: Colors.grey)),
                                    Text(detail.endTime, style: const TextStyle(fontSize: 9, color: Colors.grey)),
                                 ]
