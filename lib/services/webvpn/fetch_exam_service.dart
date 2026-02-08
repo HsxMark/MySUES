@@ -9,10 +9,7 @@ import 'fetch_info_service.dart';
 
 class FetchExamService {
   
-  /// 获取考试信息列表
-  /// [controller]: 当前 WebVPN 登录状态下的 WebViewController
-  /// [baseUrl]: WebVPN 的基础 URL
-  /// [studentId]: 可选，如果不传则尝试自动获取
+
   static Future<List<Exam>> fetchExams(
     WebViewController controller, 
     String baseUrl, 

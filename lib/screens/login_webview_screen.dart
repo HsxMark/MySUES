@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:convert';
-import '../services/networking/academic_client.dart'; // Added
+import '../services/networking/academic_client.dart';
 import '../services/webvpn/fetch_course_service.dart';
 import '../services/webvpn/fetch_info_service.dart';
 import '../services/webvpn/fetch_score_service.dart';
