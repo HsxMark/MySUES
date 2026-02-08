@@ -459,7 +459,6 @@ class _TabIndicatorState extends State<_TabIndicator>
 
     final box = context.findRenderObject() as RenderBox;
     final currentRelativeX = (xAlign + 1) / 2; // Convert from -1:1 to 0:1
-    final tabWidth = 1.0 / widget.tabCount;
 
     // Calculate velocity in relative units, adjusted for the draggable range
     final indicatorWidth = 1.0 / widget.tabCount;
@@ -486,13 +485,16 @@ class _TabIndicatorState extends State<_TabIndicator>
           0.0,
           1.0,
         ); // 0.3s projection
-        targetTabIndex = (projectedX / tabWidth).round().clamp(
+        
+        // Fix: Use multiplication by (count-1) instead of division by (1/count)
+        // because normalized range 0..1 maps to indices 0..(count-1)
+        targetTabIndex = (projectedX * (widget.tabCount - 1)).round().clamp(
           0,
           widget.tabCount - 1,
         );
 
         // Ensure we move at least one tab if velocity is strong enough
-        final currentTabIndex = (currentRelativeX / tabWidth).round().clamp(
+        final currentTabIndex = (currentRelativeX * (widget.tabCount - 1)).round().clamp(
           0,
           widget.tabCount - 1,
         );
@@ -507,7 +509,7 @@ class _TabIndicatorState extends State<_TabIndicator>
         }
       } else {
         // Low velocity - snap to nearest tab
-        targetTabIndex = (currentRelativeX / tabWidth).round().clamp(
+        targetTabIndex = (currentRelativeX * (widget.tabCount - 1)).round().clamp(
           0,
           widget.tabCount - 1,
         );
