@@ -112,7 +112,7 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    '支持从PDF中自动提取课程信息', // Updated text
+                    '注意，当前功能极不稳定，可能无法正确解析 PDF 文件。', // Updated text
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
