@@ -602,7 +602,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         
         return Column(
           children: [
-            // Header
+            // Week number header
+            Container(
+              height: 30, // Small height for week number
+              alignment: Alignment.center,
+              color: Colors.grey.withValues(alpha: 0.05),
+              child: Text(
+                 "第 $weekNum 周",
+                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ),
+            // Header (Date)
             SizedBox(
               height: _headerHeight,
               child: Row(
