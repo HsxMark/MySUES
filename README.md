@@ -61,4 +61,4 @@ This project is an unofficial application developed by individual students for l
 
 ## 📜 License
 
-This project follows open source licenses, please check the [LICENSE](../LICENSE) file for details.
+This project follows open source licenses, please check the [LICENSE](LICENSE) file for details.
