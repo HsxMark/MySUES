@@ -19,9 +19,9 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    // We can get the value from ThemeService if it is initialized, or prefs
     setState(() {
-      _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
+      _liquidGlassEnabled = ThemeService().liquidGlassEnabled; // Try service first
     });
   }
 
@@ -31,8 +31,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   }
 
   Future<void> _saveLiquidGlass(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('liquid_glass_beta', value);
+    await ThemeService().updateLiquidGlass(value);
     setState(() {
       _liquidGlassEnabled = value;
     });
