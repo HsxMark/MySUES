@@ -691,91 +691,55 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                              );
                           }),
                           
-                          // Courses for this week
-                          ..._courses.where((c) => c.inWeek(weekNum)).map((course) {
-                            // Correct day index (1-7) -> (0-6)
-                            final dayIndex = course.day - 1;
-                            
-                            // Calculate display column index
-                            final displayIndex = visibleIndices.indexOf(dayIndex);
-                            
-                            // If day is not visible, skip rendering
-                            if (displayIndex == -1) return const SizedBox();
-                            
-                            // 节次是从1开始的，转为0-based
-                            final startNodeIndex = course.startNode - 1;
-                            
-                            final top = _calculateTop(course);
-                            final height = _calculateHeight(course);
-
-                            // Get start time string
-                            String? startTimeStr;
-                            if (_timeDetails.isNotEmpty) {
-                              try {
-                                final detail = _timeDetails.firstWhere((d) => d.node == course.startNode);
-                                startTimeStr = detail.startTime;
-                              } catch (_) {}
-                            }
-
-                            return Positioned(
-                              left: displayIndex * dayColWidth,
-                              top: top,
-                              width: dayColWidth - 1, // spacing
-                              height: height - 1, // spacing
-                              child: GestureDetector(
-                                onTap: () => _showCourseDetail(context, course),
-                                child: Container(
-                                  margin: const EdgeInsets.all(1),
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    color: course.colorObj,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      if (_currentTable!.showTime && startTimeStr != null && startTimeStr.isNotEmpty)
-                                        Text(
-                                          startTimeStr,
-                                          style: TextStyle(
-                                            color: Color(_currentTable!.courseTextColor).withValues(alpha: 0.9),
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              course.courseName,
-                                              style: TextStyle(
-                                                color: Color(_currentTable!.courseTextColor),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                              maxLines: 3,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            if (course.room.isNotEmpty)
-                                              Text(
-                                                course.room,
-                                                style: TextStyle(
-                                                  color: Color(_currentTable!.courseTextColor),
-                                                  fontSize: 9,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
+                          // Generic Course Builder
+                          ...() {
+                             final List<Widget> widgets = [];
+                             final activeCourses = _courses.where((c) => c.inWeek(weekNum)).toList();
+                             
+                             // Set to track occupied slots to prevent overlapping
+                             // Format: "day-node" e.g. "1-3" (Monday, Node 3)
+                             final Set<String> occupiedSlots = {};
+                             
+                             // 1. Add Active Courses (High Priority)
+                             for (var course in activeCourses) {
+                               widgets.add(_buildSingleCourseItem(context, course, visibleIndices, dayColWidth, false));
+                               // Mark slots as occupied
+                               for(int i = 0; i < course.step; i++) {
+                                 occupiedSlots.add("${course.day}-${course.startNode + i}");
+                               }
+                             }
+                             
+                             // 2. Add Other Week Courses
+                             // Logic: Look ahead from next week. The first course found for an empty slot is displayed.
+                             if (_currentTable!.showOtherWeekCourse) {
+                                // Iterate weeks from next week to end of semester
+                                for (int w = weekNum + 1; w <= _currentTable!.maxWeek; w++) {
+                                   final futureCourses = _courses.where((c) => c.inWeek(w)).toList();
+                                   
+                                   for (var course in futureCourses) {
+                                       // Check if this course's slots are already filled
+                                       bool isBlocked = false;
+                                       for(int i = 0; i < course.step; i++) {
+                                          if (occupiedSlots.contains("${course.day}-${course.startNode + i}")) {
+                                            isBlocked = true;
+                                            break;
+                                          }
+                                       }
+                                       
+                                       if (!isBlocked) {
+                                          widgets.add(_buildSingleCourseItem(context, course, visibleIndices, dayColWidth, true));
+                                          // Mark slots as occupied so further weeks don't override this one
+                                          // (We show the SOONEST future course)
+                                          for(int i = 0; i < course.step; i++) {
+                                             occupiedSlots.add("${course.day}-${course.startNode + i}");
+                                          }
+                                       }
+                                   }
+                                }
+                             }
+                             
+                             return widgets;
+                          }(),
                         ],
                       ),
                     ),
@@ -788,4 +752,109 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       },
     );
   }
-}
+
+  Widget _buildSingleCourseItem(BuildContext context, Course course, List<int> visibleIndices, double dayColWidth, bool isNonCurrentWeek) {
+      // Correct day index (1-7) -> (0-6)
+      final dayIndex = course.day - 1;
+      
+      // Calculate display column index
+      final displayIndex = visibleIndices.indexOf(dayIndex);
+      
+      // If day is not visible, skip rendering
+      if (displayIndex == -1) return const SizedBox();
+      
+      final top = _calculateTop(course);
+      final height = _calculateHeight(course);
+
+      // Get start time string
+      String? startTimeStr;
+      if (_timeDetails.isNotEmpty) {
+        try {
+          final detail = _timeDetails.firstWhere((d) => d.node == course.startNode);
+          startTimeStr = detail.startTime;
+        } catch (_) {}
+      }
+
+      // Adjust styles for non-current week
+      final bgColor = isNonCurrentWeek 
+          ? course.colorObj.withValues(alpha: 0.3) // Example: lighter/dimmer
+          : course.colorObj;
+      final textColor = isNonCurrentWeek
+          ? Color(_currentTable!.courseTextColor).withValues(alpha: 0.6)
+          : Color(_currentTable!.courseTextColor);
+
+      return Positioned(
+        left: displayIndex * dayColWidth,
+        top: top,
+        width: dayColWidth - 1, // spacing
+        height: height - 1, // spacing
+        child: GestureDetector(
+          onTap: () => _showCourseDetail(context, course),
+          child: Container(
+            margin: const EdgeInsets.all(1),
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(4),
+              border: isNonCurrentWeek ? Border.all(color: Colors.grey.withValues(alpha:0.3)) : null,
+            ),
+            child: Column(
+              children: [
+                if (_currentTable!.showTime && startTimeStr != null && startTimeStr.isNotEmpty)
+                  Text(
+                    startTimeStr,
+                    style: TextStyle(
+                      color: textColor.withValues(alpha: 0.9),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isNonCurrentWeek)
+                        Text(
+                          "[非本周]",
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      Text(
+                        course.courseName,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (course.room.isNotEmpty)
+                        Text(
+                          course.room,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 9,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+  }
+} // End of _ScheduleScreenState class? No, we are replacing inside the class method.
+// Wait, I am pasting _buildSingleCourseItem OUTSIDE the method but inside the class.
+// But the replace_string function needs context.
+// Let's be careful about brackets.
+
