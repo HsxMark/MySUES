@@ -212,10 +212,10 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
          }
          
          // Cleanup & Exit
-         await _controller.clearCache();
-         await _controller.clearLocalStorage();
-         final cookieManager = WebViewCookieManager();
-         await cookieManager.clearCookies();
+         // await _controller.clearCache();
+         // await _controller.clearLocalStorage();
+         // final cookieManager = WebViewCookieManager();
+         // await cookieManager.clearCookies();
          if (!mounted) return;
          Navigator.pop(context, true);
          return;
@@ -344,10 +344,10 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         _recordSyncTime();
 
         // Cleanup: Clear WebView cache and cookies to protect privacy and ensure fresh state next time
-        await _controller.clearCache();
-        await _controller.clearLocalStorage();
-        final cookieManager = WebViewCookieManager();
-        await cookieManager.clearCookies();
+        // await _controller.clearCache();
+        // await _controller.clearLocalStorage();
+        // final cookieManager = WebViewCookieManager();
+        // await cookieManager.clearCookies();
         
         Navigator.pop(context, true); // Return success
       }
