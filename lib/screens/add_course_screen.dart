@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/course.dart';
+import '../models/schedule_table.dart';
+import '../models/time_table.dart';
 import '../services/schedule_service.dart';
 
 class AddCourseScreen extends StatefulWidget {
@@ -20,6 +22,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   late TextEditingController _teacherController;
   late TextEditingController _startWeekController;
   late TextEditingController _endWeekController;
+  late TextEditingController _startTimeController;
+  late TextEditingController _endTimeController;
 
   // State variables
   int _day = 1; // 1-7
@@ -27,6 +31,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   int _endNode = 2; 
   int _type = 0; // 0: All, 1: Odd, 2: Even
   Color _selectedColor = Colors.blue;
+  List<TimeDetail> _timeDetails = [];
 
   final List<Color> _colors = [
     Colors.blue, Colors.red, Colors.green, Colors.orange, 
@@ -38,6 +43,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   void initState() {
     super.initState();
     _initData();
+    _loadTimeDetails();
   }
 
   void _initData() {
@@ -48,6 +54,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       _teacherController = TextEditingController(text: c.teacher);
       _startWeekController = TextEditingController(text: c.startWeek.toString());
       _endWeekController = TextEditingController(text: c.endWeek.toString());
+      _startTimeController = TextEditingController(text: c.startTime ?? '');
+      _endTimeController = TextEditingController(text: c.endTime ?? '');
       
       _day = c.day;
       _startNode = c.startNode;
@@ -60,9 +68,69 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       _teacherController = TextEditingController();
       _startWeekController = TextEditingController(text: '1');
       _endWeekController = TextEditingController(text: '16');
+      _startTimeController = TextEditingController();
+      _endTimeController = TextEditingController();
       _selectedColor = _colors[0];
       _startNode = 1;
       _endNode = 2;
+    }
+  }
+
+  Future<void> _loadTimeDetails() async {
+    try {
+      int tableId = widget.course?.tableId ?? 0;
+      if (tableId == 0) {
+        tableId = await ScheduleDataService.getCurrentTableId();
+      }
+      
+      final tables = await ScheduleDataService.loadScheduleTables();
+      if (tables.isEmpty) return;
+      
+      final table = tables.firstWhere((t) => t.id == tableId, orElse: () => tables.first);
+      final details = await ScheduleDataService.loadTimeDetails(timeTableId: table.timeTableId);
+      
+      if (mounted) {
+        setState(() {
+          _timeDetails = details;
+          // Init time text if empty
+          if (_startTimeController.text.isEmpty && _timeDetails.isNotEmpty) {
+             _updateTimeFromNodes();
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading time details: $e');
+    }
+  }
+
+  void _updateTimeFromNodes() {
+    if (_timeDetails.isEmpty) return;
+    try {
+      final start = _timeDetails.firstWhere((d) => d.node == _startNode);
+      final end = _timeDetails.firstWhere((d) => d.node == _endNode);
+      _startTimeController.text = start.startTime;
+      _endTimeController.text = end.endTime;
+    } catch (_) {}
+  }
+  
+  String _getTimeString(int node) {
+    if (_timeDetails.isEmpty) return '';
+    try {
+      final detail = _timeDetails.firstWhere((d) => d.node == node);
+      return '(${detail.startTime}-${detail.endTime})';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  String _getTimeRangeDisplay() {
+    if (_timeDetails.isEmpty) return '';
+    try {
+      final start = _timeDetails.firstWhere((d) => d.node == _startNode);
+      final end = _timeDetails.firstWhere((d) => d.node == _endNode);
+      return '${start.startTime} - ${end.endTime}';
+    } catch (e) {
+      return '';
     }
   }
 
@@ -73,6 +141,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     _teacherController.dispose();
     _startWeekController.dispose();
     _endWeekController.dispose();
+    _startTimeController.dispose();
+    _endTimeController.dispose();
     super.dispose();
   }
 
@@ -128,16 +198,25 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                              child: DropdownButtonFormField<int>(
                                value: _startNode,
                                decoration: const InputDecoration(labelText: '开始节次'),
-                               items: List.generate(15, (index) => DropdownMenuItem(
-                                 value: index + 1,
-                                 child: Text('第 ${index + 1} 节'),
-                               )).toList(),
+                               isExpanded: true,
+                               items: List.generate(15, (index) {
+                                 final node = index + 1;
+                                 return DropdownMenuItem(
+                                   value: node,
+                                   child: Text(
+                                     '第 $node 节 ${_getTimeString(node)}',
+                                     style: const TextStyle(fontSize: 12),
+                                     overflow: TextOverflow.ellipsis,
+                                   ),
+                                 );
+                               }).toList(),
                                onChanged: (v) {
                                  setState(() {
                                     _startNode = v!;
                                     if (_endNode < _startNode) {
                                       _endNode = _startNode;
                                     }
+                                    _updateTimeFromNodes();
                                  });
                                },
                              ),
@@ -147,21 +226,45 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                              child: DropdownButtonFormField<int>(
                                value: _endNode,
                                decoration: const InputDecoration(labelText: '结束节次'),
-                               items: List.generate(15, (index) => DropdownMenuItem(
-                                 value: index + 1,
-                                 child: Text('第 ${index + 1} 节'),
-                               )).toList(),
+                               isExpanded: true,
+                               items: List.generate(15, (index) {
+                                 final node = index + 1;
+                                 return DropdownMenuItem(
+                                   value: node,
+                                   child: Text(
+                                     '第 $node 节 ${_getTimeString(node)}',
+                                     style: const TextStyle(fontSize: 12),
+                                     overflow: TextOverflow.ellipsis,
+                                   ),
+                                 );
+                               }).toList(),
                                onChanged: (v) {
                                   setState(() {
                                      _endNode = v!; 
                                      if (_endNode < _startNode) {
                                        _startNode = _endNode;
                                      }
+                                     _updateTimeFromNodes();
                                   });
                                }
                              ),
                            ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                         children: [
+                           Expanded(
+                             child: GestureDetector(
+                               onTap: () async {
+                                 // Optional: Add TimePicker here
+                               },
+                               child: _buildTextField(_startTimeController, '开始时间(HH:mm)'),
+                             ),
+                           ),
+                           const SizedBox(width: 16),
+                           Expanded(child: _buildTextField(_endTimeController, '结束时间(HH:mm)')),
+                         ],
                       ),
                     ],
                   ),
@@ -277,6 +380,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         type: _type,
         color: colorHex,
         tableId: widget.course?.tableId ?? 0, // Should be passed or default
+        startTime: _startTimeController.text.isNotEmpty ? _startTimeController.text : null,
+        endTime: _endTimeController.text.isNotEmpty ? _endTimeController.text : null,
       );
 
       Navigator.pop(context, course);

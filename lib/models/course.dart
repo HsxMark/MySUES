@@ -14,6 +14,8 @@ class Course {
   int type; // 0: 每周, 1: 单周, 2: 双周
   String color; // Hex color string, e.g. "#FF0000"
   int tableId; // 所属课表ID
+  String? startTime; // 自定义开始时间 HH:mm
+  String? endTime; // 自定义结束时间 HH:mm
 
   Course({
     this.id = 0,
@@ -28,6 +30,8 @@ class Course {
     this.type = 0,
     required this.color,
     this.tableId = 0,
+    this.startTime,
+    this.endTime,
   });
 
   /// 获取节次描述字符串
@@ -64,6 +68,8 @@ class Course {
       type: json['type'] as int,
       color: json['color'] as String,
       tableId: json['tableId'] as int? ?? 0,
+      startTime: json['startTime'] as String?,
+      endTime: json['endTime'] as String?,
     );
   }
 
@@ -81,6 +87,8 @@ class Course {
       'type': type,
       'color': color,
       'tableId': tableId,
+      'startTime': startTime,
+      'endTime': endTime,
     };
   }
 

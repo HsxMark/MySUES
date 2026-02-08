@@ -15,6 +15,10 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   late TextEditingController _maxWeekController;
   late TextEditingController _nodesController;
   late String _startDate;
+  late bool _showTime;
+  late bool _showSat;
+  late bool _showSun;
+  late bool _showOtherWeekCourse;
 
   @override
   void initState() {
@@ -24,11 +28,19 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       _maxWeekController = TextEditingController(text: widget.table!.maxWeek.toString());
       _nodesController = TextEditingController(text: widget.table!.nodes.toString());
       _startDate = widget.table!.startDate;
+      _showTime = widget.table!.showTime;
+      _showSat = widget.table!.showSat;
+      _showSun = widget.table!.showSun;
+      _showOtherWeekCourse = widget.table!.showOtherWeekCourse;
     } else {
       _nameController = TextEditingController(text: '新课表');
       _maxWeekController = TextEditingController(text: '20');
       _nodesController = TextEditingController(text: '15'); // Default to 15
       _startDate = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).toIso8601String().split('T')[0];
+      _showTime = false;
+      _showSat = true;
+      _showSun = true;
+      _showOtherWeekCourse = true;
     }
   }
 
@@ -79,6 +91,31 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             decoration: const InputDecoration(labelText: '每天节数', border: OutlineInputBorder()),
             keyboardType: TextInputType.number,
           ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Text('课表显示设置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+          ),
+          SwitchListTile(
+            title: const Text('节数栏显示时间'),
+            value: _showTime,
+            onChanged: (v) => setState(() => _showTime = v),
+          ),
+          SwitchListTile(
+            title: const Text('显示周六'),
+            value: _showSat,
+            onChanged: (v) => setState(() => _showSat = v),
+          ),
+          SwitchListTile(
+            title: const Text('显示周日'),
+            value: _showSun,
+            onChanged: (v) => setState(() => _showSun = v),
+          ),
+          SwitchListTile(
+            title: const Text('显示非本周课程'),
+            value: _showOtherWeekCourse,
+            onChanged: (v) => setState(() => _showOtherWeekCourse = v),
+          ),
         ],
       ),
     );
@@ -107,6 +144,10 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       widget.table!.startDate = _startDate;
       widget.table!.maxWeek = maxWeek;
       widget.table!.nodes = nodes;
+      widget.table!.showTime = _showTime;
+      widget.table!.showSat = _showSat;
+      widget.table!.showSun = _showSun;
+      widget.table!.showOtherWeekCourse = _showOtherWeekCourse;
       Navigator.pop(context, widget.table);
     } else {
       final newTable = ScheduleTable(
@@ -115,6 +156,10 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
         maxWeek: maxWeek,
         nodes: nodes,
         timeTableId: 1, // Default time table
+        showTime: _showTime,
+        showSat: _showSat,
+        showSun: _showSun,
+        showOtherWeekCourse: _showOtherWeekCourse,
       );
        Navigator.pop(context, newTable);
     }

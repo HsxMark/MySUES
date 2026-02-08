@@ -24,7 +24,7 @@ class ScheduleTable {
   ScheduleTable({
     this.id = 0,
     required this.tableName,
-    this.nodes = 12, 
+    this.nodes = 15, 
     this.background = '',
     this.timeTableId = 1,
     required this.startDate,

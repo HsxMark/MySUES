@@ -73,6 +73,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   // _injectDemoCourses removed here
   
   String _getTimeRange(Course course) {
+    if (course.startTime != null && course.endTime != null && course.startTime!.isNotEmpty) {
+      return '${course.startTime} - ${course.endTime}';
+    }
     if (_timeDetails.isEmpty) return '';
     try {
       final start = _timeDetails.firstWhere((t) => t.node == course.startNode);
@@ -82,6 +85,53 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     } catch (e) {
       return '';
     }
+  }
+
+  int _parseTime(String time) {
+    try {
+      final parts = time.split(':');
+      if (parts.length != 2) return 0;
+      return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  double _calculateTop(Course course) {
+    if (course.startTime != null && course.startTime!.isNotEmpty && _timeDetails.isNotEmpty) {
+       try {
+         final nodeDetail = _timeDetails.firstWhere((d) => d.node == course.startNode, orElse: () => _timeDetails.first);
+         final standardStart = _parseTime(nodeDetail.startTime);
+         final standardEnd = _parseTime(nodeDetail.endTime);
+         final duration = standardEnd - standardStart;
+         
+         if (duration > 0) {
+            final courseStart = _parseTime(course.startTime!);
+            final diff = courseStart - standardStart;
+             double offset = (diff / duration) * _cellHeight;
+             return (course.startNode - 1) * _cellHeight + offset;
+         }
+       } catch (_) {}
+    }
+    return (course.startNode - 1) * _cellHeight;
+  }
+  
+  double _calculateHeight(Course course) {
+     if (course.startTime != null && course.endTime != null && 
+         course.startTime!.isNotEmpty && course.endTime!.isNotEmpty && _timeDetails.isNotEmpty) {
+        try {
+           final nodeDetail = _timeDetails.firstWhere((d) => d.node == course.startNode, orElse: () => _timeDetails.first);
+           final standardStart = _parseTime(nodeDetail.startTime);
+           final standardEnd = _parseTime(nodeDetail.endTime);
+           final standardDuration = standardEnd - standardStart;
+           
+           if (standardDuration > 0) {
+              final cDuration = _parseTime(course.endTime!) - _parseTime(course.startTime!);
+              return (cDuration / standardDuration) * _cellHeight;
+           }
+        } catch (_) {}
+     }
+     return course.step * _cellHeight;
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
@@ -662,11 +712,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             // 节次是从1开始的，转为0-based
                             final startNodeIndex = course.startNode - 1;
                             
+                            final top = _calculateTop(course);
+                            final height = _calculateHeight(course);
+
                             return Positioned(
                               left: dayIndex * dayColWidth,
-                              top: startNodeIndex * _cellHeight,
+                              top: top,
                               width: dayColWidth - 1, // spacing
-                              height: course.step * _cellHeight - 1, // spacing
+                              height: height - 1, // spacing
                               child: GestureDetector(
                                 onTap: () => _showCourseDetail(context, course),
                                 child: Container(

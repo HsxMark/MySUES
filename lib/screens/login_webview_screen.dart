@@ -297,8 +297,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       final startDateStr = info['startDate'] as String? ?? "2024-09-01";
       final table = ScheduleTable(
         tableName: semesterName,
+        nodes: 15,
         startDate: startDateStr,
-        nodes: 12, // Default
       );
       
       // Save Table
