@@ -3,6 +3,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:convert';
 import '../services/networking/academic_client.dart'; // Added
 import '../services/webvpn/fetch_course_service.dart';
+import '../services/webvpn/fetch_info_service.dart';
 import '../services/parsers/score_parser.dart';
 import '../services/parsers/exam_parser.dart';
 import '../services/parsers/student_info_parser.dart';
@@ -25,6 +26,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   
   bool _isLoading = true;
   bool _hasStartedAutoFetch = false;
+  // 区分当前是“抓取课表”还是“抓取个人信息”
+  bool _isFetchingInfo = false; 
+
   String _currentStep = '请登录 教务系统';
   
   // URLs
@@ -185,7 +189,36 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         return;
       }
 
-      // 3. User Selects Semester
+      // 3. Branch logic based on user intent
+      // Fetch Info OR Fetch Schedule
+      if (_isFetchingInfo) {
+         // --- Auto Fetch Info Logic ---
+         setState(() => _currentStep = "正在提取个人信息...");
+         final info = await FetchInfoService.fetchStudentInfo(_controller, targetBase);
+         
+         if (info != null && info.isNotEmpty) {
+            await FetchInfoService.saveStudentInfo(info);
+            if (!mounted) return;
+            String msg = "已更新: ${info['name']}";
+            if (info['code'] != null) msg += " (${info['code']})";
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+            _recordSyncTime();
+         } else {
+            if (!mounted) return;
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("未能提取到有效的个人信息")));
+         }
+         
+         // Cleanup & Exit
+         await _controller.clearCache();
+         await _controller.clearLocalStorage();
+         final cookieManager = WebViewCookieManager();
+         await cookieManager.clearCookies();
+         if (!mounted) return;
+         Navigator.pop(context, true);
+         return;
+      }
+      // --- END Info Logic ---
+
       if (!mounted) return;
       
       // Fetch details for display (nameZh) - Optional, mimicking python
@@ -535,15 +568,16 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           title: const Text("提取个人信息"),
                           onTap: () {
                             Navigator.pop(context);
-                            _extractInfo();
+                            _isFetchingInfo = true;
+                            _startAutoFetch();
                           },
                         ),
                         ListTile(
                           leading: const Icon(Icons.calendar_month),
                           title: const Text("提取课表"),
-                          subtitle: const Text("需选择开学日期"),
                           onTap: () {
                             Navigator.pop(context);
+                            _isFetchingInfo = false; 
                             _startAutoFetch();
                           },
                         ),
