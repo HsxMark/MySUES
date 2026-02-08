@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // Add this for ValueNotifier
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exam.dart';
 
 class ExamService {
   static const String _examsKey = 'exam_info_list';
+  
+  // Notifier to alert UI of updates
+  static final ValueNotifier<int> examsUpdateNotifier = ValueNotifier(0);
 
   static Future<List<Exam>> loadExams() async {
     final prefs = await SharedPreferences.getInstance();
@@ -85,6 +89,8 @@ class ExamService {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = jsonEncode(exams.map((e) => e.toJson()).toList());
     await prefs.setString(_examsKey, jsonString);
+    // Notify listeners
+    examsUpdateNotifier.value++;
   }
 
   static Future<void> addExam(Exam exam) async {

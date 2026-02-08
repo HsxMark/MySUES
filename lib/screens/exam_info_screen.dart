@@ -19,6 +19,14 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   void initState() {
     super.initState();
     _loadExams();
+    // Listen for updates from other screens (e.g. LoginWebview)
+    ExamService.examsUpdateNotifier.addListener(_loadExams);
+  }
+
+  @override
+  void dispose() {
+    ExamService.examsUpdateNotifier.removeListener(_loadExams);
+    super.dispose();
   }
 
   Future<void> _loadExams() async {

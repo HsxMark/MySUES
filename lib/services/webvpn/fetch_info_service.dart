@@ -9,7 +9,6 @@ class FetchInfoService {
 
   /// 1. 获取包含个人信息的JSON数据
   /// 
-  /// 策略：
   /// - 先尝试自动寻找一个当前可用的 Semester ID
   /// - 使用该 ID 请求 print-data 接口 (与课表抓取同一个接口)
   /// - 如果接口返回数据，从中解析 studentTableVms -> 第一个对象 -> 基础信息
@@ -24,8 +23,6 @@ class FetchInfoService {
       }
 
       
-      // 步骤 2: 选择一个 ID (通常选最新的/最大的 ID 成功率较高)
-      // Semester IDs are usually strings like "602", "581". Sort descending.
       ids.sort((a, b) {
         int? iA = int.tryParse(a);
         int? iB = int.tryParse(b);
@@ -37,7 +34,6 @@ class FetchInfoService {
       debugPrint("FetchInfoService: Trying semester ID: $targetId");
 
       // 步骤 3: 请求数据
-      // URL pattern: .../print-data?semesterId=...
       final url = "$baseUrl/student/for-std/course-table/semester/$targetId/print-data?$_vpnSuffix&semesterId=$targetId&hasExperiment=true";
       
       final jsonStr = await _fetchWithXhr(controller, url);
