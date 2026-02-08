@@ -618,9 +618,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     // Correct to Monday if necessary, though logic handled in model ideally
     final adjustedWeekStart = weekStart.subtract(Duration(days: weekStart.weekday - 1));
 
+    // Calculate visible days
+    List<int> visibleIndices = [0, 1, 2, 3, 4]; // Mon-Fri always visible
+    if (_currentTable!.showSat) visibleIndices.add(5);
+    if (_currentTable!.showSun) visibleIndices.add(6);
+    
     return LayoutBuilder(
       builder: (context, constraints) {
-        final dayColWidth = (constraints.maxWidth - _timeColWidth) / 7;
+        final dayColWidth = (constraints.maxWidth - _timeColWidth) / visibleIndices.length;
         
         return Column(
           children: [
@@ -630,7 +635,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               child: Row(
                 children: [
                   SizedBox(width: _timeColWidth, child: Center(child: Text("${weekStart.month}\n月", textAlign: TextAlign.center,))),
-                  ...List.generate(7, (index) {
+                  ...visibleIndices.map((index) {
                     final date = adjustedWeekStart.add(Duration(days: index));
                     final isToday = DateTime.now().day == date.day && DateTime.now().month == date.month && DateTime.now().year == date.year;
                     return Container(
@@ -707,7 +712,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           ..._courses.where((c) => c.inWeek(weekNum)).map((course) {
                             // Correct day index (1-7) -> (0-6)
                             final dayIndex = course.day - 1;
-                            if (dayIndex < 0 || dayIndex > 6) return const SizedBox();
+                            
+                            // Calculate display column index
+                            final displayIndex = visibleIndices.indexOf(dayIndex);
+                            
+                            // If day is not visible, skip rendering
+                            if (displayIndex == -1) return const SizedBox();
                             
                             // 节次是从1开始的，转为0-based
                             final startNodeIndex = course.startNode - 1;
@@ -716,7 +726,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             final height = _calculateHeight(course);
 
                             return Positioned(
-                              left: dayIndex * dayColWidth,
+                              left: displayIndex * dayColWidth,
                               top: top,
                               width: dayColWidth - 1, // spacing
                               height: height - 1, // spacing
