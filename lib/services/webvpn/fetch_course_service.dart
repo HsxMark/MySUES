@@ -245,15 +245,18 @@ class FetchCourseService {
   }
 
   static String _generateColor(String name) {
+    // Colors matching AddCourseScreen (Material Primary Colors)
     final colors = [
-      "#FFCC80",
-      "#FFAB91",
-      "#E6EE9C",
-      "#80CBC4",
-      "#81D4FA",
-      "#9FA8DA",
-      "#CE93D8",
-      "#EF9A9A",
+      "#2196F3", // Colors.blue
+      "#F44336", // Colors.red
+      "#4CAF50", // Colors.green
+      "#FF9800", // Colors.orange
+      "#9C27B0", // Colors.purple
+      "#009688", // Colors.teal
+      "#E91E63", // Colors.pink
+      "#3F51B5", // Colors.indigo
+      "#00BCD4", // Colors.cyan
+      "#795548"  // Colors.brown
     ];
     int hash = name.codeUnits.fold(0, (previous, element) => previous + element);
     return colors[hash % colors.length];
