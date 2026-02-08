@@ -5,6 +5,7 @@ import '../services/networking/academic_client.dart'; // Added
 import '../services/webvpn/fetch_course_service.dart';
 import '../services/webvpn/fetch_info_service.dart';
 import '../services/webvpn/fetch_score_service.dart';
+import '../services/webvpn/fetch_exam_service.dart';
 import '../services/parsers/score_parser.dart';
 import '../services/parsers/exam_parser.dart';
 import '../services/parsers/student_info_parser.dart';
@@ -449,36 +450,27 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   Future<void> _extractExam() async {
     try {
       String targetBase = _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
-      _showSnack("正在通过WebVPN接口提取考试...");
-      final cookie = await _getCookieString();
+      setState(() => _currentStep = "正在提取考试安排..."); 
       
-      final html = await _academicClient.postHtmlWithCookie(
-        "$targetBase/eams/stdExamTable!examTable.action", 
-        cookie,
-        data: {
-          'sort': 'examTime',
-          'order': 'desc',
-          'projectType': 'MAJOR'
-        }
-      );
-      
-      if (html == null || html.isEmpty) {
-        throw "无法获取数据";
-      }
-      
-      final parser = ExamParser();
-      final exams = parser.parse(html);
+      // Use the new WebVPN service
+      final exams = await FetchExamService.fetchExams(_controller, targetBase);
       
       if (exams.isEmpty) {
         _showSnack("未检测到考试数据");
+        setState(() => _currentStep = "未找到考试数据");
         return;
       }
       
       await ExamService.saveExams(exams);
-      _showSnack("成功导入 ${exams.length} 条考试记录！");
+      String msg = "成功导入 ${exams.length} 条考试记录！";
+      _showSnack(msg);
+      setState(() => _currentStep = msg);
+      
       _recordSyncTime();
     } catch (e) {
+      debugPrint("Extract Exam Error: $e");
       _showSnack("提取失败: $e");
+      setState(() => _currentStep = "提取失败");
     }
   }
 
