@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/exam.dart';
 import '../services/exam_service.dart';
 import 'add_exam_screen.dart';
+import 'login_webview_screen.dart';
 
 class ExamInfoScreen extends StatefulWidget {
   const ExamInfoScreen({super.key});
@@ -103,6 +104,22 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
               );
             },
             menuChildren: [
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.sync_alt),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginWebviewScreen(),
+                    ),
+                  );
+                  // LoginWebviewScreen returns true if data changed
+                  if (result == true && mounted) {
+                    await _loadExams();
+                  }
+                },
+                child: const Text('从教务处导入'),
+              ),
               MenuItemButton(
                 leadingIcon: const Icon(Icons.add, color: Colors.grey),
                 onPressed: () {
