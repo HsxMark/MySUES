@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../services/networking/academic_client.dart'; // Added
 import '../services/webvpn/fetch_course_service.dart';
 import '../services/webvpn/fetch_info_service.dart';
+import '../services/webvpn/fetch_score_service.dart';
 import '../services/parsers/score_parser.dart';
 import '../services/parsers/exam_parser.dart';
 import '../services/parsers/student_info_parser.dart';
@@ -364,24 +365,75 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   Future<void> _extractScore() async {
     try {
       String targetBase = _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
-      _showSnack("正在通过WebVPN接口提取成绩...");
-      final cookie = await _getCookieString();
       
-      final html = await _academicClient.postHtmlWithCookie(
-        "$targetBase/eams/teach/grade/course/person!historyCourseGrade.action", 
-        cookie,
-        data: {'projectType': 'MAJOR'}
-      );
+      _showSnack("正在获取基础数据...");
       
-      if (html == null || html.isEmpty) {
-        throw "无法获取数据";
+      // 1. Ensure we are on the course table page to get semester IDs
+      final currentUrl = await _controller.currentUrl();
+      if (currentUrl == null || !currentUrl.contains("student/for-std/course-table")) {
+         _showSnack("跳转到课表页面以获取数据...");
+         String courseUrl = "$targetBase/student/for-std/course-table";
+         await _controller.loadRequest(Uri.parse(courseUrl));
+         
+         // Wait for page load
+         int retries = 0;
+         while(retries < 15) {
+            await Future.delayed(const Duration(milliseconds: 1000));
+            final url = await _controller.currentUrl();
+            if (url != null && url.contains("course-table")) break;
+            retries++;
+         }
+      }
+
+      // 2. Fetch semester IDs (needed for both ID extraction and Score fetching)
+      List<String> semesterIds = []; 
+      int retryCount = 0;
+      while (retryCount < 10) {
+        semesterIds = await FetchCourseService.fetchSemesterIds(_controller);
+        if (semesterIds.isNotEmpty) break;
+        await Future.delayed(const Duration(milliseconds: 500));
+        retryCount++;
       }
       
-      final parser = ScoreParser();
-      final scores = parser.parse(html);
+      if (semesterIds.isEmpty) throw "无法获取学期列表，请重试";
+
+      // 3. Always parse Student ID from course data (ignoring local cache)
+      String? studentId;
+      _showSnack("正在解析学生ID...");
+      
+      // Use the first (usually latest) semester to fetch course table data which contains the ID
+      final latestSemester = semesterIds.first;
+      final courseData = await FetchCourseService.fetchCourseData(_controller, targetBase, latestSemester);
+      
+      if (courseData != null && courseData['studentTableVms'] != null) {
+        final vms = courseData['studentTableVms'] as List;
+        if (vms.isNotEmpty) {
+            final vm = vms[0];
+            if (vm['id'] != null) {
+              studentId = vm['id'].toString();
+              
+              // Sync to cache for other uses
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('student_id', studentId);
+              if (vm['name'] != null) {
+                await prefs.setString('user_nickname', vm['name'].toString());
+              }
+            }
+        }
+      }
+      
+      if (studentId == null) throw "无法从课表数据中解析学生ID";
+
+      _showSnack("正在通过 JSON 接口提取成绩 (共${semesterIds.length}个学期)...");
+      
+      // 4. Fetch Scores
+      final scores = await FetchScoreService.fetchAllScores(
+          _controller, targetBase, studentId, semesterIds);
       
       if (scores.isEmpty) {
-        _showSnack("未检测到成绩数据");
+        final msg = "未检测到成绩数据 (ID:$studentId, 学期数:${semesterIds.length})";
+        debugPrint(msg);
+        _showSnack(msg);
         return;
       }
       
@@ -389,6 +441,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       _showSnack("成功导入 ${scores.length} 条成绩记录！");
       _recordSyncTime();
     } catch (e) {
+      debugPrint("Extract score error: $e");
       _showSnack("提取失败: $e");
     }
   }

@@ -78,6 +78,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     double totalPoints = 0;
     double totalCredits = 0;
     for (var score in scores) {
+      if (!score.isEvaluated) continue; // 跳过未评教课程
       double gp = score.gradePoint;
       totalPoints += gp * score.credit;
       totalCredits += score.credit;
@@ -94,6 +95,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     final semesterScores = _allScores
         .where((s) => s.semester == _selectedSemester)
         .toList();
+
+    int unEvaluatedCount = semesterScores.where((s) => !s.isEvaluated).length;
+
     // 当前学期 GPA 计算
     final semesterGPA = _calculateGPA(semesterScores);
 
@@ -308,23 +312,60 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   Widget _buildSemesterSummary(double gpa, List<Score> scores) {
     double totalCredits = 0;
-    for (var s in scores) totalCredits += s.credit;
+    int unEvaluatedCount = 0;
+    
+    for (var s in scores) {
+      if (s.isEvaluated) {
+        totalCredits += s.credit;
+      } else {
+        unEvaluatedCount++;
+      }
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
+      child: Column(
         children: [
-          _buildInfoChip(
-            label: "学期 GPA",
-            value: gpa.toStringAsFixed(2),
-            color: Colors.blueAccent,
+          Row(
+            children: [
+              _buildInfoChip(
+                label: "学期 GPA",
+                value: gpa.toStringAsFixed(2),
+                color: Colors.blueAccent,
+              ),
+              const SizedBox(width: 10),
+              _buildInfoChip(
+                label: "修读学分",
+                value: totalCredits.toStringAsFixed(1),
+                color: Colors.orange,
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          _buildInfoChip(
-            label: "修读学分",
-            value: totalCredits.toStringAsFixed(1),
-            color: Colors.orange,
-          ),
+          if (unEvaluatedCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Container(
+                 width: double.infinity,
+                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                 decoration: BoxDecoration(
+                   color: Colors.orange.withOpacity(0.1),
+                   borderRadius: BorderRadius.circular(8),
+                   border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                 ),
+                 child: Row(
+                   children: [
+                     const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                     const SizedBox(width: 8),
+                     Expanded(
+                       child: Text(
+                         "本学期有 $unEvaluatedCount 门课程未评教，不计入GPA",
+                         style: const TextStyle(color: Colors.orange, fontSize: 12),
+                       ),
+                     ),
+                   ],
+                 ),
+              ),
+            ),
         ],
       ),
     );
@@ -387,7 +428,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (score.score < 60)
+                      if (score.score < 60 && score.isEvaluated)
                         Container(
                           margin: const EdgeInsets.only(left: 8),
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -418,18 +459,30 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  "${score.score.toInt()}",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: score.score >= 60 ? Colors.green : Colors.red,
+                if (score.isEvaluated)
+                  Text(
+                    // 如果是整百/整十可能是转换过的，显示整数即可
+                    "${score.score.toInt()}",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: score.score >= 60 ? Colors.green : Colors.red,
+                    ),
+                  )
+                else
+                  const Text(
+                    "未评教",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
                   ),
-                ),
-                Text(
-                  "绩点: ${_getGradePoint(score.score)}",
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                ),
+                if (score.isEvaluated)
+                  Text(
+                    "绩点: ${score.gradePoint}",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
               ],
             ),
           ],
