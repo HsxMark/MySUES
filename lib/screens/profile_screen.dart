@@ -181,7 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.all(24.0),
           child: Center(
             child: Text(
-              '请连接教务系统同步信息',
+              '请连接教务系统同步身份信息',
               style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ),

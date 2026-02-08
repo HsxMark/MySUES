@@ -196,8 +196,8 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               buildTile('系统默认', null),
-              buildTile('鸿蒙字体', 'HarmonyOS Sans'),
-              buildTile('小米字体', 'MiSans'),
+              buildTile('HarmonyOS Sans', 'HarmonyOS Sans'),
+              buildTile('MiSans', 'MiSans'),
             ],
           ),
         );
