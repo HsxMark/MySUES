@@ -9,6 +9,9 @@ import 'package:mysues/screens/profile_edit_screen.dart';
 import 'package:mysues/screens/settings/settings_screen.dart';
 import 'package:mysues/screens/about_screen.dart';
 import 'package:mysues/screens/login_webview_screen.dart'; // Import this
+import 'package:mysues/services/theme_service.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'dart:math' as math;
 import '../services/networking/academic_client.dart';
 import '../services/parsers/course_parser.dart';
 import '../services/parsers/score_parser.dart';
@@ -145,39 +148,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('我'),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildUserInfoSection(context),
-          const SizedBox(height: 16),
-          // Only show progress if logged in
-           if (_isLoggedIn) ...[
-             _buildProgressSection(context),
-             const SizedBox(height: 16),
-           ],
-          _buildConnectionStatusCard(context),
-          const SizedBox(height: 16),
-          const _SettingsTile(),
-          const _AboutTile(),
-          const SizedBox(height: 48),
-          const _Footer(),
-          const SizedBox(height: 24),
-        ],
-      ),
+    return ListenableBuilder(
+      listenable: ThemeService(),
+      builder: (context, child) {
+        final useLiquidGlass = ThemeService().liquidGlassEnabled;
+        final brightness = Theme.of(context).brightness;
+        final isDark = brightness == Brightness.dark;
+
+        Widget content = ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            _buildUserInfoSection(context),
+            const SizedBox(height: 16),
+            // Only show progress if logged in
+             if (_isLoggedIn) ...[
+               _buildProgressSection(context),
+               const SizedBox(height: 16),
+             ],
+            _buildConnectionStatusCard(context),
+            const SizedBox(height: 16),
+            const _SettingsTile(),
+            const _AboutTile(),
+            const SizedBox(height: 48),
+            const _Footer(),
+            const SizedBox(height: 24),
+          ],
+        );
+
+        if (useLiquidGlass) {
+          content = LiquidGlassLayer(
+            settings: LiquidGlassSettings(
+              thickness: 20,
+              blur: 8,
+              lightIntensity: isDark ? 0.6 : 0.8,
+              glassColor: isDark 
+                  ? Colors.black.withOpacity(0.3) 
+                  : Colors.white.withOpacity(0.6),
+               lightAngle: math.pi / 4,
+            ),
+            child: content,
+          );
+        }
+
+        return Scaffold(
+          extendBody: useLiquidGlass,
+          appBar: AppBar(
+            title: const Text('我'),
+            centerTitle: true,
+            backgroundColor: useLiquidGlass ? Colors.transparent : null,
+            elevation: useLiquidGlass ? 0 : null,
+          ),
+          body: content,
+        );
+      },
     );
   }
 
   Widget _buildUserInfoSection(BuildContext context) {
     if (!_isLoggedIn || _studentId == null) {
-      return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: const Padding(
+      return const _GlassAwareCard(
+        child: Padding(
           padding: EdgeInsets.all(24.0),
           child: Center(
             child: Text(
@@ -191,71 +221,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final info = StudentInfoHelper.parseStudentId(_studentId!);
 
-    return GestureDetector(
+    return _GlassAwareCard(
       onTap: _navigateToEditProfile,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                    backgroundImage: _avatarFile != null ? FileImage(_avatarFile!) : null,
-                    child: _avatarFile == null
-                        ? Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: SvgPicture.asset(
-                              'assets/images/sues-single.svg',
-                              fit: BoxFit.contain,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        (_nickname != null && _nickname!.isNotEmpty) ? _nickname! : (_name ?? '未知'),
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _studentId!,
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.chevron_right, color: Colors.grey),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Divider(),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                   _buildCompactInfoItem('学院', _college ?? '未知'),
-                   _buildCompactInfoItem('专业', _major ?? info['major'] ?? '未知'),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildCompactInfoItem('班级', _className ?? '未知'),
-                  _buildCompactInfoItem('年级', info['grade'] ?? '未知'),
-                ],
-              ),
-            ],
-          ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                  backgroundImage: _avatarFile != null ? FileImage(_avatarFile!) : null,
+                  child: _avatarFile == null
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SvgPicture.asset(
+                            'assets/images/sues-single.svg',
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (_nickname != null && _nickname!.isNotEmpty) ? _nickname! : (_name ?? '未知'),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _studentId!,
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                const Icon(Icons.chevron_right, color: Colors.grey),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Divider(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                 _buildCompactInfoItem('学院', _college ?? '未知'),
+                 _buildCompactInfoItem('专业', _major ?? info['major'] ?? '未知'),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildCompactInfoItem('班级', _className ?? '未知'),
+                _buildCompactInfoItem('年级', info['grade'] ?? '未知'),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -323,9 +349,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       children: [
         Expanded(
-          child: Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: _GlassAwareCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -361,9 +385,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: _GlassAwareCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -396,72 +418,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildConnectionStatusCard(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: _navigateToWebLogin, // Changed to navigate to WebLogin
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.sync_alt, color: Colors.blue),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '教务连接',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.3) : Colors.orange.withOpacity(0.3)
-                      ),
+    return _GlassAwareCard(
+      onTap: _navigateToWebLogin,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.sync_alt, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    const Text(
+                      '教务连接',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    child: Text(
-                      (_lastSyncTime != null) ? '已连接' : '未连接',
-                      style: TextStyle(
-                        color: (_lastSyncTime != null) ? Colors.green : Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.3) : Colors.orange.withOpacity(0.3)
                     ),
                   ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0),
-                child: Divider(height: 1),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '上次同步时间',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  Text(
-                    _lastSyncTime ?? '点击同步数据',
+                  child: Text(
+                    (_lastSyncTime != null) ? '已连接' : '未连接',
                     style: TextStyle(
-                      color: Colors.grey[800],
-                      fontSize: 14,
-                      fontFamily: Platform.isIOS ? 'Courier' : null,
+                      color: (_lastSyncTime != null) ? Colors.green : Colors.orange,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.0),
+              child: Divider(height: 1),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '上次同步时间',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                Text(
+                  _lastSyncTime ?? '点击同步数据',
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 14,
+                    fontFamily: Platform.isIOS ? 'Courier' : null,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -532,6 +549,40 @@ class _Footer extends StatelessWidget {
           letterSpacing: 1.2,
         ),
       ),
+    );
+  }
+}
+
+class _GlassAwareCard extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _GlassAwareCard({required this.child, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    if (ThemeService().liquidGlassEnabled) {
+      return GestureDetector(
+        onTap: onTap,
+        child: LiquidGlass(
+          shape: const LiquidRoundedSuperellipse(borderRadius: 36),
+          child: Container(
+             // Card/InkWell handling is abstracted. Basic container for glass contents.
+             child: child,
+          ),
+        ),
+      );
+    }
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: onTap != null
+          ? InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: child,
+            )
+          : child,
     );
   }
 }
