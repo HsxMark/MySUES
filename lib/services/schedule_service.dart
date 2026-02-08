@@ -19,7 +19,7 @@ class ScheduleDataService {
     final jsonList = jsonDecode(jsonString) as List;
     final tables = jsonList.map((e) => ScheduleTable.fromJson(e)).toList();
     
-    // Force upgrade old data that might have default 12 nodes which is undesirable
+    // Force upgrade old data that might have default 12 nodes vwhich is undesirable
     bool needsSave = false;
     for (var table in tables) {
       if (table.nodes == 12) {

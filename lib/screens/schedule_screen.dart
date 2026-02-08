@@ -681,7 +681,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                   "${index + 1}", 
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
                                 ),
-                                if (detail.startTime.isNotEmpty) ...[
+                                if (_currentTable!.showTime && detail.startTime.isNotEmpty) ...[
                                    Text(detail.startTime, style: const TextStyle(fontSize: 9, color: Colors.grey)),
                                    Text(detail.endTime, style: const TextStyle(fontSize: 9, color: Colors.grey)),
                                 ]
@@ -725,6 +725,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             final top = _calculateTop(course);
                             final height = _calculateHeight(course);
 
+                            // Get start time string
+                            String? startTimeStr;
+                            if (_timeDetails.isNotEmpty) {
+                              try {
+                                final detail = _timeDetails.firstWhere((d) => d.node == course.startNode);
+                                startTimeStr = detail.startTime;
+                              } catch (_) {}
+                            }
+
                             return Positioned(
                               left: displayIndex * dayColWidth,
                               top: top,
@@ -740,28 +749,44 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        course.courseName,
-                                        style: TextStyle(
-                                          color: Color(_currentTable!.courseTextColor),
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      if (course.room.isNotEmpty)
+                                      if (_currentTable!.showTime && startTimeStr != null && startTimeStr.isNotEmpty)
                                         Text(
-                                          course.room,
+                                          startTimeStr,
                                           style: TextStyle(
-                                            color: Color(_currentTable!.courseTextColor),
+                                            color: Color(_currentTable!.courseTextColor).withValues(alpha: 0.9),
                                             fontSize: 9,
+                                            fontWeight: FontWeight.w500,
                                           ),
                                           textAlign: TextAlign.center,
-                                        )
+                                        ),
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              course.courseName,
+                                              style: TextStyle(
+                                                color: Color(_currentTable!.courseTextColor),
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            if (course.room.isNotEmpty)
+                                              Text(
+                                                course.room,
+                                                style: TextStyle(
+                                                  color: Color(_currentTable!.courseTextColor),
+                                                  fontSize: 9,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              )
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
