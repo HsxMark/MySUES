@@ -12,14 +12,17 @@ class ThemeService extends ChangeNotifier {
 
   ThemeMode _themeMode = ThemeMode.system;
   String? _fontFamily;
+  bool _liquidGlassEnabled = false;
 
   ThemeMode get themeMode => _themeMode;
   String? get fontFamily => _fontFamily;
+  bool get liquidGlassEnabled => _liquidGlassEnabled;
 
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final int? modeIndex = prefs.getInt('theme_mode');
     _fontFamily = prefs.getString('app_font_family');
+    _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
     
     // 0 = System, 1 = Light, 2 = Dark
     switch (modeIndex) {
@@ -45,6 +48,13 @@ class ThemeService extends ChangeNotifier {
       await prefs.setString('app_font_family', family);
     }
     _fontFamily = family;
+    notifyListeners();
+  }
+
+  Future<void> updateLiquidGlass(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('liquid_glass_beta', value);
+    _liquidGlassEnabled = value;
     notifyListeners();
   }
 
