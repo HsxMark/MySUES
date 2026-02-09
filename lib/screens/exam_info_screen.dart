@@ -682,7 +682,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         margin: const EdgeInsets.only(bottom: 16.0),
         color: isTodayExam ? Colors.yellow[100] : null,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(36),
+          borderRadius: BorderRadius.circular(12),
           side: isTodayExam ? const BorderSide(color: Colors.orange, width: 2) : BorderSide.none,
         ),
         child: content,

@@ -740,7 +740,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(36)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: content,
     );
   }
