@@ -503,6 +503,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         centerTitle: true,
+        backgroundColor: ThemeService().liquidGlassEnabled ? Colors.transparent : null,
+        elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
           ListenableBuilder(
             listenable: ThemeService(),

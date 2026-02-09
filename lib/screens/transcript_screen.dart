@@ -110,6 +110,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       appBar: AppBar(
         title: const Text('成绩单'),
         centerTitle: true,
+        backgroundColor: ThemeService().liquidGlassEnabled ? Colors.transparent : null,
+        elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
           ListenableBuilder(
             listenable: ThemeService(),

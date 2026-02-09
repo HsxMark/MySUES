@@ -92,6 +92,8 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       appBar: AppBar(
         title: const Text('考试信息'),
         centerTitle: true,
+        backgroundColor: ThemeService().liquidGlassEnabled ? Colors.transparent : null,
+        elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
           ListenableBuilder(
             listenable: ThemeService(),
