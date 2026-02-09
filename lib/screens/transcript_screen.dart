@@ -627,91 +627,121 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   }
 
   Widget _buildScoreCard(Score score) {
+    final isLiquidGlass = ThemeService().liquidGlassEnabled;
+    final theme = Theme.of(context);
+
+    final content = Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        score.courseName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (score.score < 60 && score.isEvaluated)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.red.withOpacity(0.5)),
+                        ),
+                        child: const Text(
+                          '挂科',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "学分: ${score.credit}",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (score.isEvaluated)
+                Text(
+                  // 如果是整百/整十可能是转换过的，显示整数即可
+                  "${score.score.toInt()}",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: score.score >= 60 ? Colors.green : Colors.red,
+                  ),
+                )
+              else
+                const Text(
+                  "未评教",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+              if (score.isEvaluated)
+                Text(
+                  "绩点: ${score.gradePoint}",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (isLiquidGlass) {
+      final brightness = MediaQuery.platformBrightnessOf(context);
+      final isDark = brightness == Brightness.dark;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: LiquidGlass.withOwnLayer(
+          settings: LiquidGlassSettings(
+            refractiveIndex: 1.21,
+            thickness: 30,
+            blur: 8,
+            saturation: 1.5,
+            lightIntensity: isDark ? .7 : 1,
+            ambientStrength: isDark ? .2 : .5,
+            lightAngle: math.pi / 4,
+            glassColor: theme.colorScheme.surface.withValues(alpha: 0.6),
+          ),
+          shape: const LiquidRoundedSuperellipse(borderRadius: 36),
+          child: Material(
+            color: Colors.transparent,
+            child: content,
+          ),
+        ),
+      );
+    }
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          score.courseName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (score.score < 60 && score.isEvaluated)
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.red.withOpacity(0.5)),
-                          ),
-                          child: const Text(
-                            '挂科',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "学分: ${score.credit}",
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (score.isEvaluated)
-                  Text(
-                    // 如果是整百/整十可能是转换过的，显示整数即可
-                    "${score.score.toInt()}",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: score.score >= 60 ? Colors.green : Colors.red,
-                    ),
-                  )
-                else
-                  const Text(
-                    "未评教",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
-                    ),
-                  ),
-                if (score.isEvaluated)
-                  Text(
-                    "绩点: ${score.gradePoint}",
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(36)),
+      child: content,
     );
   }
 }

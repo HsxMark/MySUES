@@ -370,16 +370,19 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor, // Adaptive background
+        final isLiquidGlass = ThemeService().liquidGlassEnabled;
+        final theme = Theme.of(context);
+
+        Widget sheet = Container(
+          decoration: isLiquidGlass ? null : BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
           ),
           padding: const EdgeInsets.only(top: 8),
-          height: MediaQuery.of(context).size.height * 0.75, // Take up typical sheet height
+          height: MediaQuery.of(context).size.height * 0.75,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -532,6 +535,29 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
             ],
           ),
         );
+
+        if (isLiquidGlass) {
+          final brightness = MediaQuery.platformBrightnessOf(context);
+          final isDark = brightness == Brightness.dark;
+          sheet = LiquidGlass.withOwnLayer(
+            settings: LiquidGlassSettings.figma(
+              depth: 50,
+              refraction: 100,
+              dispersion: 4,
+              frost: 2,
+              lightAngle: math.pi / 4,
+              glassColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+              lightIntensity: isDark ? 70 : 50,
+            ),
+            shape: const LiquidRoundedSuperellipse(borderRadius: 20),
+            child: Material(
+              color: Colors.transparent,
+              child: sheet,
+            ),
+          );
+        }
+
+        return sheet;
       },
     );
   }
