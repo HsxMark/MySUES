@@ -599,7 +599,82 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
 
   Widget _buildExamCard(Exam exam) {
     final bool isTodayExam = _isToday(exam.timeString);
-    
+    final isLiquidGlass = ThemeService().liquidGlassEnabled;
+
+    final content = Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  exam.courseName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              _buildStatusBadge(exam.status),
+            ],
+          ),
+          const Divider(height: 24),
+          _buildInfoRow(Icons.access_time, '时间', exam.timeString),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.location_on_outlined, '地点', exam.location),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.category_outlined, '类型', exam.type),
+          if (isTodayExam) ...[
+            const SizedBox(height: 8),
+            const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
+                SizedBox(width: 4),
+                Text(
+                  '今日考试，请注意时间！',
+                  style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (isLiquidGlass) {
+      final theme = Theme.of(context);
+      final brightness = MediaQuery.platformBrightnessOf(context);
+      final isDark = brightness == Brightness.dark;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: GestureDetector(
+          onTap: () => _showExamDetails(exam),
+          child: LiquidGlass.withOwnLayer(
+            settings: LiquidGlassSettings(
+              refractiveIndex: 1.21,
+              thickness: 30,
+              blur: 8,
+              saturation: 1.5,
+              lightIntensity: isDark ? .7 : 1,
+              ambientStrength: isDark ? .2 : .5,
+              lightAngle: math.pi / 4,
+              glassColor: isTodayExam
+                  ? Colors.orange.withValues(alpha: 0.3)
+                  : theme.colorScheme.surface.withValues(alpha: 0.6),
+            ),
+            shape: const LiquidRoundedSuperellipse(borderRadius: 36),
+            child: Material(
+              color: Colors.transparent,
+              child: content,
+            ),
+          ),
+        ),
+      );
+    }
+
     return InkWell(
       onTap: () => _showExamDetails(exam),
       child: Card(
@@ -607,51 +682,10 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         margin: const EdgeInsets.only(bottom: 16.0),
         color: isTodayExam ? Colors.yellow[100] : null,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(36),
           side: isTodayExam ? const BorderSide(color: Colors.orange, width: 2) : BorderSide.none,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      exam.courseName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  _buildStatusBadge(exam.status),
-                ],
-              ),
-              const Divider(height: 24),
-              _buildInfoRow(Icons.access_time, '时间', exam.timeString),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.location_on_outlined, '地点', exam.location),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.category_outlined, '类型', exam.type),
-              if (isTodayExam) ...[
-                const SizedBox(height: 8),
-                const Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      '今日考试，请注意时间！',
-                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
+        child: content,
       ),
     );
   }
