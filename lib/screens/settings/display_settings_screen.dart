@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:mysues/services/theme_service.dart';
@@ -11,6 +13,7 @@ class DisplaySettingsScreen extends StatefulWidget {
 
 class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   bool _liquidGlassEnabled = false;
+  double? _previewOpacity;
 
   @override
   void initState() {
@@ -76,6 +79,66 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 : const Icon(Icons.chevron_right),
             onTap: () => _pickBackgroundImage(),
           ),
+          if (ThemeService().backgroundImagePath != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Checkerboard-like background to show transparency
+                      Container(color: Theme.of(context).scaffoldBackgroundColor),
+                      Opacity(
+                        opacity: _previewOpacity ?? ThemeService().backgroundOpacity,
+                        child: Image.file(
+                          File(ThemeService().backgroundImagePath!),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (ThemeService().backgroundImagePath != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Text('背景透明度'),
+                  Expanded(
+                    child: Slider(
+                      value: _previewOpacity ?? ThemeService().backgroundOpacity,
+                      min: 0.1,
+                      max: 1.0,
+                      divisions: 9,
+                      label: '${((_previewOpacity ?? ThemeService().backgroundOpacity) * 100).round()}%',
+                      onChanged: (value) {
+                        setState(() {
+                          _previewOpacity = value;
+                        });
+                      },
+                      onChangeEnd: (value) async {
+                        await ThemeService().updateBackgroundOpacity(value);
+                        setState(() {
+                          _previewOpacity = null;
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 40,
+                    child: Text(
+                      '${((_previewOpacity ?? ThemeService().backgroundOpacity) * 100).round()}%',
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const Divider(),
           _buildSectionHeader('字体'),
           ListTile(

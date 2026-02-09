@@ -17,11 +17,13 @@ class ThemeService extends ChangeNotifier {
   String? _fontFamily;
   bool _liquidGlassEnabled = false;
   String? _backgroundImagePath;
+  double _backgroundOpacity = 0.5;
 
   ThemeMode get themeMode => _themeMode;
   String? get fontFamily => _fontFamily;
   bool get liquidGlassEnabled => _liquidGlassEnabled;
   String? get backgroundImagePath => _backgroundImagePath;
+  double get backgroundOpacity => _backgroundOpacity;
 
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -29,6 +31,7 @@ class ThemeService extends ChangeNotifier {
     _fontFamily = prefs.getString('app_font_family');
     _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
     _backgroundImagePath = prefs.getString('background_image_path');
+    _backgroundOpacity = prefs.getDouble('background_opacity') ?? 0.5;
     
     // 0 = System, 1 = Light, 2 = Dark
     switch (modeIndex) {
@@ -104,7 +107,16 @@ class ThemeService extends ChangeNotifier {
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('background_image_path');
+    await prefs.remove('background_opacity');
     _backgroundImagePath = null;
+    _backgroundOpacity = 0.5;
+    notifyListeners();
+  }
+
+  Future<void> updateBackgroundOpacity(double opacity) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('background_opacity', opacity);
+    _backgroundOpacity = opacity;
     notifyListeners();
   }
 }

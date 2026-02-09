@@ -110,14 +110,20 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           child: scaffold,
         );
 
+        final bgOpacity = ThemeService().backgroundOpacity;
+
         return Stack(
           fit: StackFit.expand,
           children: [
-            Image.file(
-              File(bgPath),
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
+            Opacity(
+              opacity: bgOpacity,
+              child: Image.file(
+                File(bgPath),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                gaplessPlayback: true,
+              ),
             ),
             scaffold,
           ],
