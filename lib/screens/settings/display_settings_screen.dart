@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:mysues/services/theme_service.dart';
 
 class DisplaySettingsScreen extends StatefulWidget {
@@ -59,6 +60,22 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showThemePicker(themeModeIndex),
           ),
+          ListTile(
+            title: const Text('设置背景图片'),
+            subtitle: Text(
+              ThemeService().backgroundImagePath != null ? '已设置' : '未设置',
+            ),
+            trailing: ThemeService().backgroundImagePath != null
+                ? IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () async {
+                      await ThemeService().clearBackgroundImage();
+                      setState(() {});
+                    },
+                  )
+                : const Icon(Icons.chevron_right),
+            onTap: () => _pickBackgroundImage(),
+          ),
           const Divider(),
           _buildSectionHeader('字体'),
           ListTile(
@@ -110,6 +127,14 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     if (family == 'HarmonyOS Sans') return 'HarmonyOS Sans';
     if (family == 'MiSans') return 'MiSans';
     return family;
+  }
+
+  Future<void> _pickBackgroundImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result != null && result.files.single.path != null) {
+      await ThemeService().updateBackgroundImage(result.files.single.path!);
+      if (mounted) setState(() {});
+    }
   }
 
   void _showThemePicker(int currentIndex) {

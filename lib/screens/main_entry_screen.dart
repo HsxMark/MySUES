@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
@@ -30,8 +32,12 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
       listenable: ThemeService(),
       builder: (context, child) {
         final useLiquidGlass = ThemeService().liquidGlassEnabled;
-        return Scaffold(
+        final bgPath = ThemeService().backgroundImagePath;
+        final hasBg = bgPath != null;
+
+        Widget scaffold = Scaffold(
           extendBody: useLiquidGlass,
+          backgroundColor: hasBg ? Colors.transparent : null,
           body: IndexedStack(
             index: _currentIndex,
             children: _pages,
@@ -92,6 +98,29 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                   ),
                 ],
               ),
+        );
+
+        if (!hasBg) return scaffold;
+
+        // Wrap with Theme override so child Scaffolds inherit transparent background
+        scaffold = Theme(
+          data: Theme.of(context).copyWith(
+            scaffoldBackgroundColor: Colors.transparent,
+          ),
+          child: scaffold,
+        );
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.file(
+              File(bgPath),
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+            scaffold,
+          ],
         );
       },
     );

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeService extends ChangeNotifier {
@@ -13,16 +16,19 @@ class ThemeService extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   String? _fontFamily;
   bool _liquidGlassEnabled = false;
+  String? _backgroundImagePath;
 
   ThemeMode get themeMode => _themeMode;
   String? get fontFamily => _fontFamily;
   bool get liquidGlassEnabled => _liquidGlassEnabled;
+  String? get backgroundImagePath => _backgroundImagePath;
 
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final int? modeIndex = prefs.getInt('theme_mode');
     _fontFamily = prefs.getString('app_font_family');
     _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
+    _backgroundImagePath = prefs.getString('background_image_path');
     
     // 0 = System, 1 = Light, 2 = Dark
     switch (modeIndex) {
@@ -74,6 +80,31 @@ class ThemeService extends ChangeNotifier {
         _themeMode = ThemeMode.system;
         break;
     }
+    notifyListeners();
+  }
+
+  Future<void> updateBackgroundImage(String sourcePath) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final ext = sourcePath.contains('.') ? sourcePath.substring(sourcePath.lastIndexOf('.')) : '';
+    final destPath = '${dir.path}/background_image$ext';
+    await File(sourcePath).copy(destPath);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('background_image_path', destPath);
+    _backgroundImagePath = destPath;
+    notifyListeners();
+  }
+
+  Future<void> clearBackgroundImage() async {
+    if (_backgroundImagePath != null) {
+      final file = File(_backgroundImagePath!);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('background_image_path');
+    _backgroundImagePath = null;
     notifyListeners();
   }
 }
