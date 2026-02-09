@@ -115,6 +115,8 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         return Stack(
           fit: StackFit.expand,
           children: [
+            // Fallback: normal theme background so it never flashes black
+            ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
             Opacity(
               opacity: bgOpacity,
               child: Image.file(
