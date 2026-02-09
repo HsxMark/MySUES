@@ -141,13 +141,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.sync_alt),
                     onPressed: () async {
-                      final result = await Navigator.push(
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const LoginWebviewScreen(),
                         ),
                       );
-                      if (result == true && mounted) {
+                      if (mounted) {
                         await _loadScores();
                       }
                     },
@@ -355,13 +355,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                             label: '从教务处导入',
                             onTap: () async {
                               Navigator.pop(dialogContext);
-                              final result = await Navigator.push(
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const LoginWebviewScreen(),
                                 ),
                               );
-                              if (result == true && mounted) {
+                              if (mounted) {
                                 await _loadScores();
                               }
                             },
