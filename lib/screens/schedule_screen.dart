@@ -114,9 +114,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF5F5F7), // Light grey background
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor, // Adaptive background
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
@@ -185,7 +185,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                        Container(
                          margin: const EdgeInsets.symmetric(horizontal: 16),
                          decoration: BoxDecoration(
-                           color: Colors.white,
+                           color: Theme.of(context).cardColor,
                            borderRadius: BorderRadius.circular(16),
                          ),
                          child: Column(
@@ -226,7 +226,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         Container(
                          margin: const EdgeInsets.symmetric(horizontal: 16),
                          decoration: BoxDecoration(
-                           color: Colors.white,
+                           color: Theme.of(context).cardColor,
                            borderRadius: BorderRadius.circular(16),
                          ),
                          child: Column(

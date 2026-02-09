@@ -461,7 +461,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   _lastSyncTime ?? '点击同步数据',
                   style: TextStyle(
-                    color: Colors.grey[800],
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.grey[300] 
+                        : Colors.grey[800],
                     fontSize: 14,
                     fontFamily: Platform.isIOS ? 'Courier' : null,
                   ),
@@ -533,7 +535,7 @@ class _Footer extends StatelessWidget {
       child: Text(
         '苏伊士 by HsxMark',
         style: TextStyle(
-          color: Colors.grey[300],
+          color: Colors.grey,
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
