@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:html/parser.dart' show parse;
-import 'package:html/dom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/exam.dart';
 import 'fetch_info_service.dart';

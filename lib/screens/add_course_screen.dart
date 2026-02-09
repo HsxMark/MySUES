@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/course.dart';
-import '../models/schedule_table.dart';
 import '../models/time_table.dart';
 import '../services/schedule_service.dart';
 

@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/models/student_info.dart';
 import 'package:mysues/screens/profile_edit_screen.dart';
@@ -12,15 +10,7 @@ import 'package:mysues/screens/login_webview_screen.dart'; // Import this
 import 'package:mysues/services/theme_service.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'dart:math' as math;
-import '../services/networking/academic_client.dart';
-import '../services/parsers/course_parser.dart';
-import '../services/parsers/score_parser.dart';
-import '../services/parsers/exam_parser.dart';
-import '../services/schedule_service.dart';
-import '../services/score_service.dart';
-import '../services/exam_service.dart';
-import '../models/schedule_table.dart';
-import '../models/course.dart'; // Ensure Course is imported
+// Ensure Course is imported
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

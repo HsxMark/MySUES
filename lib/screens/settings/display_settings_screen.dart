@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/services/theme_service.dart';
 
 class DisplaySettingsScreen extends StatefulWidget {

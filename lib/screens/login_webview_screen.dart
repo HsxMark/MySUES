@@ -6,8 +6,6 @@ import '../services/webvpn/fetch_course_service.dart';
 import '../services/webvpn/fetch_info_service.dart';
 import '../services/webvpn/fetch_score_service.dart';
 import '../services/webvpn/fetch_exam_service.dart';
-import '../services/parsers/score_parser.dart';
-import '../services/parsers/exam_parser.dart';
 import '../services/parsers/student_info_parser.dart';
 import '../models/schedule_table.dart';
 import '../services/schedule_service.dart';
