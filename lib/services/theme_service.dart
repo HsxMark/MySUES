@@ -16,12 +16,14 @@ class ThemeService extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   String? _fontFamily;
   bool _liquidGlassEnabled = false;
+  bool _splashAnimationEnabled = true;
   String? _backgroundImagePath;
   double _backgroundOpacity = 0.5;
 
   ThemeMode get themeMode => _themeMode;
   String? get fontFamily => _fontFamily;
   bool get liquidGlassEnabled => _liquidGlassEnabled;
+  bool get splashAnimationEnabled => _splashAnimationEnabled;
   String? get backgroundImagePath => _backgroundImagePath;
   double get backgroundOpacity => _backgroundOpacity;
 
@@ -30,6 +32,7 @@ class ThemeService extends ChangeNotifier {
     final int? modeIndex = prefs.getInt('theme_mode');
     _fontFamily = prefs.getString('app_font_family');
     _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
+    _splashAnimationEnabled = prefs.getBool('splash_animation_enabled') ?? true;
     _backgroundImagePath = prefs.getString('background_image_path');
     _backgroundOpacity = prefs.getDouble('background_opacity') ?? 0.5;
     
@@ -64,6 +67,13 @@ class ThemeService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('liquid_glass_beta', value);
     _liquidGlassEnabled = value;
+    notifyListeners();
+  }
+
+  Future<void> updateSplashAnimation(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('splash_animation_enabled', value);
+    _splashAnimationEnabled = value;
     notifyListeners();
   }
 

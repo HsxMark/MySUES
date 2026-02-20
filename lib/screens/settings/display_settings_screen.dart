@@ -13,6 +13,7 @@ class DisplaySettingsScreen extends StatefulWidget {
 
 class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   bool _liquidGlassEnabled = false;
+  bool _splashAnimationEnabled = true;
   double? _previewOpacity;
 
   @override
@@ -24,7 +25,8 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   Future<void> _loadSettings() async {
     // We can get the value from ThemeService if it is initialized, or prefs
     setState(() {
-      _liquidGlassEnabled = ThemeService().liquidGlassEnabled; // Try service first
+      _liquidGlassEnabled = ThemeService().liquidGlassEnabled;
+      _splashAnimationEnabled = ThemeService().splashAnimationEnabled;
     });
   }
 
@@ -37,6 +39,13 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     await ThemeService().updateLiquidGlass(value);
     setState(() {
       _liquidGlassEnabled = value;
+    });
+  }
+
+  Future<void> _saveSplashAnimation(bool value) async {
+    await ThemeService().updateSplashAnimation(value);
+    setState(() {
+      _splashAnimationEnabled = value;
     });
   }
 
@@ -139,6 +148,12 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 ],
               ),
             ),
+          SwitchListTile(
+            title: const Text('开屏动画'),
+            subtitle: const Text('启动应用时显示开屏动画'),
+            value: _splashAnimationEnabled,
+            onChanged: (value) => _saveSplashAnimation(value),
+          ),
           const Divider(),
           _buildSectionHeader('字体'),
           ListTile(
