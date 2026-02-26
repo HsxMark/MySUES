@@ -2,6 +2,14 @@
 
 MySUES follows [Semantic Versioning 2.0.0](http://semver.org/).
 
+## 0.3.0-beta.1
+
+`2026-02-26`
+
+- 🌟 Add QQ group feedback entry (Group: 1045770691) to the first-launch disclaimer dialog. @HsxMark
+- 🛠 Add Liquid Glass effect to the schedule switching page. @HsxMark
+- 🛠 Upgrade project dependencies (characters, matcher, material_color_utilities, test_api). @HsxMark
+
 ## 0.2.0-beta.1
 
 `2026-02-19`

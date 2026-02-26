@@ -92,6 +92,11 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
+                  '若遇到什么问题，请添加QQ群聊：1045770691 反馈问题',
+                  style: TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                const Text(
                   '点击「同意并继续」表示您已阅读并同意以上协议。',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
