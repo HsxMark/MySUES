@@ -2,6 +2,14 @@
 
 MySUES 遵循[语义化版本 2.0.0](http://semver.org/)。
 
+## 0.3.0-beta.1
+
+`2026-02-26`
+
+- 🌟 在首次启动免责声明弹窗中添加 QQ 群反馈入口（群号：1045770691）。@HsxMark
+- 🛠 为课表切换页面添加液态玻璃效果。@HsxMark
+- 🛠 升级项目依赖版本（characters、matcher、material_color_utilities、test_api）。@HsxMark
+
 ## 0.2.0-beta.1
 
 `2026-02-19`

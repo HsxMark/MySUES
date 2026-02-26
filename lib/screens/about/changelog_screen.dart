@@ -15,6 +15,17 @@ class ChangelogScreen extends StatelessWidget {
         children: [
           _buildVersionCard(
             context,
+            version: '0.3.0-beta.1',
+            date: '2026-02-26',
+            changes: [
+              '🌟 在首次启动免责声明弹窗中添加 QQ 群反馈入口',
+              '🛠 升级项目依赖版本',
+              '🛠 为课表切换页面添加液态玻璃效果'
+            ],
+            isLatest: true,
+          ),
+          _buildVersionCard(
+            context,
             version: '0.2.0-beta.1',
             date: '2026-02-19',
             changes: [
@@ -23,7 +34,6 @@ class ChangelogScreen extends StatelessWidget {
               '🛠 配置 Android 通知权限及开机自启接收器，确保定时通知正常调度',
               '🛠 移除关于页面中的功能介绍入口',
             ],
-            isLatest: true,
           ),
           _buildVersionCard(
             context,
