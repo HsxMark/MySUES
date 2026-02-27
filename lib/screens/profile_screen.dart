@@ -25,7 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _studentId;
   String? _name; 
   int _currentWeek = 1; // Default
-  int _totalWeeks = 20; // Default
+  int _totalWeeks = 30; // Default
 
   File? _avatarFile;
   String? _major;

@@ -15,6 +15,17 @@ class ChangelogScreen extends StatelessWidget {
         children: [
           _buildVersionCard(
             context,
+            version: '0.3.1-beta.1',
+            date: '2026-02-27',
+            changes: [
+              '🌟 在从教务处同步数据前添加免责声明弹窗，提醒用户核对导入数据',
+              '🐛 修复课表最大周数默认值，从 20 调整为 30',
+              '🛠 改进课表切换底部弹窗 UI',
+            ],
+            isLatest: true,
+          ),
+          _buildVersionCard(
+            context,
             version: '0.3.0-beta.1',
             date: '2026-02-26',
             changes: [
@@ -22,7 +33,6 @@ class ChangelogScreen extends StatelessWidget {
               '🛠 升级项目依赖版本',
               '🛠 为课表切换页面添加液态玻璃效果'
             ],
-            isLatest: true,
           ),
           _buildVersionCard(
             context,

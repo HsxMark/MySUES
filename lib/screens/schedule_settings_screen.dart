@@ -34,7 +34,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       _showOtherWeekCourse = widget.table!.showOtherWeekCourse;
     } else {
       _nameController = TextEditingController(text: '新课表');
-      _maxWeekController = TextEditingController(text: '20');
+      _maxWeekController = TextEditingController(text: '30');
       _nodesController = TextEditingController(text: '15'); // Default to 15
       _startDate = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).toIso8601String().split('T')[0];
       _showTime = false;
@@ -136,7 +136,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   }
 
   void _save() {
-    final maxWeek = int.tryParse(_maxWeekController.text) ?? 20;
+    final maxWeek = int.tryParse(_maxWeekController.text) ?? 30;
     final nodes = int.tryParse(_nodesController.text) ?? 15;
 
     if (widget.table != null) {

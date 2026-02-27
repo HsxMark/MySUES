@@ -2,6 +2,14 @@
 
 MySUES follows [Semantic Versioning 2.0.0](http://semver.org/).
 
+## 0.3.1-beta.1
+
+`2026-02-27`
+
+- 🌟 Add sync disclaimer dialog before importing data from WebVPN, reminding users to verify imported data. @HsxMark
+- 🐛 Fix default max week count from 20 to 30 to accommodate longer semesters. @HsxMark
+- 🛠 Improve schedule manager bottom sheet UI with handle bar, fixed height, and Liquid Glass effect support. @HsxMark
+
 ## 0.3.0-beta.1
 
 `2026-02-26`
