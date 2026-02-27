@@ -8,6 +8,7 @@ import '../services/exam_service.dart';
 import '../services/theme_service.dart';
 import 'add_exam_screen.dart';
 import 'login_webview_screen.dart';
+import '../utils/sync_disclaimer.dart';
 
 class ExamInfoScreen extends StatefulWidget {
   const ExamInfoScreen({super.key});
@@ -123,6 +124,8 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.sync_alt),
                     onPressed: () async {
+                      if (!await showSyncDisclaimer(context)) return;
+                      if (!mounted) return;
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -257,6 +260,8 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                             label: '从教务处导入',
                             onTap: () async {
                               Navigator.pop(dialogContext);
+                              if (!await showSyncDisclaimer(context)) return;
+                              if (!mounted) return;
                               final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(

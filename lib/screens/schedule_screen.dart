@@ -12,6 +12,7 @@ import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
 import 'import_classpdf_screen.dart'; // Import
 import 'login_webview_screen.dart'; // Import
+import '../utils/sync_disclaimer.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -587,6 +588,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       MenuItemButton(
                         leadingIcon: const Icon(Icons.sync_alt),
                         onPressed: () async {
+                          if (!await showSyncDisclaimer(context)) return;
+                          if (!mounted) return;
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(builder: (c) => const LoginWebviewScreen()),
@@ -736,6 +739,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             label: '从教务导入',
                             onTap: () async {
                               Navigator.pop(dialogContext);
+                              if (!await showSyncDisclaimer(context)) return;
+                              if (!mounted) return;
                               final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (c) => const LoginWebviewScreen()),
