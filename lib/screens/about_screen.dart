@@ -3,6 +3,7 @@ import 'package:mysues/screens/about/user_agreement_screen.dart';
 import 'package:mysues/screens/about/privacy_policy_screen.dart';
 import 'package:mysues/screens/about/changelog_screen.dart';
 import 'package:mysues/screens/about/sponsor_screen.dart';
+import 'package:mysues/screens/about/acknowledgements_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -61,6 +62,8 @@ class AboutScreen extends StatelessWidget {
                 _buildOptionItem(context, '开源信息', const OpenSourceLicenseScreen()),
                 const Divider(height: 1, indent: 16),
                 _buildOptionItem(context, '作者', const SponsorScreen()),
+                const Divider(height: 1, indent: 16),
+                _buildOptionItem(context, '鸣谢', const AcknowledgementsScreen()),
               ],
             ),
           ),
