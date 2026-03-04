@@ -258,40 +258,16 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
       name = name.replaceAll("以下空白", "").trim();
       
       double credit = double.tryParse(match.group(1)!) ?? 0.0;
-      String scoreStr = match.group(3)!;
       double gradePoint = double.tryParse(match.group(4)!) ?? 0.0;
-      
-      double scoreVal = _convertScore(scoreStr);
       
       return Score(
           courseName: name,
           credit: credit,
-          score: scoreVal,
           gradePoint: gradePoint, 
           semester: semester,
       );
   }
   
-  double _convertScore(String s) {
-      double? v = double.tryParse(s);
-      if (v != null) return v;
-      
-      switch (s.toUpperCase()) {
-          case 'A': return 90; 
-          case 'A-': return 87; 
-          case 'B+': return 83; 
-          case 'B': return 79; 
-          case 'B-': return 76; 
-          case 'C+': return 73; 
-          case 'C': return 68; 
-          case 'C-': return 64; 
-          case 'D': return 60; 
-          case 'F': return 0;
-          case 'P': return 60; 
-          default: return 0;
-      }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -25,7 +25,6 @@ class ScoreParser {
     // Identify indices
     int nameIdx = -1;
     int creditIdx = -1;
-    int scoreIdx = -1;
     int gpaIdx = -1;
     int semIdx = -1;
 
@@ -37,12 +36,11 @@ class ScoreParser {
         String txt = cols[i].text.trim();
         if (txt.contains("课程名称") || txt.contains("Course")) nameIdx = i;
         else if (txt.contains("学分") || txt.contains("Credit")) creditIdx = i;
-        else if (txt.contains("成绩") || txt.contains("Score")) scoreIdx = i; // Be careful of "最终成绩" vs "平时成绩"
         else if (txt.contains("绩点") || txt.contains("GPA")) gpaIdx = i;
         else if (txt.contains("学期") || txt.contains("Semester")) semIdx = i;
     }
 
-    if (nameIdx == -1 || scoreIdx == -1) return []; // Essential columns missing
+    if (nameIdx == -1) return []; // Essential columns missing
 
     List<Score> result = [];
     for (int i = 1; i < rows.length; i++) {
@@ -55,23 +53,10 @@ class ScoreParser {
         String sem = (semIdx != -1) ? _safeGet(cells, semIdx) : "";
         double credit = double.tryParse(_safeGet(cells, creditIdx)) ?? 0.0;
         double gpa = double.tryParse(_safeGet(cells, gpaIdx)) ?? 0.0;
-        
-        String scoreStr = _safeGet(cells, scoreIdx);
-        double score = double.tryParse(scoreStr) ?? 0.0;
-        // Handle "优", "良", "Pass" etc? For now 0.0 or convert custom logic
-        if (score == 0.0 && scoreStr.isNotEmpty) {
-           if (scoreStr.contains("优")) score = 95;
-           else if (scoreStr.contains("良")) score = 85;
-           else if (scoreStr.contains("中")) score = 75;
-           else if (scoreStr.contains("及")) score = 65;
-           else if (scoreStr.contains("不")) score = 0;
-           else if (scoreStr.toLowerCase().contains("p")) score = 100; // Pass
-        }
 
         result.add(Score(
           courseName: name,
           credit: credit,
-          score: score,
           gradePoint: gpa,
           semester: sem
         ));

@@ -74,20 +74,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     }
   }
 
-  // 根据分数计算绩点
-  double _getGradePoint(double score) {
-    if (score >= 90) return 4.0;
-    if (score >= 85) return 3.7;
-    if (score >= 82) return 3.3;
-    if (score >= 78) return 3.0;
-    if (score >= 75) return 2.7;
-    if (score >= 71) return 2.3;
-    if (score >= 66) return 2.0;
-    if (score >= 62) return 1.5;
-    if (score >= 60) return 1.0;
-    return 0.0;
-  }
-
   // 计算GPA helper
   double _calculateGPA(List<Score> scores) {
     if (scores.isEmpty) return 0.0;
@@ -111,8 +97,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     final semesterScores = _allScores
         .where((s) => s.semester == _selectedSemester)
         .toList();
-
-    int unEvaluatedCount = semesterScores.where((s) => !s.isEvaluated).length;
 
     // 当前学期 GPA 计算
     final semesterGPA = _calculateGPA(semesterScores);
@@ -664,7 +648,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (score.score < 60 && score.isEvaluated)
+                    if (score.gradePoint == 0 && score.isEvaluated)
                       Container(
                         margin: const EdgeInsets.only(left: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -697,12 +681,11 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             children: [
               if (score.isEvaluated)
                 Text(
-                  // 如果是整百/整十可能是转换过的，显示整数即可
-                  "${score.score.toInt()}",
+                  score.gradePoint.toStringAsFixed(1),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: score.score >= 60 ? Colors.green : Colors.red,
+                    color: score.gradePoint > 0 ? Colors.green : Colors.red,
                   ),
                 )
               else
@@ -713,11 +696,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                     fontWeight: FontWeight.bold,
                     color: Colors.orange,
                   ),
-                ),
-              if (score.isEvaluated)
-                Text(
-                  "绩点: ${score.gradePoint}",
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
             ],
           ),
