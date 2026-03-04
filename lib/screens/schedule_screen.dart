@@ -102,14 +102,73 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
+  /// 将分钟数转换为网格内的像素位置。
+  /// 以标准节次格子为锚点，在同一个节次内按时间比例插值定位。
+  /// 课间休息不占用额外视觉空间，非标准时间的课程会在格子内偏移。
+  double _timeMinutesToPosition(int minutes) {
+    if (_timeDetails.isEmpty) return 0;
+
+    final firstStart = _parseTime(_timeDetails.first.startTime);
+    if (minutes <= firstStart) return 0;
+
+    final lastEnd = _parseTime(_timeDetails.last.endTime);
+    if (minutes >= lastEnd) return _currentTable!.nodes * _cellHeight;
+
+    for (int i = 0; i < _timeDetails.length; i++) {
+      final pStart = _parseTime(_timeDetails[i].startTime);
+      final pEnd = _parseTime(_timeDetails[i].endTime);
+      final slotTop = (_timeDetails[i].node - 1) * _cellHeight;
+      final slotBottom = _timeDetails[i].node * _cellHeight;
+
+      // 落在本节次时间范围内 → 在格子内按比例插值
+      if (minutes >= pStart && minutes <= pEnd) {
+        final fraction = (pEnd > pStart)
+            ? (minutes - pStart) / (pEnd - pStart)
+            : 0.0;
+        return slotTop + fraction * (slotBottom - slotTop);
+      }
+
+      // 落在课间休息（本节次结束 ~ 下节次开始）
+      if (i + 1 < _timeDetails.length) {
+        final nextPStart = _parseTime(_timeDetails[i + 1].startTime);
+        if (minutes > pEnd && minutes < nextPStart) {
+          // 课间休息在网格中没有独立空间，线性插值到下一格子边界
+          final nextSlotTop = (_timeDetails[i + 1].node - 1) * _cellHeight;
+          final fraction = (nextPStart > pEnd)
+              ? (minutes - pEnd) / (nextPStart - pEnd)
+              : 0.0;
+          return slotBottom + fraction * (nextSlotTop - slotBottom);
+        }
+      }
+    }
+
+    return 0;
+  }
+
   double _calculateTop(Course course) {
-    // 强制使用节次计算，避免因课件时间包含课间休息导致色块错位
-    return (course.startNode - 1) * _cellHeight;
+    if (_timeDetails.isEmpty) {
+      return (course.startNode - 1) * _cellHeight;
+    }
+
+    // 优先使用课程自带的开始时间
+    if (course.startTime != null && course.startTime!.isNotEmpty) {
+      final m = _parseTime(course.startTime!);
+      if (m > 0) return _timeMinutesToPosition(m);
+    }
+
+    // 否则从时间表查找对应节次的标准开始时间（结果等同于旧逻辑的格子顶部）
+    try {
+      final detail = _timeDetails.firstWhere((t) => t.node == course.startNode);
+      return _timeMinutesToPosition(_parseTime(detail.startTime));
+    } catch (_) {
+      return (course.startNode - 1) * _cellHeight;
+    }
   }
   
   double _calculateHeight(Course course) {
-     // 强制使用节次计算，避免因课件时间包含课间休息导致色块超出网格
-     return course.step * _cellHeight;
+    // 始终使用节次数 * 格子高度，保持色块大小一致不压扁
+    // 位置偏移由 _calculateTop 处理
+    return course.step * _cellHeight;
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
@@ -1037,9 +1096,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       final top = _calculateTop(course);
       final height = _calculateHeight(course);
 
-      // Get start time string
+      // Get start time string — 优先使用课程自带的 startTime
       String? startTimeStr;
-      if (_timeDetails.isNotEmpty) {
+      if (course.startTime != null && course.startTime!.isNotEmpty) {
+        startTimeStr = course.startTime;
+      } else if (_timeDetails.isNotEmpty) {
         try {
           final detail = _timeDetails.firstWhere((d) => d.node == course.startNode);
           startTimeStr = detail.startTime;
