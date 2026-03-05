@@ -4,15 +4,18 @@ MySUES 遵循[语义化版本 2.0.0](http://semver.org/)。
 
 ## 0.4.0-beta.1
 
-`2026-02-28`
+`2026-03-06`
 
+- 🌟 新增主屏幕小组件，支持 Android 和 iOS。@HsxMark
+- 🌟 新增致谢页面，展示赞助者信息。@HsxMark
 - 🌟 在更多页面添加公告入口。@HsxMark
 - 🌟 在同步按钮中添加操作提示。@HsxMark
-- 🐛 修复 iOS 端提取考试信息高概率失败的问题。@HsxMark
-- 🛠 重写考试数据提取流程，确保页面会话就绪后再请求数据。@HsxMark
-- 🛠 为考试提取添加自动重试机制（最多 3 次），解决 iOS WKWebView 首次请求 cookie 未就绪的问题。@HsxMark
-- 🛠 延长页面加载等待时间至 30 秒，适配教务系统慢响应场景。@HsxMark
-- 🛠 更新应用包名。@HsxMark
+- 🐛 修复 iOS 端导入考试信息失败的问题。@HsxMark
+- 🐛 修复多个课表显示及创建错误。@HsxMark
+- 🐛 修复迷你课表显示异常。@HsxMark
+- 🐛 修复成绩显示：调整绩点显示样式，移除单科成绩展示。@HsxMark
+- 🛠 更新应用包名和启动页。@HsxMark
+- 🛠 更新 iOS 端 Flutter 配置。@HsxMark
 
 ## 0.3.1-beta.1
 

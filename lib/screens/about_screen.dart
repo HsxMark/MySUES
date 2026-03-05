@@ -5,9 +5,35 @@ import 'package:mysues/screens/about/changelog_screen.dart';
 import 'package:mysues/screens/about/sponsor_screen.dart';
 import 'package:mysues/screens/about/acknowledgements_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
+import 'package:mysues/screens/about/egg_screen.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
+
+  @override
+  State<AboutScreen> createState() => _AboutScreenState();
+}
+
+class _AboutScreenState extends State<AboutScreen> {
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+
+  void _onIconTap() {
+    final now = DateTime.now();
+    if (_lastTapTime != null && now.difference(_lastTapTime!).inMilliseconds > 500) {
+      _tapCount = 0;
+    }
+    _lastTapTime = now;
+    _tapCount++;
+
+    if (_tapCount >= 5) {
+      _tapCount = 0;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const EggScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +49,14 @@ class AboutScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Image.asset(
-                  'assets/images/MySUES-1024x1024@1x.png',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.contain,
+                GestureDetector(
+                  onTap: _onIconTap,
+                  child: Image.asset(
+                    'assets/images/MySUES-1024x1024@1x.png',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -43,7 +72,7 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 40),
-          
+
           Card(
             clipBehavior: Clip.antiAlias,
             elevation: 0,
@@ -67,7 +96,7 @@ class AboutScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 48),
           const Center(
             child: Text(

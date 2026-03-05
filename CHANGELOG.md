@@ -4,15 +4,18 @@ MySUES follows [Semantic Versioning 2.0.0](http://semver.org/).
 
 ## 0.4.0-beta.1
 
-`2026-02-28`
+`2026-03-06`
 
+- 🌟 Add home screen widget support for Android and iOS. @HsxMark
+- 🌟 Add acknowledgements page with sponsor information. @HsxMark
 - 🌟 Add notice entry in More page. @HsxMark
 - 🌟 Add tips to sync button for better guidance. @HsxMark
-- 🐛 Fix high failure rate when extracting exam info on iOS. @HsxMark
-- 🛠 Rewrite exam extraction flow to ensure WebView session is fully ready before fetching data. @HsxMark
-- 🛠 Add automatic retry mechanism (up to 3 attempts) for exam fetching to handle iOS WKWebView session cookie delay. @HsxMark
-- 🛠 Extend page load timeout to 30 seconds to accommodate slow academic system responses. @HsxMark
-- 🛠 Update application package name. @HsxMark
+- 🐛 Fix exam import error on iOS. @HsxMark
+- 🐛 Fix multiple schedule display and establishment errors. @HsxMark
+- 🐛 Fix mini schedule display error on screen. @HsxMark
+- 🐛 Fix score display: adjust GPA display style and remove specific score detail. @HsxMark
+- 🛠 Update application package name and entry screen. @HsxMark
+- 🛠 Update Flutter configuration for iOS device. @HsxMark
 
 ## 0.3.1-beta.1
 
