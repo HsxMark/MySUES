@@ -6,7 +6,8 @@ import 'package:mysues/models/course.dart';
 import 'package:mysues/models/schedule_table.dart';
 
 class WidgetService {
-  static const String appGroupId = 'com.hsxmark.mysues';
+  static const String appGroupId = 'group.com.hsxmark.mysues';
+  static const String iOSWidgetName = 'ScheduleWidget';
   static const String androidWidgetName = 'ScheduleWidgetProvider';
 
   static Future<void> updateWidget() async {
@@ -29,7 +30,10 @@ class WidgetService {
         for (int i = 1; i <= 6; i++) {
           await HomeWidget.saveWidgetData('course_${i}_name', '');
         }
-        await HomeWidget.updateWidget(androidName: androidWidgetName);
+        await HomeWidget.updateWidget(
+          androidName: androidWidgetName,
+          iOSName: iOSWidgetName,
+        );
         return;
       }
 
@@ -91,7 +95,10 @@ class WidgetService {
         }
       }
 
-      await HomeWidget.updateWidget(androidName: androidWidgetName);
+      await HomeWidget.updateWidget(
+        androidName: androidWidgetName,
+        iOSName: iOSWidgetName,
+      );
     } catch (e) {
       print('Failed to update widget: $e');
     }
