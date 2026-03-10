@@ -16,7 +16,9 @@ import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
 
 class ScheduleScreen extends StatefulWidget {
-  const ScheduleScreen({super.key});
+  final VoidCallback? onSwitchToDaily;
+
+  const ScheduleScreen({super.key, this.onSwitchToDaily});
 
   @override
   State<ScheduleScreen> createState() => _ScheduleScreenState();
@@ -671,6 +673,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         backgroundColor: ThemeService().liquidGlassEnabled ? Colors.transparent : null,
         elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
+          Tooltip(
+            message: '切换到日视图',
+            child: IconButton(
+              onPressed: widget.onSwitchToDaily,
+              icon: const Icon(Icons.view_day_outlined, size: 22),
+            ),
+          ),
           ListenableBuilder(
             listenable: ThemeService(),
             builder: (context, _) {

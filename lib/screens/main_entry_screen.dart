@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
-import 'schedule_screen.dart';
+import 'schedule_view_container.dart';
 import 'transcript_screen.dart';
 import 'exam_info_screen.dart';
 import 'profile_screen.dart';
@@ -34,7 +34,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
 
   // 页面列表
   final List<Widget> _pages = [
-    const ScheduleScreen(),
+    const ScheduleViewContainer(),
     const TranscriptScreen(),
     const ExamInfoScreen(),
     const ProfileScreen(),
