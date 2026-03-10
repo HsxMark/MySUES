@@ -32,7 +32,10 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
   int _currentWeek = 1;
   DateTime _selectedDate = DateTime.now();
   late PageController _pageController;
+  late PageController _weekPageController;
+  bool _isSyncingPages = false;
   int _totalDays = 1;
+  int _totalWeeks = 1;
   DateTime _semesterStart = DateTime.now();
 
   static const List<String> _weekDayNames = ['一', '二', '三', '四', '五', '六', '日'];
@@ -41,12 +44,14 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    _weekPageController = PageController();
     _initData();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _weekPageController.dispose();
     super.dispose();
   }
 
@@ -74,11 +79,14 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
       _semesterStart = _currentTable!.startDateObj.subtract(
         Duration(days: _currentTable!.startDateObj.weekday - 1),
       );
-      _totalDays = _currentTable!.maxWeek * 7;
+      _totalWeeks = _currentTable!.maxWeek;
+      _totalDays = _totalWeeks * 7;
 
       // 设置PageController到今天对应的页
       final todayIndex = _selectedDate.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+      final todayWeekIndex = (todayIndex / 7).floor().clamp(0, _totalWeeks - 1);
       _pageController = PageController(initialPage: todayIndex);
+      _weekPageController = PageController(initialPage: todayWeekIndex);
     }
 
     setState(() => _isLoading = false);
@@ -100,11 +108,6 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     final diff = date.difference(startMonday).inDays;
     if (diff < 0) return 1;
     return (diff / 7).floor() + 1;
-  }
-
-  /// 获取选中日期所在周的周一
-  DateTime _mondayOfDate(DateTime date) {
-    return date.subtract(Duration(days: date.weekday - 1));
   }
 
   String _getTimeRange(Course course) {
@@ -464,7 +467,6 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
 
     final theme = Theme.of(context);
     final isLiquidGlass = ThemeService().liquidGlassEnabled;
-    final monday = _mondayOfDate(_selectedDate);
     final weekNum = _weekForDate(_selectedDate);
 
     return Scaffold(
@@ -588,8 +590,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
       ),
       body: Column(
         children: [
-          // Week day selector
-          _buildWeekDaySelector(monday, theme),
+          // Week day selector (swipeable)
+          _buildWeekDaySelector(theme),
           // Semester & week info bar
           _buildInfoBar(weekNum, theme),
           // Course list / timeline (swipeable by day)
@@ -602,6 +604,19 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 setState(() {
                   _selectedDate = newDate;
                 });
+                // 同步周选择器
+                final targetWeek = (index / 7).floor().clamp(0, _totalWeeks - 1);
+                if (!_isSyncingPages && _weekPageController.hasClients) {
+                  final currentWeekPage = _weekPageController.page?.round() ?? 0;
+                  if (currentWeekPage != targetWeek) {
+                    _isSyncingPages = true;
+                    _weekPageController.animateToPage(
+                      targetWeek,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                    ).then((_) => _isSyncingPages = false);
+                  }
+                }
               },
               itemBuilder: (context, index) {
                 final date = _semesterStart.add(Duration(days: index));
@@ -618,72 +633,102 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     );
   }
 
-  Widget _buildWeekDaySelector(DateTime monday, ThemeData theme) {
+  Widget _buildWeekDaySelector(ThemeData theme) {
     final now = DateTime.now();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: List.generate(7, (index) {
-          final date = monday.add(Duration(days: index));
-          final isSelected = date.year == _selectedDate.year &&
-              date.month == _selectedDate.month &&
-              date.day == _selectedDate.day;
-          final isToday = date.year == now.year &&
-              date.month == now.month &&
-              date.day == now.day;
+    return SizedBox(
+      height: 64,
+      child: PageView.builder(
+        controller: _weekPageController,
+        itemCount: _totalWeeks,
+        onPageChanged: (weekIndex) {
+          if (_isSyncingPages) return;
+          // 保持同一星期几，切换到新的周
+          final weekday = _selectedDate.weekday; // 1=Mon...7=Sun
+          final newDate = _semesterStart.add(Duration(days: weekIndex * 7 + weekday - 1));
+          final dayIndex = newDate.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+          setState(() {
+            _selectedDate = newDate;
+          });
+          // 同步日视图
+          if (_pageController.hasClients) {
+            _isSyncingPages = true;
+            _pageController.animateToPage(
+              dayIndex,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+            ).then((_) => _isSyncingPages = false);
+          }
+        },
+        itemBuilder: (context, weekIndex) {
+          final monday = _semesterStart.add(Duration(days: weekIndex * 7));
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: List.generate(7, (index) {
+                final date = monday.add(Duration(days: index));
+                final isSelected = date.year == _selectedDate.year &&
+                    date.month == _selectedDate.month &&
+                    date.day == _selectedDate.day;
+                final isToday = date.year == now.year &&
+                    date.month == now.month &&
+                    date.day == now.day;
 
-          return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                final pageIndex = date.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
-                _pageController.animateToPage(
-                  pageIndex,
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: Column(
-                children: [
-                  Text(
-                    _weekDayNames[index],
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isSelected
-                          ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: isSelected
-                        ? BoxDecoration(
-                            color: isToday
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      final pageIndex = date.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+                      _pageController.animateToPage(
+                        pageIndex,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _weekDayNames[index],
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isSelected
                                 ? theme.colorScheme.onSurface
-                                : theme.colorScheme.primary,
-                            shape: BoxShape.circle,
-                          )
-                        : null,
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${date.day}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected
-                            ? (isToday
-                                ? theme.colorScheme.surface
-                                : theme.colorScheme.onPrimary)
-                            : theme.colorScheme.onSurface,
-                      ),
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: isSelected
+                              ? BoxDecoration(
+                                  color: isToday
+                                      ? theme.colorScheme.onSurface
+                                      : theme.colorScheme.primary,
+                                  shape: BoxShape.circle,
+                                )
+                              : null,
+                          alignment: Alignment.center,
+                          child: Text(
+                            '${date.day}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected
+                                  ? (isToday
+                                      ? theme.colorScheme.surface
+                                      : theme.colorScheme.onPrimary)
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                );
+              }),
             ),
           );
-        }),
+        },
       ),
     );
   }
@@ -698,14 +743,170 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
           bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
         ),
       ),
-      child: Text(
-        '${_semesterLabel()} · 第 $weekNum 周 周$dayName',
-        style: TextStyle(
-          fontSize: 14,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+      child: GestureDetector(
+        onTap: () => _showScheduleManager(context),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${_semesterLabel()} · 第 $weekNum 周 周$dayName',
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.unfold_more,
+              size: 16,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ],
         ),
-        textAlign: TextAlign.center,
       ),
+    );
+  }
+
+  void _showScheduleManager(BuildContext context) async {
+    final tables = await ScheduleDataService.loadScheduleTables();
+    if (!context.mounted) return;
+
+    final isLiquidGlass = ThemeService().liquidGlassEnabled;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isLiquidGlass ? Colors.transparent : null,
+      builder: (context) {
+        final theme = Theme.of(context);
+
+        Widget sheet = Container(
+          decoration: isLiquidGlass
+              ? null
+              : BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: Column(
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('切换课表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final existingNames = tables.map((t) => t.tableName).toList();
+                        if (!this.context.mounted) return;
+                        final newTable = await Navigator.push(
+                          this.context,
+                          MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(existingNames: existingNames)),
+                        );
+                        if (newTable != null && newTable is ScheduleTable) {
+                          await ScheduleDataService.addScheduleTable(newTable);
+                          await ScheduleDataService.setCurrentTableId(newTable.id);
+                          _initData();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                child: Text('长按删除课表', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: tables.length,
+                  itemBuilder: (context, index) {
+                    final table = tables[index];
+                    final isCurrent = _currentTable?.id == table.id;
+                    return ListTile(
+                      title: Text(table.tableName),
+                      subtitle: Text('开学: ${table.startDate}'),
+                      trailing: isCurrent ? const Icon(Icons.check, color: Colors.blue) : null,
+                      selected: isCurrent,
+                      onTap: () async {
+                        await ScheduleDataService.setCurrentTableId(table.id);
+                        if (context.mounted) Navigator.pop(context);
+                        _initData();
+                      },
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('删除课表'),
+                            content: Text('确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  await ScheduleDataService.deleteScheduleTable(table.id);
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    _initData();
+                                  }
+                                },
+                                child: const Text('删除', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (isLiquidGlass) {
+          final brightness = MediaQuery.platformBrightnessOf(context);
+          final isDark = brightness == Brightness.dark;
+          sheet = LiquidGlass.withOwnLayer(
+            settings: LiquidGlassSettings.figma(
+              depth: 50,
+              refraction: 100,
+              dispersion: 4,
+              frost: 2,
+              lightAngle: math.pi / 4,
+              glassColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+              lightIntensity: isDark ? 70 : 50,
+            ),
+            shape: const LiquidRoundedSuperellipse(borderRadius: 20),
+            child: Material(
+              color: Colors.transparent,
+              child: sheet,
+            ),
+          );
+        }
+
+        return sheet;
+      },
     );
   }
 
