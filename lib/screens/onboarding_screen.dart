@@ -16,14 +16,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const List<_PageData> _pages = [
     _PageData(
-      image: 'assets/images/MySUES-1024x1024@1x.png',
+      image: 'assets/images/example/MySUES-1024x1024@1x.png',
       isLogo: true,
       title: '欢迎使用苏伊士 My SUES',
       description: '一站式校园信息助手，让你的校园生活更便捷。',
     ),
     _PageData(
-      image: 'assets/images/example/scheduleinfo.PNG',
-      secondaryImage: 'assets/images/example/scheduledaily.PNG',
+      image: 'assets/images/example/scheduledaily.PNG',
+      secondaryImage: 'assets/images/example/scheduleinfo.PNG',
       isLogo: false,
       title: '查看课表',
       description: '快速查看每周或每日课程安排，支持导入教务系统课表。',
@@ -220,15 +220,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ? Row(
                     children: [
                       Expanded(
-                        child: _buildImageContainer(page.image),
+                        child: Center(
+                          child: _buildImageContainer(page.image),
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _buildImageContainer(page.secondaryImage!),
+                        child: Center(
+                          child: _buildImageContainer(page.secondaryImage!),
+                        ),
                       ),
                     ],
                   )
-                : _buildImageContainer(page.image),
+                : Center(
+                    child: _buildImageContainer(page.image),
+                  ),
           ),
           const SizedBox(height: 16),
         ],

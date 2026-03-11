@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../assets/images/MySUES-1024x1024@1x.png" width="150" alt="MySUES Logo">
+  <img src="../assets/images/example/MySUES-1024x1024@1x.png" width="150" alt="MySUES Logo">
 </p>
 
 # MySUES (苏伊士)

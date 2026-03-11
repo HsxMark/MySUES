@@ -53,7 +53,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 GestureDetector(
                   onTap: _onIconTap,
                   child: Image.asset(
-                    'assets/images/MySUES-1024x1024@1x.png',
+                    'assets/images/example/MySUES-1024x1024@1x.png',
                     width: 80,
                     height: 80,
                     fit: BoxFit.contain,
