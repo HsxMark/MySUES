@@ -10,6 +10,7 @@ import '../services/schedule_service.dart';
 import '../services/theme_service.dart';
 import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
+import 'schedule_view_container.dart';
 import 'import_classpdf_screen.dart'; // Import
 import 'login_webview_screen.dart'; // Import
 import '../utils/sync_disclaimer.dart';
@@ -20,13 +21,18 @@ class ScheduleScreen extends StatefulWidget {
 
   const ScheduleScreen({super.key, this.onSwitchToDaily});
 
+  /// Static reference to current state (avoids GlobalKey conflicts with AnimatedSwitcher)
+  static ScheduleScreenState? _currentState;
+  static ScheduleScreenState? get currentState => _currentState;
+
   @override
-  State<ScheduleScreen> createState() => _ScheduleScreenState();
+  State<ScheduleScreen> createState() => ScheduleScreenState();
 }
 
-class _ScheduleScreenState extends State<ScheduleScreen> {
+class ScheduleScreenState extends State<ScheduleScreen> {
   late PageController _pageController;
   int _currentWeek = 1;
+  int _actualCurrentWeek = 1;
   ScheduleTable? _currentTable;
   List<Course> _courses = [];
   List<TimeDetail> _timeDetails = []; // Store time details
@@ -37,11 +43,41 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   double _headerHeight = 50.0;
   double _cellHeight = 60.0; // Default, will override
 
+  // Public API for floating button
+  int get currentWeek => _currentWeek;
+  int get actualCurrentWeek => _actualCurrentWeek;
+  int get maxWeek => _currentTable?.maxWeek ?? 30;
+  bool get isOnActualCurrentWeek => _currentWeek == _actualCurrentWeek;
+  bool get showFloatingButton => _currentTable?.showFloatingButton ?? true;
+
+  void jumpToWeek(int week) {
+    final page = (week - 1).clamp(0, maxWeek - 1);
+    _pageController.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void jumpToActualCurrentWeek() {
+    jumpToWeek(_actualCurrentWeek);
+  }
+
   @override
   void initState() {
     super.initState();
+    ScheduleScreen._currentState = this;
     _pageController = PageController(initialPage: 0);
     _initData();
+  }
+
+  @override
+  void dispose() {
+    if (ScheduleScreen._currentState == this) {
+      ScheduleScreen._currentState = null;
+    }
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _initData() async {
@@ -68,6 +104,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (_currentTable != null) {
       // Calculate current week
       _currentWeek = _calculateCurrentWeek(_currentTable!.startDateObj);
+      _actualCurrentWeek = _currentWeek;
       // 并行加载课程和时间详情
       final dataResults = await Future.wait([
         ScheduleDataService.loadCourses(tableId: _currentTable!.id),
@@ -84,8 +121,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
 
     setState(() => _isLoading = false);
+    // Notify container to show FAB after data is ready
+    ScheduleViewContainer.containerKey.currentState?.setState(() {});
   }
-  
+
   // _injectDemoCourses removed here
   
   String _getTimeRange(Course course) {
@@ -799,6 +838,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           setState(() {
             _currentWeek = page + 1;
           });
+          // Notify container to refresh FAB label
+          ScheduleViewContainer.containerKey.currentState?.setState(() {});
         },
         itemBuilder: (context, index) {
           final weekNum = index + 1;

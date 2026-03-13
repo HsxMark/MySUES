@@ -20,6 +20,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   late bool _showSat;
   late bool _showSun;
   late bool _showOtherWeekCourse;
+  late bool _showFloatingButton;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       _showSat = widget.table!.showSat;
       _showSun = widget.table!.showSun;
       _showOtherWeekCourse = widget.table!.showOtherWeekCourse;
+      _showFloatingButton = widget.table!.showFloatingButton;
     } else {
       _nameController = TextEditingController(text: '新课表');
       _maxWeekController = TextEditingController(text: '30');
@@ -42,6 +44,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       _showSat = true;
       _showSun = true;
       _showOtherWeekCourse = true;
+      _showFloatingButton = true;
     }
   }
 
@@ -117,6 +120,12 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             value: _showOtherWeekCourse,
             onChanged: (v) => setState(() => _showOtherWeekCourse = v),
           ),
+          SwitchListTile(
+            title: const Text('显示悬浮跳转按钮'),
+            subtitle: const Text('快速跳转周次/日期'),
+            value: _showFloatingButton,
+            onChanged: (v) => setState(() => _showFloatingButton = v),
+          ),
         ],
       ),
     );
@@ -175,6 +184,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       widget.table!.showSat = _showSat;
       widget.table!.showSun = _showSun;
       widget.table!.showOtherWeekCourse = _showOtherWeekCourse;
+      widget.table!.showFloatingButton = _showFloatingButton;
       Navigator.pop(context, widget.table);
     } else {
       final newTable = ScheduleTable(
@@ -187,6 +197,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
         showSat: _showSat,
         showSun: _showSun,
         showOtherWeekCourse: _showOtherWeekCourse,
+        showFloatingButton: _showFloatingButton,
       );
        Navigator.pop(context, newTable);
     }

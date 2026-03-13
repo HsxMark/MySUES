@@ -20,6 +20,7 @@ class ScheduleTable {
   bool showSun;
   bool showOtherWeekCourse;
   bool showTime;
+  bool showFloatingButton;
 
   ScheduleTable({
     this.id = 0,
@@ -38,6 +39,7 @@ class ScheduleTable {
     this.showSun = true,
     this.showOtherWeekCourse = true,
     this.showTime = false,
+    this.showFloatingButton = true,
   });
 
   factory ScheduleTable.fromJson(Map<String, dynamic> json) {
@@ -58,6 +60,7 @@ class ScheduleTable {
       showSun: json['showSun'] as bool? ?? true,
       showOtherWeekCourse: json['showOtherWeekCourse'] as bool? ?? true,
       showTime: json['showTime'] as bool? ?? false,
+      showFloatingButton: json['showFloatingButton'] as bool? ?? true,
     );
   }
 
@@ -79,6 +82,7 @@ class ScheduleTable {
       'showSun': showSun,
       'showOtherWeekCourse': showOtherWeekCourse,
       'showTime': showTime,
+      'showFloatingButton': showFloatingButton,
     };
   }
 

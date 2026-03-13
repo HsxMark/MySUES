@@ -10,6 +10,7 @@ import '../services/schedule_service.dart';
 import '../services/theme_service.dart';
 import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
+import 'schedule_view_container.dart';
 import 'import_classpdf_screen.dart';
 import 'login_webview_screen.dart';
 import '../utils/sync_disclaimer.dart';
@@ -20,11 +21,15 @@ class DailyScheduleScreen extends StatefulWidget {
 
   const DailyScheduleScreen({super.key, this.onSwitchToWeek});
 
+  /// Static reference to current state (avoids GlobalKey conflicts with AnimatedSwitcher)
+  static DailyScheduleScreenState? _currentState;
+  static DailyScheduleScreenState? get currentState => _currentState;
+
   @override
-  State<DailyScheduleScreen> createState() => _DailyScheduleScreenState();
+  State<DailyScheduleScreen> createState() => DailyScheduleScreenState();
 }
 
-class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
+class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   ScheduleTable? _currentTable;
   List<Course> _courses = [];
   List<TimeDetail> _timeDetails = [];
@@ -40,9 +45,36 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
 
   static const List<String> _weekDayNames = ['一', '二', '三', '四', '五', '六', '日'];
 
+  // Public API for floating button
+  DateTime get selectedDate => _selectedDate;
+  DateTime get semesterStart => _semesterStart;
+  DateTime get semesterEnd => _semesterStart.add(Duration(days: _totalDays - 1));
+  bool get showFloatingButton => _currentTable?.showFloatingButton ?? true;
+
+  bool get isViewingToday {
+    final now = DateTime.now();
+    return _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+  }
+
+  void jumpToDate(DateTime date) {
+    final dayIndex = date.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+    _pageController.animateToPage(
+      dayIndex,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void jumpToToday() {
+    jumpToDate(DateTime.now());
+  }
+
   @override
   void initState() {
     super.initState();
+    DailyScheduleScreen._currentState = this;
     _pageController = PageController();
     _weekPageController = PageController();
     _initData();
@@ -50,6 +82,9 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
 
   @override
   void dispose() {
+    if (DailyScheduleScreen._currentState == this) {
+      DailyScheduleScreen._currentState = null;
+    }
     _pageController.dispose();
     _weekPageController.dispose();
     super.dispose();
@@ -98,6 +133,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
     }
 
     setState(() => _isLoading = false);
+    // Notify container to show FAB after data is ready
+    ScheduleViewContainer.containerKey.currentState?.setState(() {});
   }
 
   int _calculateCurrentWeek(DateTime startDate) {
@@ -612,6 +649,8 @@ class _DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 setState(() {
                   _selectedDate = newDate;
                 });
+                // Notify container to refresh FAB label
+                ScheduleViewContainer.containerKey.currentState?.setState(() {});
                 // 同步周选择器
                 final targetWeek = (index / 7).floor().clamp(0, _totalWeeks - 1);
                 if (!_isSyncingPages && _weekPageController.hasClients) {

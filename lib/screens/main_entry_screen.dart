@@ -37,7 +37,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
 
   Widget _getPage(int index) {
     _cachedPages[index] ??= switch (index) {
-      0 => const ScheduleViewContainer(),
+      0 => ScheduleViewContainer(key: ScheduleViewContainer.containerKey),
       1 => const TranscriptScreen(),
       2 => const ExamInfoScreen(),
       3 => const ProfileScreen(),
