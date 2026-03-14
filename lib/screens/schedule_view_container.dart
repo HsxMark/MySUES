@@ -124,6 +124,25 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
 
   void _showWeekJumpDialog(ScheduleScreenState state) {
     final controller = TextEditingController();
+    void tryJump(BuildContext ctx) {
+      final text = controller.text.trim();
+      final week = int.tryParse(text);
+      if (week == null || text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('请输入有效的周次数字')),
+        );
+        return;
+      }
+      if (week < 1 || week > state.maxWeek) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('周次超出范围，请输入 1-${state.maxWeek}')),
+        );
+        return;
+      }
+      Navigator.pop(ctx);
+      state.jumpToWeek(week);
+    }
+
     showDialog(
       context: context,
       builder: (ctx) {
@@ -137,13 +156,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
               labelText: '周次 (1-${state.maxWeek})',
               border: const OutlineInputBorder(),
             ),
-            onSubmitted: (value) {
-              final week = int.tryParse(value);
-              if (week != null && week >= 1 && week <= state.maxWeek) {
-                Navigator.pop(ctx);
-                state.jumpToWeek(week);
-              }
-            },
+            onSubmitted: (_) => tryJump(ctx),
           ),
           actions: [
             TextButton(
@@ -151,13 +164,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
               child: const Text('取消'),
             ),
             TextButton(
-              onPressed: () {
-                final week = int.tryParse(controller.text);
-                if (week != null && week >= 1 && week <= state.maxWeek) {
-                  Navigator.pop(ctx);
-                  state.jumpToWeek(week);
-                }
-              },
+              onPressed: () => tryJump(ctx),
               child: const Text('跳转'),
             ),
           ],
@@ -167,11 +174,17 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
   }
 
   void _showDateJumpDialog(DailyScheduleScreenState state) {
+    // Clamp initialDate to semester range
+    final now = state.selectedDate;
+    final first = state.semesterStart;
+    final last = state.semesterEnd;
+    final clamped = now.isBefore(first) ? first : (now.isAfter(last) ? last : now);
+
     showDatePicker(
       context: context,
-      initialDate: state.selectedDate,
-      firstDate: state.semesterStart,
-      lastDate: state.semesterEnd,
+      initialDate: clamped,
+      firstDate: first,
+      lastDate: last,
     ).then((date) {
       if (date != null) {
         state.jumpToDate(date);

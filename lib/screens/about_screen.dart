@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:mysues/screens/about/user_agreement_screen.dart';
 import 'package:mysues/screens/about/privacy_policy_screen.dart';
-import 'package:mysues/screens/about/changelog_screen.dart';
 import 'package:mysues/screens/about/sponsor_screen.dart';
 import 'package:mysues/screens/about/acknowledgements_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
@@ -66,8 +66,22 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Version 1.1.0',
+                  'Version 1.1.0(build20260314)',
                   style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => launchUrl(
+                    Uri.parse('https://syntrion.dev/mysues#download'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Text(
+                    '检查更新',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -86,8 +100,6 @@ class _AboutScreenState extends State<AboutScreen> {
                 _buildOptionItem(context, '用户协议', const UserAgreementScreen()),
                 const Divider(height: 1, indent: 16),
                 _buildOptionItem(context, '隐私政策', const PrivacyPolicyScreen()),
-                const Divider(height: 1, indent: 16),
-                _buildOptionItem(context, '版本更新', const ChangelogScreen()),
                 const Divider(height: 1, indent: 16),
                 ListTile(
                   title: const Text('使用教程'),

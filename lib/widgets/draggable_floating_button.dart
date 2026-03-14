@@ -156,29 +156,7 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
       width: _buttonSize,
       height: _buttonSize,
       child: Center(
-        child: widget.isAtHome
-            ? Text(
-                widget.label,
-                style: TextStyle(
-                  color: fgColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.undo_rounded, color: fgColor, size: 20),
-                  Text(
-                    widget.label,
-                    style: TextStyle(
-                      color: fgColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+        child: Icon(Icons.calendar_today_rounded, color: fgColor, size: 24),
       ),
     );
 
