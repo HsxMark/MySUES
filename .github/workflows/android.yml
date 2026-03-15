@@ -27,7 +27,9 @@ jobs:
         run: echo "${{ secrets.MY_KEY_ALIAS }}" | base64 --decode > android/app/my-key-alias.jks
 
       - name: Create key.properties
-        run: echo "${{ secrets.KEY_PROPERTIES }}" > android/key.properties
+        env:
+          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
+        run: printf '%s\n' "$KEY_PROPERTIES" > android/key.properties
 
       - name: Install dependencies
         run: flutter pub get
