@@ -7,15 +7,15 @@ import 'package:html/parser.dart' show parse;
 class FetchInfoService {
   static const String _vpnSuffix = "vpn-12-o2-jxfw.sues.edu.cn";
 
-  /// 1. 获取包含个人信息的JSON数据
-  /// 
-  /// - 先尝试自动寻找一个当前可用的 Semester ID
-  /// - 使用该 ID 请求 print-data 接口 (与课表抓取同一个接口)
-  /// - 如果接口返回数据，从中解析 studentTableVms -> 第一个对象 -> 基础信息
+  
+  
+  
+  
+  
   static Future<Map<String, String>?> fetchStudentInfo(WebViewController controller, String baseUrl) async {
     try {
-      // 步骤 1: 获取 Semester IDs
-      // 改用 XHR 请求课表页面解析，不再依赖当前页面 DOM
+      
+      
       final ids = await _fetchSemesterIds(controller, baseUrl);
       if (ids.isEmpty) {
         debugPrint("FetchInfoService: No semester IDs found.");
@@ -33,7 +33,7 @@ class FetchInfoService {
       String targetId = ids.first;
       debugPrint("FetchInfoService: Trying semester ID: $targetId");
 
-      // 步骤 3: 请求数据
+      
       final url = "$baseUrl/student/for-std/course-table/semester/$targetId/print-data?$_vpnSuffix&semesterId=$targetId&hasExperiment=true";
       
       final jsonStr = await _fetchWithXhr(controller, url);
@@ -44,18 +44,18 @@ class FetchInfoService {
 
       final data = jsonDecode(jsonStr);
       
-      // 步骤 4: 解析个人信息
+      
       if (data['studentTableVms'] != null && (data['studentTableVms'] as List).isNotEmpty) {
         final vm = data['studentTableVms'][0];
         
         final info = <String, String>{};
         if (vm['name'] != null) info['name'] = vm['name'].toString();
-        if (vm['code'] != null) info['code'] = vm['code'].toString(); // 学号
-        if (vm['id'] != null) info['id'] = vm['id'].toString(); // 内部ID (用于考试查询)
-        if (vm['grade'] != null) info['grade'] = vm['grade'].toString(); // 年级
-        if (vm['department'] != null) info['department'] = vm['department'].toString(); // 学院
-        if (vm['major'] != null) info['major'] = vm['major'].toString(); // 专业
-        if (vm['adminclass'] != null) info['adminclass'] = vm['adminclass'].toString(); // 行政班
+        if (vm['code'] != null) info['code'] = vm['code'].toString(); 
+        if (vm['id'] != null) info['id'] = vm['id'].toString(); 
+        if (vm['grade'] != null) info['grade'] = vm['grade'].toString(); 
+        if (vm['department'] != null) info['department'] = vm['department'].toString(); 
+        if (vm['major'] != null) info['major'] = vm['major'].toString(); 
+        if (vm['adminclass'] != null) info['adminclass'] = vm['adminclass'].toString(); 
         
         return info;
       }
@@ -76,23 +76,23 @@ class FetchInfoService {
     if (info['adminclass'] != null) await prefs.setString('user_class', info['adminclass']!);
   }
 
-  // --- Helpers ---
+  
 
   static Future<List<String>> _fetchSemesterIds(WebViewController controller, String baseUrl) async {
     const relativeUrl = "/student/for-std/course-table";
     final url = "$baseUrl$relativeUrl";
     
     try {
-      // 1. 获取课表页面 HTML
+      
       final html = await _fetchWithXhr(controller, url);
       if (html == null || html.isEmpty) return [];
 
-      // 2. 解析 HTML 寻找 <select id="add-drop-take-semesters">
+      
       final document = parse(html);
       final select = document.getElementById('add-drop-take-semesters');
       if (select == null) return [];
 
-      // 3. 提取 options
+      
       final ids = <String>[];
       for (var option in select.getElementsByTagName('option')) {
         final val = option.attributes['value'];

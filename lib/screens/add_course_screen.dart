@@ -4,7 +4,7 @@ import '../models/time_table.dart';
 import '../services/schedule_service.dart';
 
 class AddCourseScreen extends StatefulWidget {
-  final Course? course; // 编辑模式传入对象
+  final Course? course; 
 
   const AddCourseScreen({super.key, this.course});
 
@@ -15,7 +15,7 @@ class AddCourseScreen extends StatefulWidget {
 class _AddCourseScreenState extends State<AddCourseScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  // Controllers
+  
   late TextEditingController _nameController;
   late TextEditingController _roomController;
   late TextEditingController _teacherController;
@@ -24,11 +24,11 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   late TextEditingController _startTimeController;
   late TextEditingController _endTimeController;
 
-  // State variables
-  int _day = 1; // 1-7
+  
+  int _day = 1; 
   int _startNode = 1;
   int _endNode = 2; 
-  int _type = 0; // 0: All, 1: Odd, 2: Even
+  int _type = 0; 
   Color _selectedColor = Colors.blue;
   List<TimeDetail> _timeDetails = [];
 
@@ -91,7 +91,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       if (mounted) {
         setState(() {
           _timeDetails = details;
-          // Init time text if empty
+          
           if (_startTimeController.text.isEmpty && _timeDetails.isNotEmpty) {
              _updateTimeFromNodes();
           }
@@ -256,7 +256,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                            Expanded(
                              child: GestureDetector(
                                onTap: () async {
-                                 // Optional: Add TimePicker here
+                                 
                                },
                                child: _buildTextField(_startTimeController, '开始时间(HH:mm)'),
                              ),
@@ -378,7 +378,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         endWeek: endWeek,
         type: _type,
         color: colorHex,
-        tableId: widget.course?.tableId ?? 0, // Should be passed or default
+        tableId: widget.course?.tableId ?? 0, 
         startTime: _startTimeController.text.isNotEmpty ? _startTimeController.text : null,
         endTime: _endTimeController.text.isNotEmpty ? _endTimeController.text : null,
       );
@@ -397,9 +397,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); 
               await ScheduleDataService.deleteCourse(widget.course!.id);
-              if (mounted) Navigator.pop(context, 'deleted'); // Return signal
+              if (mounted) Navigator.pop(context, 'deleted'); 
             },
             child: const Text('删除', style: TextStyle(color: Colors.red)),
           )

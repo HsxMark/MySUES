@@ -6,12 +6,12 @@ import 'package:mysues/models/student_info.dart';
 import 'package:mysues/screens/profile_edit_screen.dart';
 import 'package:mysues/screens/settings/settings_screen.dart';
 import 'package:mysues/screens/about_screen.dart';
-import 'package:mysues/screens/login_webview_screen.dart'; // Import this
+import 'package:mysues/screens/login_webview_screen.dart'; 
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/sync_disclaimer.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'dart:math' as math;
-// Ensure Course is imported
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,11 +21,11 @@ class ProfileScreen extends StatefulWidget {
 }
  
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Mock data removed. Initialized to null.
+  
   String? _studentId;
   String? _name; 
-  int _currentWeek = 1; // Default
-  int _totalWeeks = 30; // Default
+  int _currentWeek = 1; 
+  int _totalWeeks = 30; 
 
   File? _avatarFile;
   String? _major;
@@ -56,25 +56,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _studentId = prefs.getString(_studentIdKey);
       _nickname = prefs.getString(_nicknamePrefsKey);
-      _name = _nickname; // Use nickname as name for now, or fetch separate 'real_name' if saved
-      // Usually nickname is user set alias, name is real name. 
-      // If we extract name from system, we might want to save to 'user_nickname' or a new 'real_name'.
-      // StudentInfoParser creates 'name'. LoginWebview saves to 'user_nickname'.
-      // So _nickname matches extracted name.
+      _name = _nickname; 
+      
+      
+      
+      
       
       _major = prefs.getString(_majorPrefsKey);
       _college = prefs.getString(_collegePrefsKey);
       _className = prefs.getString(_classPrefsKey);
       _lastSyncTime = prefs.getString(_lastSyncTimeKey);
       
-      // Calculate week? 
-      // Need a way to set start date. For now keeping defaults or logic based on saved start date?
-      // ScheduleDataService could provide current week.
-      // _currentWeek = await ScheduleDataService.calculateCurrentWeek();
-      // For now, leave defaults as placeholders until Schedule logic is fully linked.
+      
+      
+      
+      
+      
     });
 
-    // Load Avatar
+    
     final path = prefs.getString(_avatarPrefsKey);
     if (path != null) {
       final file = File(path);
@@ -89,19 +89,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
     }
 
-    // Load Nickname
+    
     setState(() {
       _nickname = prefs.getString(_nicknamePrefsKey);
     });
 
-    // Load Major
+    
     final savedMajor = prefs.getString(_majorPrefsKey);
     if (savedMajor != null && savedMajor.isNotEmpty) {
       setState(() {
         _major = savedMajor;
       });
     } else if (_studentId != null) {
-      // Fallback to calculation from ID if not saved
+      
       final info = StudentInfoHelper.parseStudentId(_studentId!);
       setState(() {
         _major = info['major'] ?? '未知';
@@ -112,11 +112,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _navigateToEditProfile() async {
     if (_studentId == null) return;
     
-    // Calculate default major to pass if not set
+    
     final info = StudentInfoHelper.parseStudentId(_studentId!);
     final defaultMajor = info['major'] ?? '未知';
     
-    // Pass current value or '未设置'
+    
     final currentCollege = _college ?? '未设置';
     final currentClass = _className ?? '未设置';
 
@@ -133,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     
-    // Reload data when returning
+    
     _loadData();
   }
 
@@ -151,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             _buildUserInfoSection(context),
             const SizedBox(height: 16),
-            // Only show progress if logged in
+            
              if (_isLoggedIn) ...[
                _buildProgressSection(context),
                const SizedBox(height: 16),
@@ -295,40 +295,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProgressSection(BuildContext context) {
-    // Semester Progress
+    
     final double semesterProgress = _currentWeek / _totalWeeks;
     final int semesterPercentage = (semesterProgress * 100).round();
 
-    // University Progress Calculation
+    
     String universityProgress = "0%";
     if (_studentId != null && _studentId!.length >= 6) {
       try {
         final yearStr = _studentId!.substring(4, 6);
         final int entranceYear = 2000 + (int.tryParse(yearStr) ?? 0);
         final int currentYear = 2026;
-        final int currentMonth = 2; // Feb
+        final int currentMonth = 2; 
 
-        // Calculate current semester (1-based)
-        // If Sept (9) or later: (Current - Entrance) * 2 + 1
-        // If before Sept: (Current - Entrance) * 2
-        // Example: Entr 2023. Curr 2026-02. Diff=3. Sem = 3*2 = 6.
+        
+        
+        
+        
         int currentSemester = (currentYear - entranceYear) * 2;
         if (currentMonth >= 9) {
           currentSemester += 1;
         }
 
-        // Total semesters for 4 years = 8
-        // Progress = (Finished Semesters + Current Semester Fraction) / Total
-        // Finished Semesters = CurrentSemester - 1
+        
+        
+        
         double completedSemesters = (currentSemester - 1).toDouble();
         
-        // Add current semester fraction
+        
         completedSemesters += semesterProgress;
 
         double progress = completedSemesters / 8.0;
         
-        // Clamp to 0-1 range for sanity, or allow >100% if delayed? 
-        // Let's clamp to 0 if negative (invalid) but allow >100% 
+        
+        
         if (progress < 0) progress = 0;
         
         universityProgress = "${(progress * 100).round()}%";
@@ -366,7 +366,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '$semesterPercentage%', // Display rounded percentage if needed or keep style simple
+                    '$semesterPercentage%', 
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -488,7 +488,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     _loadData();
   }
-} // End of class
+} 
 
 
 class _SettingsTile extends StatelessWidget {
@@ -563,7 +563,7 @@ class _GlassAwareCard extends StatelessWidget {
         child: LiquidGlass(
           shape: const LiquidRoundedSuperellipse(borderRadius: 36),
           child: Container(
-             // Card/InkWell handling is abstracted. Basic container for glass contents.
+             
              child: child,
           ),
         ),

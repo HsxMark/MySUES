@@ -14,11 +14,11 @@ class _AddExamScreenState extends State<AddExamScreen> {
   final _formKey = GlobalKey<FormState>();
   
   String _courseName = '';
-  // String _timeString = ''; // Dynamically generated
+  
   String _location = '';
   late TextEditingController _typeController;
   
-  // New Controllers for separated time input
+  
   final TextEditingController _startDateTimeController = TextEditingController();
   final TextEditingController _endDateTimeController = TextEditingController();
   
@@ -42,7 +42,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
   }
 
   void _parseExistingTime(String timeString) {
-    // Try to parse "YYYY-MM-DD HH:MM~HH:MM" or "YYYY-MM-DD HH:MM"
+    
     try {
       final parts = timeString.split(' ');
       if (parts.length >= 2) {
@@ -68,9 +68,9 @@ class _AddExamScreenState extends State<AddExamScreen> {
              _endDateTime = DateTime.tryParse("$endStr:00");
            }
         } else {
-          // Single point in time
+          
           _startDateTime = DateTime.tryParse("$timeString:00");
-          // If no end time, assume 2 hours later default? or same?
+          
           if (_startDateTime != null) {
              _endDateTime = _startDateTime!.add(const Duration(hours: 2));
            }
@@ -108,7 +108,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
         _startDateTime = dt;
         _startDateTimeController.text = _formatDateTime(dt);
         
-        // Auto-set end time to start + 2h if not set or invalid
+        
         if (_endDateTime == null || _endDateTime!.isBefore(dt)) {
             _endDateTime = dt.add(const Duration(hours: 2));
             _endDateTimeController.text = _formatDateTime(_endDateTime!);
@@ -118,7 +118,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
   }
   
   Future<void> _pickEndDateTime() async {
-    // Prevent picking a date before start date
+    
     final dt = await _showDateTimePicker(
       initial: _endDateTime ?? _startDateTime?.add(const Duration(hours: 2)),
       minDate: _startDateTime,
@@ -133,7 +133,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
 
   Future<DateTime?> _showDateTimePicker({DateTime? initial, DateTime? minDate}) async {
     final now = DateTime.now();
-    // Adjust initial date if it conflicts with minDate
+    
     DateTime finalInitial = initial ?? now;
     if (minDate != null && finalInitial.isBefore(minDate)) {
       finalInitial = minDate;
@@ -184,9 +184,9 @@ class _AddExamScreenState extends State<AddExamScreen> {
         return;
       }
       
-      // Generate formatted timeString
-      // If same day: YYYY-MM-DD HH:MM~HH:MM
-      // If different: YYYY-MM-DD HH:MM ~ YYYY-MM-DD HH:MM (fallback logic might need update, but stick to single line string)
+      
+      
+      
       
       String finalTimeString;
       final start = _startDateTime!;
@@ -196,13 +196,13 @@ class _AddExamScreenState extends State<AddExamScreen> {
       final endStr = _formatDateTime(end);
       
       if (start.year == end.year && start.month == end.month && start.day == end.day) {
-         // Same day
+         
          final datePart = "${start.year}-${start.month.toString().padLeft(2,'0')}-${start.day.toString().padLeft(2,'0')}";
          final startTimePart = "${start.hour.toString().padLeft(2,'0')}:${start.minute.toString().padLeft(2,'0')}";
          final endTimePart = "${end.hour.toString().padLeft(2,'0')}:${end.minute.toString().padLeft(2,'0')}";
          finalTimeString = "$datePart $startTimePart~$endTimePart";
       } else {
-         finalTimeString = "$startStr~$endStr"; // Simple join using ~
+         finalTimeString = "$startStr~$endStr"; 
       }
 
       final newExam = Exam(
@@ -251,7 +251,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
               ),
               const SizedBox(height: 16),
               
-              // Start Time
+              
               TextFormField(
                 controller: _startDateTimeController,
                 readOnly: true,
@@ -266,7 +266,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
               ),
               const SizedBox(height: 16),
               
-              // End Time
+              
               TextFormField(
                 controller: _endDateTimeController,
                 readOnly: true,
@@ -293,7 +293,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
               ),
               const SizedBox(height: 16),
               
-              // Custom Type Input with Chips
+              
               TextFormField(
                 controller: _typeController,
                 decoration: const InputDecoration(

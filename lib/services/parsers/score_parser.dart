@@ -7,7 +7,7 @@ class ScoreParser {
     if (htmlSource.isEmpty) return [];
     
     Document doc = html_parser.parse(htmlSource);
-    // Usually one main table. If multiple, assume the largest one or one with relevant headers.
+    
     List<Element> tables = doc.querySelectorAll("table");
     
     for (var table in tables) {
@@ -22,15 +22,15 @@ class ScoreParser {
     List<Element> rows = table.querySelectorAll("tr");
     if (rows.length < 2) return [];
 
-    // Identify indices
+    
     int nameIdx = -1;
     int creditIdx = -1;
     int gpaIdx = -1;
     int semIdx = -1;
 
-    // Check header
+    
     Element header = rows[0];
-    List<Element> cols = header.querySelectorAll("th, td"); // Sometimes headers are td
+    List<Element> cols = header.querySelectorAll("th, td"); 
     
     for (int i = 0; i < cols.length; i++) {
         String txt = cols[i].text.trim();
@@ -40,14 +40,14 @@ class ScoreParser {
         else if (txt.contains("学期") || txt.contains("Semester")) semIdx = i;
     }
 
-    if (nameIdx == -1) return []; // Essential columns missing
+    if (nameIdx == -1) return []; 
 
     List<Score> result = [];
     for (int i = 1; i < rows.length; i++) {
       List<Element> cells = rows[i].querySelectorAll("td");
-      if (cells.length != cols.length && cells.length < 5) continue; // Mismatch or too few
+      if (cells.length != cols.length && cells.length < 5) continue; 
 
-      // Allow for colspans or slight variations if robust index used
+      
       try {
         String name = _safeGet(cells, nameIdx);
         String sem = (semIdx != -1) ? _safeGet(cells, semIdx) : "";
@@ -61,7 +61,7 @@ class ScoreParser {
           semester: sem
         ));
       } catch (e) {
-        // Skip row
+        
       }
     }
     return result;

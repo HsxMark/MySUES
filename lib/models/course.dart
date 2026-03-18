@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 
-/// 课程模型，对应 WakeupSchedule_Kotlin 中的 CourseBean
+
 class Course {
   int id;
   String courseName;
-  int day; // 星期几 1-7
+  int day; 
   String room;
   String teacher;
-  int startNode; // 开始节次
-  int step; // 持续节数
-  int startWeek; // 开始周
-  int endWeek; // 结束周
-  int type; // 0: 每周, 1: 单周, 2: 双周
-  String color; // Hex color string, e.g. "#FF0000"
-  int tableId; // 所属课表ID
-  String? startTime; // 自定义开始时间 HH:mm
-  String? endTime; // 自定义结束时间 HH:mm
+  int startNode; 
+  int step; 
+  int startWeek; 
+  int endWeek; 
+  int type; 
+  String color; 
+  int tableId; 
+  String? startTime; 
+  String? endTime; 
 
   Course({
     this.id = 0,
@@ -34,20 +34,20 @@ class Course {
     this.endTime,
   });
 
-  /// 获取节次描述字符串
+  
   String get nodeString => '第$startNode - ${startNode + step - 1}节';
 
-  /// 判断指定周次是否有课
+  
   bool inWeek(int week) {
     if (week < startWeek || week > endWeek) {
       return false;
     }
     switch (type) {
-      case 0: // 每周
+      case 0: 
         return true;
-      case 1: // 单周
+      case 1: 
         return week % 2 == 1;
-      case 2: // 双周
+      case 2: 
         return week % 2 == 0;
       default:
         return false;

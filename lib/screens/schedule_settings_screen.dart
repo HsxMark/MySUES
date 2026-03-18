@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/schedule_table.dart';
 
 class ScheduleSettingsScreen extends StatefulWidget {
-  final ScheduleTable? table; // Null for new table
+  final ScheduleTable? table; 
   final List<String> existingNames;
 
   const ScheduleSettingsScreen({super.key, this.table, this.existingNames = const []});
@@ -38,7 +38,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
     } else {
       _nameController = TextEditingController(text: '新课表');
       _maxWeekController = TextEditingController(text: '30');
-      _nodesController = TextEditingController(text: '15'); // Default to 15
+      _nodesController = TextEditingController(text: '15'); 
       _startDate = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).toIso8601String().split('T')[0];
       _showTime = false;
       _showSat = true;
@@ -192,7 +192,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
         startDate: _startDate,
         maxWeek: maxWeek,
         nodes: nodes,
-        timeTableId: 1, // Default time table
+        timeTableId: 1, 
         showTime: _showTime,
         showSat: _showSat,
         showSun: _showSun,

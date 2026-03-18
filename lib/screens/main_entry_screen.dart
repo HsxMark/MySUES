@@ -16,7 +16,7 @@ import 'onboarding_screen.dart';
 class MainEntryScreen extends StatefulWidget {
   const MainEntryScreen({super.key});
 
-  /// Call this from other screens (e.g. About) to re-show the tutorial.
+  
   static void showOnboarding(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -32,7 +32,7 @@ class MainEntryScreen extends StatefulWidget {
 class _MainEntryScreenState extends State<MainEntryScreen> {
   int _currentIndex = 0;
 
-  // 懒加载：只有被访问过的 Tab 才会真正构建，避免首次进入时同时初始化全部页面
+  
   final List<Widget?> _cachedPages = [null, null, null, null];
 
   Widget _getPage(int index) {
@@ -60,7 +60,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         _showAgreementDialog();
       });
     } else {
-      // Agreement already accepted — check onboarding
+      
       final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
       if (!onboardingCompleted && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -178,7 +178,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                   if (dialogContext.mounted) {
                     Navigator.of(dialogContext).pop();
                   }
-                  // Show onboarding after agreement
+                  
                   _showOnboarding(prefs);
                 },
                 child: const Text('同意并继续'),
@@ -253,20 +253,20 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                     _currentIndex = index;
                   });
                 },
-                type: BottomNavigationBarType.fixed, // 超过3个item时需要这个，或者设置selectedItemColor等
+                type: BottomNavigationBarType.fixed, 
                 selectedItemColor: Theme.of(context).colorScheme.primary,
                 unselectedItemColor: Colors.grey,
                 items: const [
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_month), // 或者 table_chart
+                    icon: Icon(Icons.calendar_month), 
                     label: '课程表',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.description), // 或者 assignment_outlined
+                    icon: Icon(Icons.description), 
                     label: '成绩单',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.edit_calendar), // 或者 event_note
+                    icon: Icon(Icons.edit_calendar), 
                     label: '考试信息',
                   ),
                   BottomNavigationBarItem(
@@ -279,7 +279,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
 
         if (!hasBg) return scaffold;
 
-        // Wrap with Theme override so child Scaffolds inherit transparent background
+        
         scaffold = Theme(
           data: Theme.of(context).copyWith(
             scaffoldBackgroundColor: Colors.transparent,
@@ -292,7 +292,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            // Fallback: normal theme background so it never flashes black
+            
             ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
             Opacity(
               opacity: bgOpacity,

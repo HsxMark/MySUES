@@ -1,13 +1,13 @@
 class StudentInfoHelper {
   static const Map<String, Map<String, String>> _collegeMajorMap = {
-    '01': { // Mechanical
+    '01': { 
        '11': '机械工程及自动化',
        '12': '机械设计制造及其自动化(现代装备与控制工程)',
        '13': '热能与动力工程',
        '14': '能源与环境系统工程',
        '41': '机械设备及自动化(数控技术与现代装备)(高职专科)',
     },
-    '02': { // Electronic
+    '02': { 
       '11': '计算机科学与技术',
       '12': '自动化',
       '13': '电气工程及其自动化',
@@ -17,7 +17,7 @@ class StudentInfoHelper {
       '41': '计算机应用与维护(高职专科)',
       '42': '应用电子技术(高职专科)',
     },
-    '03': { // Management
+    '03': { 
       '11': '工商管理',
       '12': '金融学',
       '13': '工程管理',
@@ -32,21 +32,21 @@ class StudentInfoHelper {
       '51': '工商管理（学生运动员班）',
       '59': '公共事业管理（学生运动员班）',
     },
-    '04': { // Chemistry
+    '04': { 
        '11': '化学工程与工艺(精细化工)',
        '12': '高分子材料与工程',
        '13': '轻化工程',
        '14': '制药工程',
        '15': '环境工程',
     },
-    '05': { // Material
+    '05': { 
       '11': '材料成型及控制工程',
       '13': '金属材料工程(纳米表面工程)',
       '14': '材料科学与工程(纳米表面工程)',
       '15': '材料成型及控制工程（微电子封装）',
       '31': '材料成型及控制工程(模具 CAD/CAM)（教改班）',
     },
-    '06': { // Automotive
+    '06': { 
       '11': '机械设计制造及自动化(汽车工程)',
       '12': '交通运输(汽车运用技术)',
       '13': '市场营销(汽车营销)',
@@ -56,7 +56,7 @@ class StudentInfoHelper {
       '23': '交通运输(汽车运用工程)(中美合作)',
       '41': '汽车运用技术(高职专科)',
     },
-    '07': { // Art
+    '07': { 
       '11': '广告学',
       '12': '艺术设计(艺)',
       '13': '摄影(艺)',
@@ -68,7 +68,7 @@ class StudentInfoHelper {
       '42': '广告艺术设计',
       '43': '视觉传达艺术设计',
     },
-    '08': { // Aviation
+    '08': { 
       '11': '交通运输(航空器械维修)',
       '12': '工商管理(航空经营管理)',
       '13': '国际经济与贸易(国际货运)',
@@ -77,7 +77,7 @@ class StudentInfoHelper {
       '43': '民航运输(航空商务)(高职专科)/民航商务',
       '44': '航空机电设备维修',
     },
-    '09': { // Fashion
+    '09': { 
       '11': '服装设计与工程',
       '12': '艺术设计(服装与装饰设计)(艺)',
       '13': '纺织工程',
@@ -89,7 +89,7 @@ class StudentInfoHelper {
       '42': '时装表演与策划',
       '43': '服装表演',
     },
-    '10': { // Urban Rail
+    '10': { 
       '11': '机械工程及自动化(城市轨道交通车辆)',
       '12': '电子信息工程(城市轨道交通通信信号)',
       '13': '交通运输(城市轨道交通运营管理)',
@@ -103,10 +103,10 @@ class StudentInfoHelper {
       '46': '城市轨道交通工程技术(通信信号)',
       '47': '城市轨道交通工程技术(机电设备)',
     },
-    '12': { // Sino-French
+    '12': { 
       '21': '服装设计与工程(中法合作)',
     },
-    '16': { // Vocational
+    '16': { 
       '41': '数控技术应用',
       '42': '应用电子技术',
       '43': '汽车运用技术',
@@ -133,7 +133,7 @@ class StudentInfoHelper {
   static Map<String, String> parseStudentId(String id) {
     if (id.length < 9) return {'grade': '未知', 'major': '未知'};
 
-    // Structure: College(2) + Nature(1) + MajorCode(1) + Year(2) + Class(1) + Serial(2)
+    
     String collegeCode = id.substring(0, 2);
     String majorNature = id.substring(2, 3);
     String majorSuffix = id.substring(3, 4);
@@ -141,7 +141,7 @@ class StudentInfoHelper {
 
     String majorCode = majorNature + majorSuffix;
     
-    // Major Lookup
+    
     String majorName = '未知专业';
     if (_collegeMajorMap.containsKey(collegeCode)) {
       final codeMap = _collegeMajorMap[collegeCode];
@@ -150,13 +150,13 @@ class StudentInfoHelper {
       }
     }
 
-    // Grade Calculation (Assuming current year 2026 Feb)
+    
     int entranceYear = 2000 + (int.tryParse(yearStr) ?? 0);
     int currentYear = 2026;
-    int currentMonth = 2; // Feb
+    int currentMonth = 2; 
 
-    // If currentMonth >= 9, grade = current - entrance + 1
-    // If currentMonth < 9, grade = current - entrance
+    
+    
     int gradeNum = currentYear - entranceYear;
     if (currentMonth >= 9) gradeNum += 1;
 

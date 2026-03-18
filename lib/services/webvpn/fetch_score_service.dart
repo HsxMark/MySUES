@@ -6,7 +6,7 @@ import '../../models/score.dart';
 class FetchScoreService {
   static const String _vpnSuffix = "vpn-12-o2-jxfw.sues.edu.cn";
 
-  /// 异步 XHR 获取页面内容（兼容 iOS WKWebView）
+  
   static Future<String?> _fetchWithXhr(WebViewController controller, String url) async {
     try {
       final safeUrl = url.replaceAll("'", "\\'");
@@ -79,10 +79,10 @@ class FetchScoreService {
     }
   }
 
-  /// 获取单个学期的成绩
+  
   static Future<List<Score>> fetchSemesterScores(
       WebViewController controller, String baseUrl, String studentId, String semesterId) async {
-    // API format: /student/for-std/grade/sheet/info/{studentId}?{VPN_SUFFIX}&semester={semesterId}
+    
     final url = "$baseUrl/student/for-std/grade/sheet/info/$studentId?$_vpnSuffix&semester=$semesterId";
     
     final jsonStr = await _fetchWithXhr(controller, url);
@@ -91,17 +91,17 @@ class FetchScoreService {
     try {
       final Map<String, dynamic> data = jsonDecode(jsonStr);
       
-      // Structure: data['semesterId2studentGrades'][semesterId] -> List<Object>
-      // Also data['semesters'] or data['id2semesters'][semesterId]['nameZh'] for semester name
+      
+      
       
       if (data['semesterId2studentGrades'] == null) return [];
 
       final gradesMap = data['semesterId2studentGrades'] as Map<String, dynamic>;
       
-      // 尝试直接获取
+      
       var gradesList = gradesMap[semesterId];
       
-      // 如果获取失败，尝试强转 string 遍历匹配
+      
       if (gradesList == null) {
         for (var key in gradesMap.keys) {
           if (key.toString() == semesterId.toString()) {
@@ -112,11 +112,11 @@ class FetchScoreService {
       }
 
       if (gradesList is List) {
-        // Try to get semester name from this response
+        
         String semesterName = "未知学期";
         if (data['id2semesters'] != null) {
            final idMap = data['id2semesters'] as Map<String, dynamic>;
-           // 同理尝试匹配 semester
+           
            var semInfo = idMap[semesterId];
            if (semInfo == null) {
              for (var key in idMap.keys) {
@@ -145,17 +145,17 @@ class FetchScoreService {
     return [];
   }
 
-  /// 批量获取所有学期成绩
+  
   static Future<List<Score>> fetchAllScores(
       WebViewController controller, String baseUrl, String studentId, List<String> semesterIds) async {
     List<Score> allScores = [];
     
-    // 倒序遍历，或者全部获取
+    
     for (var semId in semesterIds) {
       debugPrint("Fetching scores for semester $semId...");
       final scores = await fetchSemesterScores(controller, baseUrl, studentId, semId);
       allScores.addAll(scores);
-      // Optional: Add delay if needed to avoid spamming
+      
       await Future.delayed(const Duration(milliseconds: 200));
     }
     

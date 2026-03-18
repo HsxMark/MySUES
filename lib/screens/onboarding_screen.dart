@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  /// When true, completing the tutorial will NOT write to SharedPreferences.
+  
   final bool isReview;
 
   const OnboardingScreen({super.key, this.isReview = false});
@@ -77,7 +77,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // Skip button (top-right)
+              
               Align(
                 alignment: Alignment.centerRight,
                 child: Padding(
@@ -88,7 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
               ),
-              // Page content
+              
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
@@ -107,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                 ),
               ),
-              // Dots indicator
+              
               Padding(
                 padding: const EdgeInsets.only(bottom: 20),
                 child: Row(
@@ -129,7 +129,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   }),
                 ),
               ),
-              // Bottom button
+              
               Padding(
                 padding:
                     const EdgeInsets.only(left: 40, right: 40, bottom: 40),
@@ -154,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  /// Welcome page: centered logo + text
+  
   Widget _buildWelcomePage(BuildContext context, _PageData page) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -190,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  /// Feature page: title on top, screenshot in center, description below
+  
   Widget _buildFeaturePage(BuildContext context, _PageData page) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),

@@ -1,21 +1,21 @@
-/// 课表配置模型，对应 WakeupSchedule_Kotlin 中的 TableBean
+
 class ScheduleTable {
   int id;
   String tableName;
-  int nodes; // 每天总节数
-  String background; // 背景图片路径
-  int timeTableId; // 关联的时间表ID
-  String startDate; // 开学日期 yyyy-MM-dd
-  int maxWeek; // 最大周数
+  int nodes; 
+  String background; 
+  int timeTableId; 
+  String startDate; 
+  int maxWeek; 
   
-  // UI Settings
+  
   int itemHeight;
   int itemTextSize;
   int strokeColor;
   int textColor;
   int courseTextColor;
   
-  // Show Settings
+  
   bool showSat;
   bool showSun;
   bool showOtherWeekCourse;

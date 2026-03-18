@@ -28,7 +28,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   @override
   void initState() {
     super.initState();
-    // 初始化默认值
+    
     _semesters = [];
     _selectedSemester = '无数据';
     _loadScores();
@@ -62,10 +62,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   void _updateSemesters() {
     _semesters = _allScores.map((e) => e.semester).toSet().toList();
-    _semesters.sort((a, b) => b.compareTo(a)); // 倒序排列
+    _semesters.sort((a, b) => b.compareTo(a)); 
 
     if (_semesters.isNotEmpty) {
-      // 保持之前的选择，如果之前选的还在列表里
+      
       if (!_semesters.contains(_selectedSemester)) {
          _selectedSemester = _semesters.first;
       }
@@ -74,13 +74,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     }
   }
 
-  // 计算GPA helper
+  
   double _calculateGPA(List<Score> scores) {
     if (scores.isEmpty) return 0.0;
     double totalPoints = 0;
     double totalCredits = 0;
     for (var score in scores) {
-      if (!score.isEvaluated) continue; // 跳过未评教课程
+      if (!score.isEvaluated) continue; 
       double gp = score.gradePoint;
       totalPoints += gp * score.credit;
       totalCredits += score.credit;
@@ -90,15 +90,15 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 总 GPA 计算
+    
     final totalGPA = _calculateGPA(_allScores);
 
-    // 当前学期数据
+    
     final semesterScores = _allScores
         .where((s) => s.semester == _selectedSemester)
         .toList();
 
-    // 当前学期 GPA 计算
+    
     final semesterGPA = _calculateGPA(semesterScores);
 
     return Scaffold(
@@ -233,12 +233,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           ? const Center(child: Text("暂无成绩数据，点击右上方按钮进行导入"))
           : Column(
               children: [
-                // 顶部总览卡片
+                
                 _buildOverallCard(totalGPA),
 
                 const SizedBox(height: 16),
 
-                // 学期选择器
+                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Row(
@@ -269,12 +269,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                 ),
 
-                // 学期 GPA 摘要
+                
                 _buildSemesterSummary(semesterGPA, semesterScores),
 
                 const SizedBox(height: 10),
 
-                // 成绩列表
+                
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
@@ -286,7 +286,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                 ),
                 
-                // 底部注释
+                
                 if (_lastImportTime != null && _lastImportMethod != null)
                   Padding(
                     padding: const EdgeInsets.all(16.0),

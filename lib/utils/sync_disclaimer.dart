@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Shows the sync disclaimer dialog if the user hasn't opted to hide it.
-/// Returns `true` if the user confirmed (or previously opted out), `false` otherwise.
+
+
 Future<bool> showSyncDisclaimer(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   const hideKey = 'hide_sync_disclaimer';

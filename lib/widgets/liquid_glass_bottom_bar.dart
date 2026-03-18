@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+
 
 import 'dart:math' as math;
 
@@ -6,19 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:motor/motor.dart';
 
-/// Creates a jelly transform matrix based on velocity for organic squash and stretch effect
+
 Matrix4 buildJellyTransform({
   required Offset velocity,
   double maxDistortion = 0.7,
   double velocityScale = 1000.0,
 }) {
-  // Calculate the magnitude of velocity to determine distortion intensity
+  
   final speed = velocity.distance;
 
-  // Normalize velocity direction
+  
   final direction = speed > 0 ? velocity / speed : Offset.zero;
 
-  // Apply a scaling factor to make the effect more pronounced
+  
   final distortionFactor =
       (speed / velocityScale).clamp(0.0, 1.0) * maxDistortion;
 
@@ -26,21 +26,21 @@ Matrix4 buildJellyTransform({
     return Matrix4.identity();
   }
 
-  // Create squash and stretch effect
-  // Squash in the direction of movement, stretch perpendicular to it
+  
+  
   final squashX = 1.0 - (direction.dx.abs() * distortionFactor * 0.5);
   final squashY = 1.0 - (direction.dy.abs() * distortionFactor * 0.5);
   final stretchX = 1.0 + (direction.dy.abs() * distortionFactor * 0.3);
   final stretchY = 1.0 + (direction.dx.abs() * distortionFactor * 0.3);
 
-  // Combine squash and stretch effects
+  
   final scaleX = squashX * stretchX;
   final scaleY = squashY * stretchY;
 
-  // Build the transformation matrix
+  
   final matrix = Matrix4.identity();
 
-  // Apply scale transformation
+  
   matrix.scale(scaleX, scaleY);
 
   return matrix;
@@ -88,8 +88,8 @@ class _LiquidGlassBottomBarState extends State<LiquidGlassBottomBar> {
 
     final theme = Theme.of(context);
     
-    // Fallback for glass color using Material checks
-    // If we have a navigation bar theme, try to use it, otherwise surface color
+    
+    
     final baseColor = theme.bottomNavigationBarTheme.backgroundColor ?? theme.colorScheme.surface;
 
     final glassSettings =
@@ -118,11 +118,11 @@ class _LiquidGlassBottomBarState extends State<LiquidGlassBottomBar> {
             top: widget.bottomPadding,
           ),
           child: Row(
-            // spacing: widget.spacing, // Row spacing is a new Flutter feature, might not be in 3.10
-            // using SizedBox instead if needed, but let's try MainAxisAlignment or manual spacing if it fails.
-            // Wait, spacing parameter in Row was introduced in Flutter 3.27. 
-            // Check 'sdk: ^3.10.8'. This is quite old. 
-            // I should use MainAxisAlignment or Interleaved SizedBox.
+            
+            
+            
+            
+            
             children: [
               Expanded(
                 child: _TabIndicator(
@@ -149,8 +149,8 @@ class _LiquidGlassBottomBarState extends State<LiquidGlassBottomBar> {
                                 onTap: () => widget.onTabSelected(i),
                               ),
                             ),
-                            // if (i < widget.tabs.length - 1) SizedBox(width: widget.spacing) // Logic for spacing inside indicator? 
-                            // Actually the spacing in the original code was on the outer Row between indicator and extra button.
+                            
+                            
                           ]
                         ],
                       ),
@@ -379,14 +379,14 @@ class _TabIndicatorState extends State<_TabIndicator>
 
   double computeXAlignmentForTab(int tabIndex) {
     final relativeTabIndex = (tabIndex / (widget.tabCount - 1)).clamp(0.0, 1.0);
-    return (relativeTabIndex * 2) - 1; // -1 to 1
+    return (relativeTabIndex * 2) - 1; 
   }
 
   @override
   void didUpdateWidget(covariant _TabIndicator oldWidget) {
     if (oldWidget.tabIndex != widget.tabIndex ||
         oldWidget.tabCount != widget.tabCount) {
-      if(!_isDragging) { // Only update if not dragging to avoid conflict
+      if(!_isDragging) { 
           setState(() {
             xAlign = computeXAlignmentForTab(widget.tabIndex);
           });
@@ -399,20 +399,20 @@ class _TabIndicatorState extends State<_TabIndicator>
     final box = context.findRenderObject() as RenderBox;
     final localPosition = box.globalToLocal(globalPosition);
 
-    // Calculate the effective draggable range
-    // The indicator moves within the tab bar, but has its own width (1/tabCount of total)
-    final indicatorWidth = 1.0 / widget.tabCount; // Relative width of indicator
+    
+    
+    final indicatorWidth = 1.0 / widget.tabCount; 
     final draggableRange =
-        1.0 - indicatorWidth; // Range the indicator center can move
-    final padding = indicatorWidth / 2; // Padding on each side
+        1.0 - indicatorWidth; 
+    final padding = indicatorWidth / 2; 
 
-    // Map the drag position to the draggable range
+    
     final rawRelativeX = (localPosition.dx / box.size.width).clamp(0.0, 1.0);
     final normalizedX = (rawRelativeX - padding) / draggableRange;
 
-    // Apply rubber band resistance for overdrag
+    
     final adjustedRelativeX = _applyRubberBandResistance(normalizedX);
-    return (adjustedRelativeX * 2) - 1; // Convert to -1:1 range
+    return (adjustedRelativeX * 2) - 1; 
   }
 
   void _onDragDown(DragDownDetails details) {
@@ -429,24 +429,24 @@ class _TabIndicatorState extends State<_TabIndicator>
     });
   }
 
-  // Apply rubber band resistance similar to iOS scroll views
+  
   double _applyRubberBandResistance(double value) {
-    const double resistance = 0.4; // Lower values = more resistance
+    const double resistance = 0.4; 
     const double maxOverdrag =
-        0.3; // Maximum overdrag as fraction of normal range
+        0.3; 
 
     if (value < 0) {
-      // Overdrag to the left
+      
       final overdrag = -value;
       final resistedOverdrag = overdrag * resistance;
       return -resistedOverdrag.clamp(0.0, maxOverdrag);
     } else if (value > 1) {
-      // Overdrag to the right
+      
       final overdrag = value - 1;
       final resistedOverdrag = overdrag * resistance;
       return 1 + resistedOverdrag.clamp(0.0, maxOverdrag);
     } else {
-      // Normal range, no resistance
+      
       return value;
     }
   }
@@ -458,42 +458,42 @@ class _TabIndicatorState extends State<_TabIndicator>
     });
 
     final box = context.findRenderObject() as RenderBox;
-    final currentRelativeX = (xAlign + 1) / 2; // Convert from -1:1 to 0:1
+    final currentRelativeX = (xAlign + 1) / 2; 
 
-    // Calculate velocity in relative units, adjusted for the draggable range
+    
     final indicatorWidth = 1.0 / widget.tabCount;
     final draggableRange = 1.0 - indicatorWidth;
     final velocityX =
         (details.velocity.pixelsPerSecond.dx / box.size.width) / draggableRange;
 
-    // Determine target tab based on position and velocity
+    
     int targetTabIndex;
 
-    // Handle overdrag scenarios first
+    
     if (currentRelativeX < 0) {
-      // Overdragged to the left - snap to first tab
+      
       targetTabIndex = 0;
     } else if (currentRelativeX > 1) {
-      // Overdragged to the right - snap to last tab
+      
       targetTabIndex = widget.tabCount - 1;
     } else {
-      // Normal range - consider velocity
-      const velocityThreshold = 0.5; // Adjust this threshold as needed
+      
+      const velocityThreshold = 0.5; 
       if (velocityX.abs() > velocityThreshold) {
-        // High velocity - project where we would end up
+        
         final projectedX = (currentRelativeX + velocityX * 0.3).clamp(
           0.0,
           1.0,
-        ); // 0.3s projection
+        ); 
         
-        // Fix: Use multiplication by (count-1) instead of division by (1/count)
-        // because normalized range 0..1 maps to indices 0..(count-1)
+        
+        
         targetTabIndex = (projectedX * (widget.tabCount - 1)).round().clamp(
           0,
           widget.tabCount - 1,
         );
 
-        // Ensure we move at least one tab if velocity is strong enough
+        
         final currentTabIndex = (currentRelativeX * (widget.tabCount - 1)).round().clamp(
           0,
           widget.tabCount - 1,
@@ -508,7 +508,7 @@ class _TabIndicatorState extends State<_TabIndicator>
           targetTabIndex = currentTabIndex - 1;
         }
       } else {
-        // Low velocity - snap to nearest tab
+        
         targetTabIndex = (currentRelativeX * (widget.tabCount - 1)).round().clamp(
           0,
           widget.tabCount - 1,
@@ -517,7 +517,7 @@ class _TabIndicatorState extends State<_TabIndicator>
     }
     xAlign = computeXAlignmentForTab(targetTabIndex);
 
-    // Notify parent of tab change if different from current
+    
     if (targetTabIndex != widget.tabIndex) {
       widget.onTabChanged(targetTabIndex);
     }

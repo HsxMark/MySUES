@@ -28,20 +28,20 @@ void main() async {
     frequency: const Duration(minutes: 15),
   );
   
-  // Also update widget on app launch
+  
   WidgetService.updateWidget();
 
-  // Initialize theme service
+  
   final themeService = ThemeService();
   await themeService.loadSettings();
 
-  // Initialize notification service
+  
   final notificationService = NotificationService();
   await notificationService.init();
 
   runApp(const MyApp());
 
-  // Reschedule notifications after app is running to avoid blocking startup
+  
   notificationService.rescheduleAll().catchError((e) {
     debugPrint('Failed to reschedule notifications: $e');
   });
@@ -83,7 +83,7 @@ class MyApp extends StatelessWidget {
           ],
           supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
           locale: const Locale('zh', 'CN'),
-          // 切换到带底部导航的主界面
+          
           home: ThemeService().splashAnimationEnabled
               ? const SplashScreen()
               : const MainEntryScreen(),

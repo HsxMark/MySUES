@@ -48,16 +48,16 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
           _statusMessage = '正在解析内容...';
         });
 
-        // 暂时留空解析逻辑
+        
         final List<Course> courses = await _extractAndParsePdf(bytes);
 
         if (!mounted) return;
 
         if (courses.isEmpty) {
-           // For now, since secondary logic is ignored, we might return success even with empty or just pop
-           // But the user said "secondary logic temporarily ignored". 
-           // I'll show a message or just pop with result if implemented.
-           // For now, I'll simulate a success with empty list or just log it.
+           
+           
+           
+           
         }
         
         Navigator.pop(context, courses);
@@ -79,7 +79,7 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
   }
 
   Future<List<Course>> _extractAndParsePdf(List<int> bytes) async {
-    // 占位符解析逻辑
+    
     return [];
   }
 
@@ -111,7 +111,7 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    '注意，当前功能极不稳定，可能无法正确解析 PDF 文件。', // Updated text
+                    '注意，当前功能极不稳定，可能无法正确解析 PDF 文件。', 
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),

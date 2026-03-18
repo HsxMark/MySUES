@@ -95,7 +95,7 @@ class SettingsScreen extends StatelessWidget {
         title: const Text('再次确认'),
         content: const Text('真的要删除所有数据吗？数据一旦清除将无法找回。'),
         actions: [
-          // Swapped order: Confirm button first on the left, Cancel on the right
+          
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -117,7 +117,7 @@ class SettingsScreen extends StatelessWidget {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       
-      // TODO: Add clearing of any local files/databases here if implemented later
+      
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

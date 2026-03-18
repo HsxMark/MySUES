@@ -22,13 +22,13 @@ class NotificationService {
   static const String _examReminderHourKey = 'notification_exam_reminder_hour';
   static const String _examReminderMinuteKey = 'notification_exam_reminder_minute';
 
-  // Notification ID ranges
+  
   static const int _courseIdBase = 1000;
   static const int _courseIdMax = 4999;
   static const int _examIdBase = 5000;
   static const int _examIdMax = 9999;
 
-  // Track scheduled notification IDs for efficient cancellation
+  
   static const String _scheduledCourseIdsKey = '_scheduled_course_ids';
   static const String _scheduledExamIdsKey = '_scheduled_exam_ids';
 
@@ -88,7 +88,7 @@ class NotificationService {
     return false;
   }
 
-  // --- Preference Management ---
+  
 
   Future<bool> getCourseReminderEnabled() async {
     final prefs = await SharedPreferences.getInstance();
@@ -120,13 +120,13 @@ class NotificationService {
     }
   }
 
-  /// Get exam reminder days before (default: 1)
+  
   Future<int> getExamReminderDays() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_examReminderDaysKey) ?? 1;
   }
 
-  /// Get exam reminder time of day (default: 09:00)
+  
   Future<TimeOfDay> getExamReminderTime() async {
     final prefs = await SharedPreferences.getInstance();
     final hour = prefs.getInt(_examReminderHourKey) ?? 9;
@@ -134,7 +134,7 @@ class NotificationService {
     return TimeOfDay(hour: hour, minute: minute);
   }
 
-  /// Set exam reminder days before and reschedule
+  
   Future<void> setExamReminderDays(int days) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_examReminderDaysKey, days);
@@ -143,7 +143,7 @@ class NotificationService {
     }
   }
 
-  /// Set exam reminder time of day and reschedule
+  
   Future<void> setExamReminderTime(TimeOfDay time) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_examReminderHourKey, time.hour);
@@ -153,7 +153,7 @@ class NotificationService {
     }
   }
 
-  /// Reschedule all enabled notifications (call on app startup)
+  
   Future<void> rescheduleAll() async {
     try {
       if (await getCourseReminderEnabled()) {
@@ -167,7 +167,7 @@ class NotificationService {
     }
   }
 
-  // --- Course Reminders ---
+  
 
   Future<void> scheduleCourseReminders() async {
     await cancelCourseReminders();
@@ -201,7 +201,7 @@ class NotificationService {
     int notificationId = _courseIdBase;
     final scheduledIds = <String>[];
 
-    // Schedule for current week and next week
+    
     for (int weekOffset = 0; weekOffset <= 1; weekOffset++) {
       final week = currentWeek + weekOffset;
       if (week < 1 || week > table.maxWeek) continue;
@@ -210,7 +210,7 @@ class NotificationService {
         if (!course.inWeek(week)) continue;
         if (notificationId > _courseIdMax) break;
 
-        // Find time detail for this course's start node
+        
         TimeDetail? timeDetail;
         for (final td in timeDetails) {
           if (td.node == course.startNode) {
@@ -220,11 +220,11 @@ class NotificationService {
         }
         if (timeDetail == null) continue;
 
-        // Calculate the actual date of this class
+        
         final weekStartDate = startDate.add(Duration(days: (week - 1) * 7));
         final courseDate = weekStartDate.add(Duration(days: course.day - 1));
 
-        // Parse start time
+        
         final timeParts = timeDetail.startTime.split(':');
         if (timeParts.length != 2) continue;
         final hour = int.tryParse(timeParts[0]);
@@ -239,11 +239,11 @@ class NotificationService {
           minute,
         );
 
-        // Notification time: 15 minutes before
+        
         final notificationTime =
             courseDateTime.subtract(const Duration(minutes: 15));
 
-        // Skip if already past
+        
         if (notificationTime.isBefore(now)) continue;
 
         final currentId = notificationId++;
@@ -265,7 +265,7 @@ class NotificationService {
       }
     }
 
-    // Save scheduled IDs for efficient cancellation
+    
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_scheduledCourseIdsKey, scheduledIds);
   }
@@ -280,7 +280,7 @@ class NotificationService {
     await prefs.setStringList(_scheduledCourseIdsKey, []);
   }
 
-  // --- Exam Reminders ---
+  
 
   Future<void> scheduleExamReminders() async {
     await cancelExamReminders();
@@ -299,11 +299,11 @@ class NotificationService {
       if (exam.status == '已结束') continue;
       if (notificationId > _examIdMax) break;
 
-      // Parse exam date from timeString
+      
       final examDate = _parseExamDate(exam.timeString);
       if (examDate == null) continue;
 
-      // Notification time: n days before at user-selected time
+      
       final notificationTime = DateTime(
         examDate.year,
         examDate.month,
@@ -312,7 +312,7 @@ class NotificationService {
         reminderTime.minute,
       ).subtract(Duration(days: daysBefore));
 
-      // Skip if already past
+      
       if (notificationTime.isBefore(now)) continue;
 
       final currentId = notificationId++;
@@ -339,7 +339,7 @@ class NotificationService {
       }
     }
 
-    // Save scheduled IDs for efficient cancellation
+    
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_scheduledExamIdsKey, scheduledIds);
   }
@@ -354,11 +354,11 @@ class NotificationService {
     await prefs.setStringList(_scheduledExamIdsKey, []);
   }
 
-  // --- Private Helpers ---
+  
 
   DateTime? _parseExamDate(String timeString) {
     try {
-      // Try formats like "2025-09-05 08:15~10:15" or "2025-09-05 08:15"
+      
       if (timeString.length >= 10) {
         final dateStr = timeString.substring(0, 10);
         return DateTime.parse(dateStr);

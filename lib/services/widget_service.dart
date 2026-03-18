@@ -38,7 +38,7 @@ class WidgetService {
       }
 
       final now = DateTime.now();
-      // Calculate current week
+      
       final startTermDate = currentTable.startDate != null 
           ? DateTime.parse(currentTable.startDate!)
           : null;
@@ -49,7 +49,7 @@ class WidgetService {
         currentWeek = (days / 7).floor() + 1;
       }
       
-      int weekday = now.weekday; // 1..7 (Mon..Sun)
+      int weekday = now.weekday; 
 
       final title = '${now.month}.${now.day} ${_getWeekdayString(weekday)}';
       final weekStr = '第 $currentWeek 周';
@@ -63,7 +63,7 @@ class WidgetService {
 
       final timeDetails = await ScheduleDataService.loadTimeDetails(timeTableId: currentTable.timeTableId);
 
-      // Filter out courses that have already ended
+      
       final currentTimeStr = DateFormat('HH:mm').format(now);
       final upcomingCourses = todayCourses.where((course) {
         String endTime = course.endTime ?? '';
@@ -75,7 +75,7 @@ class WidgetService {
             endTime = endDetail.endTime;
           }
         }
-        if (endTime.isEmpty) return true; // Can't determine end time, keep it
+        if (endTime.isEmpty) return true; 
         return endTime.compareTo(currentTimeStr) > 0;
       }).toList();
 

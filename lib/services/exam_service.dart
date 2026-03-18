@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart'; // Add this for ValueNotifier
+import 'package:flutter/foundation.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exam.dart';
 
 class ExamService {
   static const String _examsKey = 'exam_info_list';
   
-  // Notifier to alert UI of updates
+  
   static final ValueNotifier<int> examsUpdateNotifier = ValueNotifier(0);
 
   static Future<List<Exam>> loadExams() async {
@@ -18,12 +18,12 @@ class ExamService {
       final jsonList = jsonDecode(jsonString) as List;
       List<Exam> exams = jsonList.map((e) => Exam.fromJson(e)).toList();
       
-      // Auto-update status based on time
+      
       bool changed = false;
       final now = DateTime.now();
       
       exams = exams.map((exam) {
-        if (exam.status == '已结束') return exam; // Already finished
+        if (exam.status == '已结束') return exam; 
 
         final endTime = _parseEndTime(exam.timeString);
         if (endTime != null && endTime.isBefore(now)) {
@@ -45,38 +45,38 @@ class ExamService {
       
       return exams;
     } catch (e) {
-      // Handle legacy or corrupted data
+      
       return [];
     }
   }
 
   static DateTime? _parseEndTime(String timeString) {
-    // Try to match standard formats
-    // 1. "YYYY-MM-DD HH:MM~HH:MM"
-    // 2. "YYYY-MM-DD HH:MM"
+    
+    
+    
     
     try {
       final parts = timeString.split(' ');
-      if (parts.length < 2) return null; // Date part only? assume end of day?
+      if (parts.length < 2) return null; 
 
       final dateStr = parts[0];
       String timePart = parts[1];
       
-      // Handle ranges like "12:15~14:15"
+      
       if (timePart.contains('~')) {
         timePart = timePart.split('~')[1];
       }
-      // Handle ranges like "12:15-14:15"
+      
       else if (timePart.contains('-')) {
          timePart = timePart.split('-')[1];
       }
 
       return DateTime.parse('$dateStr $timePart:00');
     } catch (e) {
-      // Fallback for simple date parsing if time parsing fails
+      
       try {
         if (timeString.length >= 10) {
-           // Parse just the date and assume end of day (23:59:59)
+           
            final dateStr = timeString.substring(0, 10);
            return DateTime.parse('$dateStr 23:59:59');
         }
@@ -89,7 +89,7 @@ class ExamService {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = jsonEncode(exams.map((e) => e.toJson()).toList());
     await prefs.setString(_examsKey, jsonString);
-    // Notify listeners
+    
     examsUpdateNotifier.value++;
   }
 
@@ -104,7 +104,7 @@ class ExamService {
     exams.removeWhere((e) => 
       e.courseName == exam.courseName && 
       e.timeString == exam.timeString
-    ); // Simple matching strategy
+    ); 
     await saveExams(exams);
   }
 

@@ -1,4 +1,4 @@
-/// 时间表模型，对应 WakeupSchedule_Kotlin 中的 TimeTableBean
+
 class TimeTable {
   int id;
   String name;
@@ -23,11 +23,11 @@ class TimeTable {
   }
 }
 
-/// 时间详情，对应 WakeupSchedule_Kotlin 中的 TimeDetailBean
+
 class TimeDetail {
-  int node; // 第几节
-  String startTime; // HH:mm
-  String endTime; // HH:mm
+  int node; 
+  String startTime; 
+  String endTime; 
   int timeTableId;
 
   TimeDetail({

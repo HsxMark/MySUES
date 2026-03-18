@@ -7,7 +7,7 @@ import '../../models/course.dart';
 class FetchCourseService {
   static const String _vpnSuffix = "vpn-12-o2-jxfw.sues.edu.cn";
 
-  /// Helper: Executes async XHR request inside WebView (兼容 iOS WKWebView)
+  
   static Future<String?> _fetchWithXhr(WebViewController controller, String url) async {
     try {
       final safeUrl = url.replaceAll("'", "\\'");
@@ -80,7 +80,7 @@ class FetchCourseService {
     }
   }
 
-  /// 1. Extracts semester IDs from the page DOM
+  
   static Future<List<String>> fetchSemesterIds(WebViewController controller) async {
     const js = """
       (function() {
@@ -101,7 +101,7 @@ class FetchCourseService {
     try {
       final result = await controller.runJavaScriptReturningResult(js);
       String jsonStr = result.toString();
-      // Unquote if necessary (sometimes runJavaScriptReturningResult returns "[\"234\"]")
+      
       if (jsonStr.startsWith('"') && jsonStr.endsWith('"')) {
          try {
            jsonStr = jsonDecode(jsonStr); 
@@ -116,11 +116,11 @@ class FetchCourseService {
     }
   }
 
-  /// 2. Fetches detailed info for a semester
+  
   static Future<Map<String, dynamic>?> fetchSemesterInfo(
       WebViewController controller, String baseUrl, String semesterId) async {
-    // URL pattern from python script:
-    // f"{BASE_URL}/student/ws/semester/get/{semester_id}?{VPN_SUFFIX}"
+    
+    
     final url = "$baseUrl/student/ws/semester/get/$semesterId?$_vpnSuffix";
     
     final jsonStr = await _fetchWithXhr(controller, url);
@@ -133,11 +133,11 @@ class FetchCourseService {
     }
   }
 
-  /// 3. Fetches course table data
+  
   static Future<Map<String, dynamic>?> fetchCourseData(
       WebViewController controller, String baseUrl, String semesterId) async {
-    // URL pattern from python script:
-    // f"{BASE_URL}/student/for-std/course-table/semester/{semester_id}/print-data?{VPN_SUFFIX}&semesterId={semester_id}&hasExperiment=true"
+    
+    
     final url = "$baseUrl/student/for-std/course-table/semester/$semesterId/print-data?$_vpnSuffix&semesterId=$semesterId&hasExperiment=true";
     
     final jsonStr = await _fetchWithXhr(controller, url);
@@ -150,7 +150,7 @@ class FetchCourseService {
     }
   }
 
-  /// 4. Parses raw JSON into `Course` objects
+  
   static List<Course> parseCourseData(Map<String, dynamic> json, int tableId) {
     if (!json.containsKey('studentTableVms')) return [];
     
@@ -158,7 +158,7 @@ class FetchCourseService {
     final vms = json['studentTableVms'] as List;
     if (vms.isEmpty) return [];
 
-    // Usually there is only one student VM, but we iterate just in case
+    
     for (var vm in vms) {
       final activities = vm['activities'] as List?;
       if (activities == null) continue;
@@ -191,7 +191,7 @@ class FetchCourseService {
              if (weekIndexes[i] % 2 != 0) isEven = false;
           }
           
-          int type = 0; // 0: All, 1: Odd, 2: Even
+          int type = 0; 
           if (isConsecutive) {
             type = 0;
             courses.add(_createCourse(tableId, courseName, weekday, room, teachers, startUnit, step, minWeek, maxWeek, type));
@@ -218,7 +218,7 @@ class FetchCourseService {
                _addComplexCourses(courses, tableId, courseName, weekday, room, teachers, startUnit, step, weekIndexes);
              }
           } else {
-             // Mixed.
+             
              _addComplexCourses(courses, tableId, courseName, weekday, room, teachers, startUnit, step, weekIndexes);
           }
 
@@ -267,18 +267,18 @@ class FetchCourseService {
   }
 
   static String _generateColor(String name) {
-    // Colors matching AddCourseScreen (Material Primary Colors)
+    
     final colors = [
-      "#2196F3", // Colors.blue
-      "#F44336", // Colors.red
-      "#4CAF50", // Colors.green
-      "#FF9800", // Colors.orange
-      "#9C27B0", // Colors.purple
-      "#009688", // Colors.teal
-      "#E91E63", // Colors.pink
-      "#3F51B5", // Colors.indigo
-      "#00BCD4", // Colors.cyan
-      "#795548"  // Colors.brown
+      "#2196F3", 
+      "#F44336", 
+      "#4CAF50", 
+      "#FF9800", 
+      "#9C27B0", 
+      "#009688", 
+      "#E91E63", 
+      "#3F51B5", 
+      "#00BCD4", 
+      "#795548"  
     ];
     int hash = name.codeUnits.fold(0, (previous, element) => previous + element);
     return colors[hash % colors.length];

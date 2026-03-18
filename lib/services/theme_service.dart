@@ -36,7 +36,7 @@ class ThemeService extends ChangeNotifier {
     _backgroundImagePath = prefs.getString('background_image_path');
     _backgroundOpacity = prefs.getDouble('background_opacity') ?? 0.5;
     
-    // 0 = System, 1 = Light, 2 = Dark
+    
     switch (modeIndex) {
       case 1:
         _themeMode = ThemeMode.light;

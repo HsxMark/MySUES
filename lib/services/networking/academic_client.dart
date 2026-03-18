@@ -16,7 +16,7 @@ class AcademicClient {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
       followRedirects: true,
-      validateStatus: (status) => status != null && status < 400, // Treat redirects as success to follow them manually if needed or let Dio handle
+      validateStatus: (status) => status != null && status < 400, 
     ));
     _initCookieJar();
   }
@@ -30,18 +30,18 @@ class AcademicClient {
 
   Future<bool> login(String username, String password) async {
     try {
-      // 1. First, access the login page to get any initial cookies/CSFR tokens if needed
-      // Most QiangZhi systems work better if you visit the page first
+      
+      
       await _dio.get('/student/sso/login');
 
-      // 2. Post credentials
-      // Note: "QiangZhi" systems usually use form-urlencoded
+      
+      
       final Response response = await _dio.post(
         '/student/sso/login',
         data: {
           'username': username,
           'password': password,
-          // 'code': '', // User mentioned no verification code
+          
         },
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
@@ -49,15 +49,15 @@ class AcademicClient {
         ),
       );
 
-      // Check success. Usually redirects to /student/home or generic success message
-      // If we get a 302 to /student/home, or if we are effectively redirected there
+      
+      
       if (response.realUri.toString().contains('/student/home') || 
           response.data.toString().contains('退出') || 
           response.statusCode == 302) {
         return true;
       }
       
-      // Sometimes it returns JSON {result: "success"} or similar
+      
       if (response.data.toString().contains('"result":"1"') || 
           response.data.toString().contains('success')) {
         return true;
@@ -71,13 +71,13 @@ class AcademicClient {
     }
   }
 
-  // Fetch Course Table HTML
-  // Usually at /student/course/table/list or similar. 
-  // We'll try the likely URL for the current semester.
+  
+  
+  
   Future<String?> fetchCourseTableHtml() async {
     try {
-      // This URL often returns the time table VIEW
-      // Assuming SUES uses standard QiangZhi path
+      
+      
       final response = await _dio.get('/student/coure/course_table/wdkb');
       return response.data;
     } catch (e) {
@@ -86,13 +86,13 @@ class AcademicClient {
     }
   }
 
-  // Fetch Scores HTML
-  // Likely paths: /student/integratedQuery/score/course/attend/list
+  
+  
   Future<String?> fetchScoreHtml() async {
     try {
-      // We often need to "search" to get the list. 
-      // Sometimes a GET to the query page is enough if it defaults to all.
-      // Or we might need to POST empty params.
+      
+      
+      
       final response = await _dio.get('/student/integratedQuery/score/course/attend/list');
       return response.data;
     } catch (e) {
@@ -101,8 +101,8 @@ class AcademicClient {
     }
   }
 
-  // Fetch Exams HTML
-  // Likely paths: /student/exam/arrange/list
+  
+  
   Future<String?> fetchExamHtml() async {
     try {
       final response = await _dio.get('/student/exam/arrange/list');

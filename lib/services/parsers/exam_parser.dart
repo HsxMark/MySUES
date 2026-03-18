@@ -24,7 +24,7 @@ class ExamParser {
       int nameIdx = -1;
       int timeIdx = -1;
       int locIdx = -1;
-      int seatIdx = -1; // If exists
+      int seatIdx = -1; 
 
       Element header = rows[0];
       List<Element> cols = header.querySelectorAll("th, td");
@@ -49,12 +49,12 @@ class ExamParser {
         String loc = _safeGet(cells, locIdx);
         String seat = (seatIdx != -1) ? _safeGet(cells, seatIdx) : "";
         
-        // Append seat to location if available
+        
         if (seat.isNotEmpty) {
            loc = "$loc (座号: $seat)";
         }
         
-        // Infer status/type if not present in columns (default strings)
+        
         String type = "考试";
         String status = _inferStatus(time);
 
@@ -75,9 +75,9 @@ class ExamParser {
     }
     
     String _inferStatus(String timeStr) {
-        // Simple heuristic: compare with current time?
-        // Formatting might be tricky (2024-01-01 09:00~11:00)
-        // For now, leave generic or implement parsing later.
+        
+        
+        
         return "未开始"; 
     }
 }

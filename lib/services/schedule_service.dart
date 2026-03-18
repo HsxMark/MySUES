@@ -7,11 +7,11 @@ import 'widget_service.dart';
 
 class ScheduleDataService {
   static const String _tablesKey = 'schedule_tables';
-  static const String _coursesKey = 'schedule_courses'; // 新的课程存储Key
+  static const String _coursesKey = 'schedule_courses'; 
   static const String _timeDetailsKey = 'time_details';
   static const String _currentTableIdKey = 'current_table_id';
 
-  // --- ScheduleTable Operations ---
+  
 
   static Future<List<ScheduleTable>> loadScheduleTables() async {
     final prefs = await SharedPreferences.getInstance();
@@ -20,8 +20,8 @@ class ScheduleDataService {
     final jsonList = jsonDecode(jsonString) as List;
     final tables = jsonList.map((e) => ScheduleTable.fromJson(e)).toList();
     
-    // Remove forced upgrade logic that overrides user settings
-    // previously: if (table.nodes == 12) table.nodes = 15; 
+    
+    
     
     return tables;
   }
@@ -35,7 +35,7 @@ class ScheduleDataService {
 
   static Future<void> addScheduleTable(ScheduleTable table) async {
     final tables = await loadScheduleTables();
-    // Simple auto-increment ID logic for demo
+    
     int maxId = 0;
     if (tables.isNotEmpty) {
       maxId = tables.map((e) => e.id).reduce((a, b) => a > b ? a : b);
@@ -59,7 +59,7 @@ class ScheduleDataService {
     tables.removeWhere((t) => t.id == id);
     await saveScheduleTables(tables);
     
-    // Also delete courses for this table
+    
     final allCourses = await loadCourses();
     allCourses.removeWhere((c) => c.tableId == id);
     await saveCourses(allCourses);
@@ -77,7 +77,7 @@ class ScheduleDataService {
   }
 
 
-  // --- Course Operations ---
+  
 
   static Future<List<Course>> loadCourses({int? tableId}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -124,7 +124,7 @@ class ScheduleDataService {
     await saveCourses(allCourses);
   }
 
-  // --- TimeTable Operations ---
+  
   
   static Future<List<TimeDetail>> loadTimeDetails({int? timeTableId}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -141,17 +141,17 @@ class ScheduleDataService {
 
   static Future<void> saveTimeDetails(List<TimeDetail> details) async {
     final prefs = await SharedPreferences.getInstance();
-    // Load all first, then replace/merge. For simplicity assuming full rewrite for now or append.
-    // Actually, to update specific table's details, we should load all, remove old for that table, add new.
-    // But for initDefaultData, we can just save.
     
-    // Better strategy for save:
-    // This function assumes 'details' is the ALL list or we read-modify-write.
-    // Let's implement read-modify-write for simplicity in usage.
     
-    // final allDetails = await loadTimeDetails(); 
-    // This is tricky if we want to save a subset. 
-    // Let's change this to: save ALL time details.
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     final jsonString = jsonEncode(details.map((e) => e.toJson()).toList());
     await prefs.setString(_timeDetailsKey, jsonString);
@@ -163,17 +163,17 @@ class ScheduleDataService {
     await saveTimeDetails(allDetails);
   }
 
-  // 初始化默认数据
+  
   static Future<void> initDefaultData() async {
-    // Check tables
+    
     final tables = await loadScheduleTables();
     if (tables.isEmpty) {
-      // 创建默认时间表
-      // 1. TimeTable
-      // final timeTable = TimeTable(id: 1, name: '默认作息');
-      // Save TimeTable (need to impl saveTimeTables if managing multiple, but here just check details)
       
-      // 2. Default Details
+      
+      
+      
+      
+      
       final defaultDetails = [
         TimeDetail(node: 1, startTime: '08:15', endTime: '08:55', timeTableId: 1),
         TimeDetail(node: 2, startTime: '08:55', endTime: '09:35', timeTableId: 1),
@@ -192,18 +192,18 @@ class ScheduleDataService {
         TimeDetail(node: 15, startTime: '20:20', endTime: '21:00', timeTableId: 1),
       ];
       
-      // Check if time details exist, if not save them
+      
       final existingDetails = await loadTimeDetails();
       if (existingDetails.isEmpty) {
         await saveTimeDetails(defaultDetails);
       }
 
-      // 创建默认课表
+      
       final defaultTable = ScheduleTable(
         tableName: '默认课表',
         startDate: DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).toIso8601String().split('T')[0],
-        timeTableId: 1, // Link to default time table
-        nodes: 15, // Update to 15
+        timeTableId: 1, 
+        nodes: 15, 
       );
       await addScheduleTable(defaultTable);
       await setCurrentTableId(defaultTable.id);

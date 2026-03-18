@@ -4,11 +4,11 @@ import 'schedule_screen.dart';
 import 'daily_schedule_screen.dart';
 import '../widgets/draggable_floating_button.dart';
 
-/// 课表视图容器，管理周视图和日视图之间的切换
+
 class ScheduleViewContainer extends StatefulWidget {
   const ScheduleViewContainer({super.key});
 
-  /// 全局 key，用于外部触发视图切换
+  
   static final GlobalKey<ScheduleViewContainerState> containerKey =
       GlobalKey<ScheduleViewContainerState>();
 
@@ -20,7 +20,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
   bool _isDailyView = false;
   bool _isLoading = true;
 
-  // FAB position (persisted)
+  
   double _fabDx = -1;
   double _fabDy = -1;
 
@@ -71,7 +71,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
 
   bool get isDailyView => _isDailyView;
 
-  // --- FAB logic ---
+  
 
   bool get _shouldShowFab {
     if (_isDailyView) {
@@ -174,7 +174,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
   }
 
   void _showDateJumpDialog(DailyScheduleScreenState state) {
-    // Clamp initialDate to semester range
+    
     final now = state.selectedDate;
     final first = state.semesterStart;
     final last = state.semesterEnd;

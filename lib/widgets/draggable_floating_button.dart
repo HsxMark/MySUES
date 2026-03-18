@@ -4,25 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../services/theme_service.dart';
 
-/// A draggable floating action button for quick schedule navigation.
+
 class DraggableFloatingButton extends StatefulWidget {
-  /// Text label displayed on the button (week number or date).
+  
   final String label;
 
-  /// Whether the user is currently viewing the "home" position
-  /// (current week for week view, today for daily view).
+  
+  
   final bool isAtHome;
 
-  /// Called when the button is tapped.
+  
   final VoidCallback onTap;
 
-  /// Initial position from left edge.
+  
   final double initialDx;
 
-  /// Initial position from top edge.
+  
   final double initialDy;
 
-  /// Called when the button position changes after drag ends.
+  
   final void Function(double dx, double dy)? onPositionChanged;
 
   const DraggableFloatingButton({
@@ -58,8 +58,8 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
   @override
   void didUpdateWidget(DraggableFloatingButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Only update position if it was explicitly changed from outside
-    // and we haven't been dragged yet
+    
+    
     if (!_initialized) {
       _dx = widget.initialDx;
       _dy = widget.initialDy;
@@ -68,12 +68,12 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
 
   void _ensureInitialized(BoxConstraints constraints) {
     if (_initialized) {
-      // Re-clamp on size changes
+      
       _dx = _dx.clamp(0, (constraints.maxWidth - _buttonSize).clamp(0, double.infinity));
       _dy = _dy.clamp(0, (constraints.maxHeight - _buttonSize).clamp(0, double.infinity));
       return;
     }
-    // Default position: bottom-right, above bottom nav bar
+    
     if (_dx < 0 || _dy < 0) {
       _dx = constraints.maxWidth - _buttonSize - 16;
       _dy = constraints.maxHeight - _buttonSize - 24;

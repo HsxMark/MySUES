@@ -5,14 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../models/course.dart';
 import '../models/schedule_table.dart';
-import '../models/time_table.dart'; // Import Time models
+import '../models/time_table.dart'; 
 import '../services/schedule_service.dart';
 import '../services/theme_service.dart';
 import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
 import 'schedule_view_container.dart';
-import 'import_classpdf_screen.dart'; // Import
-import 'login_webview_screen.dart'; // Import
+import 'import_classpdf_screen.dart'; 
+import 'login_webview_screen.dart'; 
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
 
@@ -21,7 +21,7 @@ class ScheduleScreen extends StatefulWidget {
 
   const ScheduleScreen({super.key, this.onSwitchToDaily});
 
-  /// Static reference to current state (avoids GlobalKey conflicts with AnimatedSwitcher)
+  
   static ScheduleScreenState? _currentState;
   static ScheduleScreenState? get currentState => _currentState;
 
@@ -35,15 +35,15 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   int _actualCurrentWeek = 1;
   ScheduleTable? _currentTable;
   List<Course> _courses = [];
-  List<TimeDetail> _timeDetails = []; // Store time details
+  List<TimeDetail> _timeDetails = []; 
   bool _isLoading = true;
 
-  // UI Constants (loaded from ScheduleTable)
+  
   double _timeColWidth = 50.0;
   double _headerHeight = 50.0;
-  double _cellHeight = 60.0; // Default, will override
+  double _cellHeight = 60.0; 
 
-  // Public API for floating button
+  
   int get currentWeek => _currentWeek;
   int get actualCurrentWeek => _actualCurrentWeek;
   int get maxWeek => _currentTable?.maxWeek ?? 30;
@@ -83,10 +83,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   Future<void> _initData() async {
     setState(() => _isLoading = true);
     
-    // Ensure default data exists
+    
     await ScheduleDataService.initDefaultData();
     
-    // 并行加载课表列表和当前课表ID
+    
     final results = await Future.wait([
       ScheduleDataService.loadScheduleTables(),
       ScheduleDataService.getCurrentTableId(),
@@ -102,10 +102,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     }
 
     if (_currentTable != null) {
-      // Calculate current week
+      
       _currentWeek = _calculateCurrentWeek(_currentTable!.startDateObj);
       _actualCurrentWeek = _currentWeek;
-      // 并行加载课程和时间详情
+      
       final dataResults = await Future.wait([
         ScheduleDataService.loadCourses(tableId: _currentTable!.id),
         ScheduleDataService.loadTimeDetails(timeTableId: _currentTable!.timeTableId),
@@ -113,19 +113,19 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       _courses = dataResults[0] as List<Course>;
       _timeDetails = dataResults[1] as List<TimeDetail>;
       
-      // Update UI settings
+      
       _cellHeight = _currentTable!.itemHeight.toDouble();
-      // Adjust page controller to current week (index 0 is week 1)
+      
       int initialPage = (_currentWeek - 1).clamp(0, _currentTable!.maxWeek - 1);
       _pageController = PageController(initialPage: initialPage);
     }
 
     setState(() => _isLoading = false);
-    // Notify container to show FAB after data is ready
+    
     ScheduleViewContainer.containerKey.currentState?.setState(() {});
   }
 
-  // _injectDemoCourses removed here
+  
   
   String _getTimeRange(Course course) {
     if (course.startTime != null && course.endTime != null && course.startTime!.isNotEmpty) {
@@ -137,7 +137,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       final endNode = course.startNode + course.step - 1;
       final end = _timeDetails.firstWhere((t) => t.node == endNode);
 
-      // 特殊教学楼覆盖：根据教室判断是否使用特殊时间
+      
       final startTime = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode)
           ?? start.startTime;
       final endTime = BuildingTimeOverride.getOverrideEndTime(course.room, endNode)
@@ -158,9 +158,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  /// 将分钟数转换为网格内的像素位置。
-  /// 以标准节次格子为锚点，在同一个节次内按时间比例插值定位。
-  /// 课间休息不占用额外视觉空间，非标准时间的课程会在格子内偏移。
+  
+  
+  
   double _timeMinutesToPosition(int minutes) {
     if (_timeDetails.isEmpty) return 0;
 
@@ -176,7 +176,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       final slotTop = (_timeDetails[i].node - 1) * _cellHeight;
       final slotBottom = _timeDetails[i].node * _cellHeight;
 
-      // 落在本节次时间范围内 → 在格子内按比例插值
+      
       if (minutes >= pStart && minutes <= pEnd) {
         final fraction = (pEnd > pStart)
             ? (minutes - pStart) / (pEnd - pStart)
@@ -184,11 +184,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         return slotTop + fraction * (slotBottom - slotTop);
       }
 
-      // 落在课间休息（本节次结束 ~ 下节次开始）
+      
       if (i + 1 < _timeDetails.length) {
         final nextPStart = _parseTime(_timeDetails[i + 1].startTime);
         if (minutes > pEnd && minutes < nextPStart) {
-          // 课间休息在网格中没有独立空间，线性插值到下一格子边界
+          
           final nextSlotTop = (_timeDetails[i + 1].node - 1) * _cellHeight;
           final fraction = (nextPStart > pEnd)
               ? (minutes - pEnd) / (nextPStart - pEnd)
@@ -206,16 +206,16 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       return (course.startNode - 1) * _cellHeight;
     }
 
-    // 优先使用课程自带的开始时间
+    
     if (course.startTime != null && course.startTime!.isNotEmpty) {
       final m = _parseTime(course.startTime!);
       if (m > 0) return _timeMinutesToPosition(m);
     }
 
-    // 否则从时间表查找对应节次的标准开始时间（结果等同于旧逻辑的格子顶部）
+    
     try {
       final detail = _timeDetails.firstWhere((t) => t.node == course.startNode);
-      // 特殊教学楼覆盖
+      
       final startTime = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode)
           ?? detail.startTime;
       return _timeMinutesToPosition(_parseTime(startTime));
@@ -232,21 +232,21 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     int? startMinutes;
     int? endMinutes;
 
-    // 优先使用课程自带的起止时间
+    
     if (course.startTime != null && course.startTime!.isNotEmpty &&
         course.endTime != null && course.endTime!.isNotEmpty) {
       startMinutes = _parseTime(course.startTime!);
       endMinutes = _parseTime(course.endTime!);
     }
 
-    // 若没有自定义时间，从时间表查找对应节次的标准起止时间
+    
     if (startMinutes == null || endMinutes == null ||
         startMinutes == 0 || endMinutes == 0) {
       try {
         final startDetail = _timeDetails.firstWhere((t) => t.node == course.startNode);
         final endNode = course.startNode + course.step - 1;
         final endDetail = _timeDetails.firstWhere((t) => t.node == endNode);
-        // 特殊教学楼覆盖
+        
         final overrideStart = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode);
         final overrideEnd = BuildingTimeOverride.getOverrideEndTime(course.room, endNode);
         startMinutes = _parseTime(overrideStart ?? startDetail.startTime);
@@ -257,7 +257,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     }
 
     final h = _timeMinutesToPosition(endMinutes) - _timeMinutesToPosition(startMinutes);
-    // 保证最小高度，避免极短课程不可见
+    
     return h >= _cellHeight * 0.5 ? h : course.step * _cellHeight;
   }
 
@@ -283,7 +283,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-               // Handle bar
+               
                Center(
                  child: Container(
                    width: 40, 
@@ -291,7 +291,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                    decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
                  ),
                ),
-               // Top buttons
+               
                Padding(
                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
                  child: Row(
@@ -299,7 +299,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                    children: [
                      TextButton(
                        onPressed: () {
-                          // Allow deleting
+                          
                           _deleteCourse(context, course);
                        },
                        child: const Text('删除', style: TextStyle(color: Colors.red, fontSize: 16)),
@@ -314,7 +314,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                    ],
                  ),
                ),
-               // Title
+               
                Padding(
                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
                  child: Text(
@@ -322,7 +322,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                  ),
                ),
-               // Sub headers
+               
                 Padding(
                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
                  child: Row(
@@ -334,7 +334,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                  ),
                ),
                
-               // Info Card
+               
                Expanded(
                  child: SingleChildScrollView(
                    child: Column(
@@ -379,7 +379,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                        ),
                        
                        const SizedBox(height: 16),
-                       // Actions Card
+                       
                         Container(
                          margin: const EdgeInsets.symmetric(horizontal: 16),
                          decoration: BoxDecoration(
@@ -477,8 +477,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Close sheet
+                Navigator.pop(context); 
+                Navigator.pop(context); 
                 await ScheduleDataService.deleteCourse(course.id);
                 _initData();
               }, 
@@ -495,7 +495,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
       );
       
-      // If result is strict string 'deleted', it was deleted
+      
       if (result == 'deleted') {
           _initData();
           return;
@@ -508,8 +508,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   int _calculateCurrentWeek(DateTime startDate) {
-    // 简单的周次计算逻辑
-    // 确保startDate是周一
+    
+    
     final startMonday = startDate.subtract(Duration(days: startDate.weekday - 1));
     final now = DateTime.now();
     final diff = now.difference(startMonday).inDays;
@@ -541,7 +541,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           height: MediaQuery.of(context).size.height * 0.5,
           child: Column(
             children: [
-              // Handle bar
+              
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -607,11 +607,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
                               TextButton(
                                 onPressed: () async {
-                                  Navigator.pop(context); // Close dialog
+                                  Navigator.pop(context); 
                                   await ScheduleDataService.deleteScheduleTable(table.id);
                                   if (context.mounted) {
-                                     Navigator.pop(context); // Close bottom sheet to avoid stale data
-                                     _initData(); // Refresh, _initData handles fallback if current is deleted
+                                     Navigator.pop(context); 
+                                     _initData(); 
                                   }
                                 },
                                 child: const Text('删除', style: TextStyle(color: Colors.red))
@@ -838,7 +838,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           setState(() {
             _currentWeek = page + 1;
           });
-          // Notify container to refresh FAB label
+          
           ScheduleViewContainer.containerKey.currentState?.setState(() {});
         },
         itemBuilder: (context, index) {
@@ -1031,11 +1031,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _buildWeekSchedule(int weekNum) {
     final weekStart = _currentTable!.startDateObj.add(Duration(days: (weekNum - 1) * 7));
-    // Correct to Monday if necessary, though logic handled in model ideally
+    
     final adjustedWeekStart = weekStart.subtract(Duration(days: weekStart.weekday - 1));
 
-    // Calculate visible days
-    List<int> visibleIndices = [0, 1, 2, 3, 4]; // Mon-Fri always visible
+    
+    List<int> visibleIndices = [0, 1, 2, 3, 4]; 
     if (_currentTable!.showSat) visibleIndices.add(5);
     if (_currentTable!.showSun) visibleIndices.add(6);
     
@@ -1045,7 +1045,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         
         return Column(
           children: [
-            // Header (Date)
+            
             SizedBox(
               height: _headerHeight,
               child: Row(
@@ -1070,13 +1070,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               ),
             ),
             
-            // Grid
+            
             Expanded(
               child: SingleChildScrollView(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Time Column
+                    
                     SizedBox(
                       width: _timeColWidth,
                       child: Column(
@@ -1108,13 +1108,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       ),
                     ),
                     
-                    // Courses
+                    
                     SizedBox(
                       width: constraints.maxWidth - _timeColWidth,
                       height: _currentTable!.nodes * _cellHeight,
                       child: Stack(
                         children: [
-                          // Background Grid Lines
+                          
                           ...List.generate(_currentTable!.nodes, (i) {
                              return Positioned(
                                top: (i + 1) * _cellHeight,
@@ -1124,33 +1124,33 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                              );
                           }),
                           
-                          // Generic Course Builder
+                          
                           ...() {
                              final List<Widget> widgets = [];
                              final activeCourses = _courses.where((c) => c.inWeek(weekNum)).toList();
                              
-                             // Set to track occupied slots to prevent overlapping
-                             // Format: "day-node" e.g. "1-3" (Monday, Node 3)
+                             
+                             
                              final Set<String> occupiedSlots = {};
                              
-                             // 1. Add Active Courses (High Priority)
+                             
                              for (var course in activeCourses) {
                                widgets.add(_buildSingleCourseItem(context, course, visibleIndices, dayColWidth, false));
-                               // Mark slots as occupied
+                               
                                for(int i = 0; i < course.step; i++) {
                                  occupiedSlots.add("${course.day}-${course.startNode + i}");
                                }
                              }
                              
-                             // 2. Add Other Week Courses
-                             // Logic: Look ahead from next week. The first course found for an empty slot is displayed.
+                             
+                             
                              if (_currentTable!.showOtherWeekCourse) {
-                                // Iterate weeks from next week to end of semester
+                                
                                 for (int w = weekNum + 1; w <= _currentTable!.maxWeek; w++) {
                                    final futureCourses = _courses.where((c) => c.inWeek(w)).toList();
                                    
                                    for (var course in futureCourses) {
-                                       // Check if this course's slots are already filled
+                                       
                                        bool isBlocked = false;
                                        for(int i = 0; i < course.step; i++) {
                                           if (occupiedSlots.contains("${course.day}-${course.startNode + i}")) {
@@ -1161,8 +1161,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                        
                                        if (!isBlocked) {
                                           widgets.add(_buildSingleCourseItem(context, course, visibleIndices, dayColWidth, true));
-                                          // Mark slots as occupied so further weeks don't override this one
-                                          // (We show the SOONEST future course)
+                                          
+                                          
                                           for(int i = 0; i < course.step; i++) {
                                              occupiedSlots.add("${course.day}-${course.startNode + i}");
                                           }
@@ -1187,24 +1187,24 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Widget _buildSingleCourseItem(BuildContext context, Course course, List<int> visibleIndices, double dayColWidth, bool isNonCurrentWeek) {
-      // Correct day index (1-7) -> (0-6)
+      
       final dayIndex = course.day - 1;
       
-      // Calculate display column index
+      
       final displayIndex = visibleIndices.indexOf(dayIndex);
       
-      // If day is not visible, skip rendering
+      
       if (displayIndex == -1) return const SizedBox();
       
       final top = _calculateTop(course);
       final height = _calculateHeight(course);
 
-      // Get start time string — 优先使用课程自带的 startTime
+      
       String? startTimeStr;
       if (course.startTime != null && course.startTime!.isNotEmpty) {
         startTimeStr = course.startTime;
       } else {
-        // 优先使用教学楼覆盖时间
+        
         final override = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode);
         if (override != null) {
           startTimeStr = override;
@@ -1216,9 +1216,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         }
       }
 
-      // Adjust styles for non-current week
+      
       final bgColor = isNonCurrentWeek 
-          ? course.colorObj.withValues(alpha: 0.3) // Example: lighter/dimmer
+          ? course.colorObj.withValues(alpha: 0.3) 
           : course.colorObj;
       final textColor = isNonCurrentWeek
           ? Color(_currentTable!.courseTextColor).withValues(alpha: 0.6)
@@ -1227,8 +1227,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       return Positioned(
         left: displayIndex * dayColWidth,
         top: top,
-        width: dayColWidth - 1, // spacing
-        height: height - 1, // spacing
+        width: dayColWidth - 1, 
+        height: height - 1, 
         child: GestureDetector(
           onTap: () => _showCourseDetail(context, course),
           child: Container(
@@ -1294,8 +1294,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         ),
       );
   }
-} // End of _ScheduleScreenState class? No, we are replacing inside the class method.
-// Wait, I am pasting _buildSingleCourseItem OUTSIDE the method but inside the class.
-// But the replace_string function needs context.
-// Let's be careful about brackets.
+} 
+
+
+
 

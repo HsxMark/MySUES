@@ -50,7 +50,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     
-    // Load Avatar
+    
     final avatarPath = prefs.getString(_avatarPrefsKey);
     if (avatarPath != null) {
       final file = File(avatarPath);
@@ -61,12 +61,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }
     }
 
-    // Load Nickname
+    
     setState(() {
       _nickname = prefs.getString(_nicknamePrefsKey) ?? '';
     });
 
-    // Load Major (Priority: Prefs > Default/Calculated)
+    
     final savedMajor = prefs.getString(_majorPrefsKey);
     if (savedMajor != null && savedMajor.isNotEmpty) {
       setState(() {
@@ -74,7 +74,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       });
     }
 
-    // Load College
+    
     final savedCollege = prefs.getString(_collegePrefsKey);
     if (savedCollege != null && savedCollege.isNotEmpty) {
       setState(() {
@@ -82,7 +82,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       });
     }
 
-    // Load Class
+    
     final savedClass = prefs.getString(_classPrefsKey);
     if (savedClass != null && savedClass.isNotEmpty) {
       setState(() {

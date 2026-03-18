@@ -8,7 +8,7 @@ class ScoreService {
   static const String _lastImportTimeKey = 'last_import_time';
   static const String _lastImportMethodKey = 'last_import_method';
 
-  /// Notifies listeners when scores are updated (saved or cleared).
+  
   static final ValueNotifier<int> updateNotifier = ValueNotifier(0);
 
   static Future<List<Score>> loadScores() async {

@@ -1,10 +1,10 @@
 class Score {
   final String courseName;
-  final double credit; // 学分
-  final double gradePoint; // 绩点 (例如 3.5, 4.0)
-  final String semester; // 学期 (例如 "2023-2024-1")
-  final String? gaGrade; // 原始成绩字符串 (可能包含 HTML)
-  final bool isEvaluated; // 是否已评教
+  final double credit; 
+  final double gradePoint; 
+  final String semester; 
+  final String? gaGrade; 
+  final bool isEvaluated; 
 
   Score({
     required this.courseName,
@@ -37,12 +37,12 @@ class Score {
     );
   }
 
-  /// 从 API JSON 解析 (参考 example/score.json)
+  
   factory Score.fromApiJson(Map<String, dynamic> json, String currentSemesterName) {
     String rawGrade = json['gaGrade'] ?? '';
     bool isEvaluated = true;
     
-    // 检查是否包含 "请先完成评教"
+    
     if (rawGrade.contains('请先完成评教') || rawGrade.contains('评教')) {
       isEvaluated = false;
     }

@@ -23,7 +23,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    // We can get the value from ThemeService if it is initialized, or prefs
+    
     setState(() {
       _liquidGlassEnabled = ThemeService().liquidGlassEnabled;
       _splashAnimationEnabled = ThemeService().splashAnimationEnabled;
@@ -98,7 +98,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Checkerboard-like background to show transparency
+                      
                       Container(color: Theme.of(context).scaffoldBackgroundColor),
                       Opacity(
                         opacity: _previewOpacity ?? ThemeService().backgroundOpacity,
@@ -279,7 +279,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        // Helper to build list tiles
+        
         Widget buildTile(String title, String? family) {
           final isSelected = currentFamily == family;
           return ListTile(

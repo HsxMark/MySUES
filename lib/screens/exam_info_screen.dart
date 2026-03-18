@@ -18,14 +18,14 @@ class ExamInfoScreen extends StatefulWidget {
 }
 
 class _ExamInfoScreenState extends State<ExamInfoScreen> {
-  // Data list
+  
   List<Exam> _allExams = [];
 
   @override
   void initState() {
     super.initState();
     _loadExams();
-    // Listen for updates from other screens (e.g. LoginWebview)
+    
     ExamService.examsUpdateNotifier.addListener(_loadExams);
   }
 
@@ -51,21 +51,21 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       final bool aFinished = a.status == '已结束';
       final bool bFinished = b.status == '已结束';
 
-      // Put unfinished exams before finished exams
+      
       if (aFinished != bFinished) {
         return aFinished ? 1 : -1;
       }
 
-      // If both are unfinished, sort ascending (closer to today first)
+      
       if (!aFinished) {
         return a.timeString.compareTo(b.timeString);
       }
 
-      // If both are finished, sort descending (closer to today first)
+      
       return b.timeString.compareTo(a.timeString);
     });
 
-    // 2. Filter
+    
     if (_filterStatus == '全部') {
       return _allExams;
     }
@@ -74,7 +74,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
 
   bool _isToday(String timeString) {
     if (timeString.isEmpty) return false;
-    // Extract YYYY-MM-DD
+    
     try {
       final datePart = timeString.substring(0, 10);
       final now = DateTime.now();
@@ -132,7 +132,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                           builder: (context) => const LoginWebviewScreen(),
                         ),
                       );
-                      // LoginWebviewScreen returns true if data changed
+                      
                       if (result == true && mounted) {
                         await _loadExams();
                       }
@@ -161,7 +161,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       ),
       body: Column(
         children: [
-          // Disclaimer
+          
           Container(
             width: double.infinity,
             color: Colors.red[50],
@@ -180,7 +180,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
             ),
           ),
           
-          // Filter
+          
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
@@ -196,7 +196,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
             ),
           ),
 
-          // List
+          
           Expanded(
             child: displayExams.isEmpty
                 ? const Center(child: Text('暂无符合条件的考试信息'))
@@ -393,7 +393,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-               // Handle bar
+               
                Center(
                  child: Container(
                    width: 40, 
@@ -401,7 +401,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                    decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
                  ),
                ),
-               // Top buttons
+               
                Padding(
                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
                  child: Row(
@@ -409,7 +409,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                    children: [
                      TextButton(
                        onPressed: () async {
-                          // Confirm delete
+                          
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
@@ -424,7 +424,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                         if (confirm == true) {
                           await ExamService.deleteExam(exam);
                           if (mounted) {
-                            Navigator.pop(context); // Close bottom sheet
+                            Navigator.pop(context); 
                             _loadExams();
                           }
                         }
@@ -441,7 +441,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                    ],
                  ),
                ),
-               // Title
+               
                Padding(
                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
                  child: Text(
@@ -449,7 +449,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                  ),
                ),
-               // Sub headers
+               
                 Padding(
                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
                  child: Row(
@@ -461,7 +461,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                  ),
                ),
                
-               // Info Card
+               
                Expanded(
                  child: SingleChildScrollView(
                    child: Column(
@@ -502,7 +502,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                        ),
                        
                        const SizedBox(height: 16),
-                       // Actions Card
+                       
                         Container(
                          margin: const EdgeInsets.symmetric(horizontal: 16),
                          decoration: BoxDecoration(

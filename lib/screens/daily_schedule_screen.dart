@@ -21,7 +21,7 @@ class DailyScheduleScreen extends StatefulWidget {
 
   const DailyScheduleScreen({super.key, this.onSwitchToWeek});
 
-  /// Static reference to current state (avoids GlobalKey conflicts with AnimatedSwitcher)
+  
   static DailyScheduleScreenState? _currentState;
   static DailyScheduleScreenState? get currentState => _currentState;
 
@@ -45,7 +45,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
 
   static const List<String> _weekDayNames = ['一', '二', '三', '四', '五', '六', '日'];
 
-  // Public API for floating button
+  
   DateTime get selectedDate => _selectedDate;
   DateTime get semesterStart => _semesterStart;
   DateTime get semesterEnd => _semesterStart.add(Duration(days: _totalDays - 1));
@@ -118,14 +118,14 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
       _courses = dataResults[0] as List<Course>;
       _timeDetails = dataResults[1] as List<TimeDetail>;
 
-      // 计算学期起始周一和总天数
+      
       _semesterStart = _currentTable!.startDateObj.subtract(
         Duration(days: _currentTable!.startDateObj.weekday - 1),
       );
       _totalWeeks = _currentTable!.maxWeek;
       _totalDays = _totalWeeks * 7;
 
-      // 设置PageController到今天对应的页
+      
       final todayIndex = _selectedDate.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
       final todayWeekIndex = (todayIndex / 7).floor().clamp(0, _totalWeeks - 1);
       _pageController = PageController(initialPage: todayIndex);
@@ -133,7 +133,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     }
 
     setState(() => _isLoading = false);
-    // Notify container to show FAB after data is ready
+    
     ScheduleViewContainer.containerKey.currentState?.setState(() {});
   }
 
@@ -185,7 +185,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     }
   }
 
-  /// 获取课程的开始时间（分钟数），用于排序
+  
   int _courseStartMinutes(Course course) {
     if (course.startTime != null && course.startTime!.isNotEmpty) {
       final m = _parseTime(course.startTime!);
@@ -201,24 +201,24 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     }
   }
 
-  /// 获取当天需要显示的课程
+  
   List<Course> _getCoursesForDate(DateTime date) {
     final week = _weekForDate(date);
-    final dayOfWeek = date.weekday; // 1=Mon ... 7=Sun
+    final dayOfWeek = date.weekday; 
     final filtered = _courses.where((c) => c.day == dayOfWeek && c.inWeek(week)).toList();
     filtered.sort((a, b) => _courseStartMinutes(a).compareTo(_courseStartMinutes(b)));
     return filtered;
   }
 
-  /// 获取时间轴的小时列表
+  
   List<int> _getTimelineHours() {
-    if (_timeDetails.isEmpty) return List.generate(13, (i) => i + 8); // 8:00 - 20:00
+    if (_timeDetails.isEmpty) return List.generate(13, (i) => i + 8); 
     final firstHour = _parseTime(_timeDetails.first.startTime) ~/ 60;
     final lastHour = (_parseTime(_timeDetails.last.endTime) / 60).ceil();
     return List.generate(lastHour - firstHour + 1, (i) => i + firstHour);
   }
 
-  /// 将分钟数转换为时间轴上的像素位置
+  
   double _minutesToPosition(int minutes, double hourHeight, int firstHour) {
     return (minutes - firstHour * 60) / 60.0 * hourHeight;
   }
@@ -635,11 +635,11 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
       ),
       body: Column(
         children: [
-          // Week day selector (swipeable)
+          
           _buildWeekDaySelector(theme),
-          // Semester & week info bar
+          
           _buildInfoBar(weekNum, theme),
-          // Course list / timeline (swipeable by day)
+          
           Expanded(
             child: PageView.builder(
               controller: _pageController,
@@ -649,9 +649,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 setState(() {
                   _selectedDate = newDate;
                 });
-                // Notify container to refresh FAB label
+                
                 ScheduleViewContainer.containerKey.currentState?.setState(() {});
-                // 同步周选择器
+                
                 final targetWeek = (index / 7).floor().clamp(0, _totalWeeks - 1);
                 if (!_isSyncingPages && _weekPageController.hasClients) {
                   final currentWeekPage = _weekPageController.page?.round() ?? 0;
@@ -689,14 +689,14 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
         itemCount: _totalWeeks,
         onPageChanged: (weekIndex) {
           if (_isSyncingPages) return;
-          // 保持同一星期几，切换到新的周
-          final weekday = _selectedDate.weekday; // 1=Mon...7=Sun
+          
+          final weekday = _selectedDate.weekday; 
           final newDate = _semesterStart.add(Duration(days: weekIndex * 7 + weekday - 1));
           final dayIndex = newDate.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
           setState(() {
             _selectedDate = newDate;
           });
-          // 同步日视图
+          
           if (_pageController.hasClients) {
             _isSyncingPages = true;
             _pageController.animateToPage(
@@ -975,7 +975,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
         height: totalHeight,
         child: Stack(
           children: [
-            // Hour labels and grid lines
+            
             ...hours.map((hour) {
               final y = (hour - firstHour) * hourHeight;
               return Positioned(
@@ -1010,7 +1010,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 ),
               );
             }),
-            // Course cards
+            
             ...courses.map((course) {
               final timeRange = _getTimeRange(course);
               int startMin = _courseStartMinutes(course);
@@ -1078,7 +1078,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 ),
               );
             }),
-            // Current time indicator
+            
             if (isToday)
               Positioned(
                 top: _minutesToPosition(nowMinutes, hourHeight, firstHour) - 1,
