@@ -53,9 +53,11 @@ class WidgetService {
 
       final title = '${now.month}.${now.day} ${_getWeekdayString(weekday)}';
       final weekStr = '第 $currentWeek 周';
+      final updateDateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
       await HomeWidget.saveWidgetData('title', title);
       await HomeWidget.saveWidgetData('week', weekStr);
+      await HomeWidget.saveWidgetData('updateDate', updateDateStr);
 
       final allCourses = await ScheduleDataService.loadCourses(tableId: currentTable.id);
       final todayCourses = allCourses.where((c) => c.day == weekday && c.inWeek(currentWeek)).toList();
@@ -64,7 +66,7 @@ class WidgetService {
       final timeDetails = await ScheduleDataService.loadTimeDetails(timeTableId: currentTable.timeTableId);
 
       // Filter out courses that have already ended
-      final currentTimeStr = DateFormat('HH:mm').format(now);
+      final currentMinutes = now.hour * 60 + now.minute;
       final upcomingCourses = todayCourses.where((course) {
         String endTime = course.endTime ?? '';
         if (endTime.isEmpty && timeDetails.isNotEmpty) {
@@ -76,6 +78,17 @@ class WidgetService {
           }
         }
         if (endTime.isEmpty) return true; // Can't determine end time, keep it
+        
+        try {
+          final parts = endTime.split(':');
+          if (parts.length == 2) {
+            final endMinutes = int.parse(parts[0]) * 60 + int.parse(parts[1]);
+            return endMinutes > currentMinutes;
+          }
+        } catch (_) {}
+        
+        // Fallback
+        final currentTimeStr = DateFormat('HH:mm').format(now);
         return endTime.compareTo(currentTimeStr) > 0;
       }).toList();
 

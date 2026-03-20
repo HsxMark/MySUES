@@ -17,14 +17,26 @@ struct Provider: TimelineProvider {
         let sharedDefaults = UserDefaults(suiteName: "group.com.hsxmark.mysues")
         let title = sharedDefaults?.string(forKey: "title") ?? "今日无课"
         let week = sharedDefaults?.string(forKey: "week") ?? ""
+        let updateDateStr = sharedDefaults?.string(forKey: "updateDate") ?? ""
         
         let allCourses = loadAllCourses(from: sharedDefaults)
         
         let now = Date()
         let calendar = Calendar.current
         
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let todayStr = formatter.string(from: now)
+        
         // Build timeline entries: one for now, and one after each course ends
         var entries: [SimpleEntry] = []
+        
+        if !updateDateStr.isEmpty && updateDateStr != todayStr {
+            entries.append(SimpleEntry(date: now, title: "请打开APP更新课表", week: "", courses: []))
+            let timeline = Timeline(entries: entries, policy: .atEnd)
+            completion(timeline)
+            return
+        }
         
         // Collect unique end-time dates (today) for courses that haven't ended yet
         var refreshDates: [Date] = [now]
@@ -90,9 +102,19 @@ struct Provider: TimelineProvider {
         let sharedDefaults = UserDefaults(suiteName: "group.com.hsxmark.mysues")
         let title = sharedDefaults?.string(forKey: "title") ?? "今日无课"
         let week = sharedDefaults?.string(forKey: "week") ?? ""
+        let updateDateStr = sharedDefaults?.string(forKey: "updateDate") ?? ""
         
         let now = Date()
         let calendar = Calendar.current
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let todayStr = formatter.string(from: now)
+        
+        if !updateDateStr.isEmpty && updateDateStr != todayStr {
+            return SimpleEntry(date: now, title: "请打开APP更新课表", week: "", courses: [])
+        }
+        
         let allCourses = loadAllCourses(from: sharedDefaults)
         let remaining = allCourses.filter { course in
             guard let endDate = todayDate(from: course.endTime, calendar: calendar) else { return true }
@@ -126,7 +148,7 @@ struct ScheduleWidgetEntryView : View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        let maxCourses = family == .systemLarge ? 8 : 4
+        let maxCourses = family == .systemLarge ? 6 : 2
         let visibleCourses = Array(entry.courses.prefix(maxCourses))
         
         VStack(spacing: 0) {
