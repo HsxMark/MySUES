@@ -16,7 +16,7 @@ class ThemeService extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   String? _fontFamily;
   bool _liquidGlassEnabled = false;
-  bool _splashAnimationEnabled = true;
+  bool _splashAnimationEnabled = false;
   String? _backgroundImagePath;
   double _backgroundOpacity = 0.5;
 
@@ -32,7 +32,7 @@ class ThemeService extends ChangeNotifier {
     final int? modeIndex = prefs.getInt('theme_mode');
     _fontFamily = prefs.getString('app_font_family');
     _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
-    _splashAnimationEnabled = prefs.getBool('splash_animation_enabled') ?? true;
+    _splashAnimationEnabled = prefs.getBool('splash_animation_enabled') ?? false;
     _backgroundImagePath = prefs.getString('background_image_path');
     _backgroundOpacity = prefs.getDouble('background_opacity') ?? 0.5;
     
