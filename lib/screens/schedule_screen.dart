@@ -82,10 +82,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
   Future<void> _initData() async {
     setState(() => _isLoading = true);
-    
+
     // Ensure default data exists
     await ScheduleDataService.initDefaultData();
-    
+
     // 并行加载课表列表和当前课表ID
     final results = await Future.wait([
       ScheduleDataService.loadScheduleTables(),
@@ -93,11 +93,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     ]);
     final tables = results[0] as List<ScheduleTable>;
     final currentTableId = results[1] as int;
-    
+
     if (tables.isNotEmpty) {
       _currentTable = tables.firstWhere(
-        (t) => t.id == currentTableId, 
-        orElse: () => tables.first
+        (t) => t.id == currentTableId,
+        orElse: () => tables.first,
       );
     }
 
@@ -108,11 +108,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       // 并行加载课程和时间详情
       final dataResults = await Future.wait([
         ScheduleDataService.loadCourses(tableId: _currentTable!.id),
-        ScheduleDataService.loadTimeDetails(timeTableId: _currentTable!.timeTableId),
+        ScheduleDataService.loadTimeDetails(
+          timeTableId: _currentTable!.timeTableId,
+        ),
       ]);
       _courses = dataResults[0] as List<Course>;
       _timeDetails = dataResults[1] as List<TimeDetail>;
-      
+
       // Update UI settings
       _cellHeight = _currentTable!.itemHeight.toDouble();
       // Adjust page controller to current week (index 0 is week 1)
@@ -126,9 +128,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   // _injectDemoCourses removed here
-  
+
   String _getTimeRange(Course course) {
-    if (course.startTime != null && course.endTime != null && course.startTime!.isNotEmpty) {
+    if (course.startTime != null &&
+        course.endTime != null &&
+        course.startTime!.isNotEmpty) {
       return '${course.startTime} - ${course.endTime}';
     }
     if (_timeDetails.isEmpty) return '';
@@ -138,10 +142,15 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       final end = _timeDetails.firstWhere((t) => t.node == endNode);
 
       // 特殊教学楼覆盖：根据教室判断是否使用特殊时间
-      final startTime = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode)
-          ?? start.startTime;
-      final endTime = BuildingTimeOverride.getOverrideEndTime(course.room, endNode)
-          ?? end.endTime;
+      final startTime =
+          BuildingTimeOverride.getOverrideStartTime(
+            course.room,
+            course.startNode,
+          ) ??
+          start.startTime;
+      final endTime =
+          BuildingTimeOverride.getOverrideEndTime(course.room, endNode) ??
+          end.endTime;
       return '$startTime - $endTime';
     } catch (e) {
       return '';
@@ -216,14 +225,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     try {
       final detail = _timeDetails.firstWhere((t) => t.node == course.startNode);
       // 特殊教学楼覆盖
-      final startTime = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode)
-          ?? detail.startTime;
+      final startTime =
+          BuildingTimeOverride.getOverrideStartTime(
+            course.room,
+            course.startNode,
+          ) ??
+          detail.startTime;
       return _timeMinutesToPosition(_parseTime(startTime));
     } catch (_) {
       return (course.startNode - 1) * _cellHeight;
     }
   }
-  
+
   double _calculateHeight(Course course) {
     if (_timeDetails.isEmpty) {
       return course.step * _cellHeight;
@@ -233,22 +246,34 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     int? endMinutes;
 
     // 优先使用课程自带的起止时间
-    if (course.startTime != null && course.startTime!.isNotEmpty &&
-        course.endTime != null && course.endTime!.isNotEmpty) {
+    if (course.startTime != null &&
+        course.startTime!.isNotEmpty &&
+        course.endTime != null &&
+        course.endTime!.isNotEmpty) {
       startMinutes = _parseTime(course.startTime!);
       endMinutes = _parseTime(course.endTime!);
     }
 
     // 若没有自定义时间，从时间表查找对应节次的标准起止时间
-    if (startMinutes == null || endMinutes == null ||
-        startMinutes == 0 || endMinutes == 0) {
+    if (startMinutes == null ||
+        endMinutes == null ||
+        startMinutes == 0 ||
+        endMinutes == 0) {
       try {
-        final startDetail = _timeDetails.firstWhere((t) => t.node == course.startNode);
+        final startDetail = _timeDetails.firstWhere(
+          (t) => t.node == course.startNode,
+        );
         final endNode = course.startNode + course.step - 1;
         final endDetail = _timeDetails.firstWhere((t) => t.node == endNode);
         // 特殊教学楼覆盖
-        final overrideStart = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode);
-        final overrideEnd = BuildingTimeOverride.getOverrideEndTime(course.room, endNode);
+        final overrideStart = BuildingTimeOverride.getOverrideStartTime(
+          course.room,
+          course.startNode,
+        );
+        final overrideEnd = BuildingTimeOverride.getOverrideEndTime(
+          course.room,
+          endNode,
+        );
         startMinutes = _parseTime(overrideStart ?? startDetail.startTime);
         endMinutes = _parseTime(overrideEnd ?? endDetail.endTime);
       } catch (_) {
@@ -256,7 +281,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       }
     }
 
-    final h = _timeMinutesToPosition(endMinutes) - _timeMinutesToPosition(startMinutes);
+    final h =
+        _timeMinutesToPosition(endMinutes) -
+        _timeMinutesToPosition(startMinutes);
     // 保证最小高度，避免极短课程不可见
     return h >= _cellHeight * 0.5 ? h : course.step * _cellHeight;
   }
@@ -271,151 +298,186 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         final theme = Theme.of(context);
 
         Widget sheet = Container(
-          decoration: isLiquidGlass ? null : BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
+          decoration: isLiquidGlass
+              ? null
+              : BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
           padding: const EdgeInsets.only(top: 8),
           height: MediaQuery.of(context).size.height * 0.75,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-               // Handle bar
-               Center(
-                 child: Container(
-                   width: 40, 
-                   height: 5, 
-                   decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
-                 ),
-               ),
-               // Top buttons
-               Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                 child: Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: [
-                     TextButton(
-                       onPressed: () {
-                          // Allow deleting
-                          _deleteCourse(context, course);
-                       },
-                       child: const Text('删除', style: TextStyle(color: Colors.red, fontSize: 16)),
-                     ),
-                     TextButton(
-                       onPressed: () {
-                         Navigator.pop(context);
-                         _editCourse(context, course);
-                       },
-                       child: const Text('编辑', style: TextStyle(color: Colors.red, fontSize: 16)),
-                     ),
-                   ],
-                 ),
-               ),
-               // Title
-               Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
-                 child: Text(
-                   course.courseName,
-                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                 ),
-               ),
-               // Sub headers
-                Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
-                 child: Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: const [
-                     Text("详情", style: TextStyle(color: Colors.grey)),
-                     Text("以下内容可长按复制", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                   ],
-                 ),
-               ),
-               
-               // Info Card
-               Expanded(
-                 child: SingleChildScrollView(
-                   child: Column(
-                     children: [
-                       Container(
-                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                         decoration: BoxDecoration(
-                           color: Theme.of(context).cardColor,
-                           borderRadius: BorderRadius.circular(16),
-                         ),
-                         child: Column(
-                           children: [
-                             _buildDetailRow(
-                               icon: Icons.calendar_today_outlined, 
-                               content: '第 ${course.startWeek} - ${course.endWeek} 周',
-                               color: Colors.redAccent
-                             ),
-                             const Divider(height: 1, indent: 56),
-                             _buildDetailRow(
-                               icon: Icons.access_time, 
-                               content: '周${['一','二','三','四','五','六','日'][course.day-1]} ${course.nodeString} ${_getTimeRange(course)}',
-                               color: Colors.redAccent
-                             ),
-                             if (course.teacher.isNotEmpty) ...[
-                                const Divider(height: 1, indent: 56),
-                                _buildDetailRow(
-                                  icon: Icons.person_outline, 
-                                  content: course.teacher,
-                                  color: Colors.redAccent
-                                ),
-                             ],
-                             if (course.room.isNotEmpty) ...[
-                                const Divider(height: 1, indent: 56),
-                                _buildDetailRow(
-                                  icon: Icons.location_on_outlined, 
-                                  content: course.room,
-                                  color: Colors.redAccent
-                                ),
-                             ],
-                           ],
-                         ),
-                       ),
-                       
-                       const SizedBox(height: 16),
-                       // Actions Card
-                        Container(
-                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                         decoration: BoxDecoration(
-                           color: Theme.of(context).cardColor,
-                           borderRadius: BorderRadius.circular(16),
-                         ),
-                         child: Column(
-                           children: [
-                             _buildActionRow(
-                               icon: Icons.copy, 
-                               text: '复制课程名称',
-                               color: Colors.redAccent,
-                               onTap: () {
-                                 Clipboard.setData(ClipboardData(text: course.courseName));
-                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制课程名称')));
-                               }
-                             ),
-                             const Divider(height: 1, indent: 56),
-                             _buildActionRow(
-                               icon: Icons.copy, 
-                               text: '复制课程信息为文本',
-                               color: Colors.redAccent,
-                               onTap: () {
-                                 final info = '${course.courseName}\n周${['一','二','三','四','五','六','日'][course.day-1]} ${course.nodeString} ${_getTimeRange(course)}\n${course.teacher} ${course.room}';
-                                 Clipboard.setData(ClipboardData(text: info));
-                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制课程信息')));
-                               }
-                             ),
-                           ],
-                         ),
-                       ),
-                       const SizedBox(height: 30),
-                     ],
-                   ),
-                 ),
-               ),
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
+              // Top buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        // Allow deleting
+                        _deleteCourse(context, course);
+                      },
+                      child: const Text(
+                        '删除',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _editCourse(context, course);
+                      },
+                      child: const Text(
+                        '编辑',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 4,
+                ),
+                child: Text(
+                  course.courseName,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              // Sub headers
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text("详情", style: TextStyle(color: Colors.grey)),
+                    Text(
+                      "以下内容可长按复制",
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Info Card
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildDetailRow(
+                              icon: Icons.calendar_today_outlined,
+                              content:
+                                  '第 ${course.startWeek} - ${course.endWeek} 周',
+                              color: Colors.redAccent,
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildDetailRow(
+                              icon: Icons.access_time,
+                              content:
+                                  '周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}',
+                              color: Colors.redAccent,
+                            ),
+                            if (course.teacher.isNotEmpty) ...[
+                              const Divider(height: 1, indent: 56),
+                              _buildDetailRow(
+                                icon: Icons.person_outline,
+                                content: course.teacher,
+                                color: Colors.redAccent,
+                              ),
+                            ],
+                            if (course.room.isNotEmpty) ...[
+                              const Divider(height: 1, indent: 56),
+                              _buildDetailRow(
+                                icon: Icons.location_on_outlined,
+                                content: course.room,
+                                color: Colors.redAccent,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                      // Actions Card
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildActionRow(
+                              icon: Icons.copy,
+                              text: '复制课程名称',
+                              color: Colors.redAccent,
+                              onTap: () {
+                                Clipboard.setData(
+                                  ClipboardData(text: course.courseName),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('已复制课程名称')),
+                                );
+                              },
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildActionRow(
+                              icon: Icons.copy,
+                              text: '复制课程信息为文本',
+                              color: Colors.redAccent,
+                              onTap: () {
+                                final info =
+                                    '${course.courseName}\n周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}\n${course.teacher} ${course.room}';
+                                Clipboard.setData(ClipboardData(text: info));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('已复制课程信息')),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -434,10 +496,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               lightIntensity: isDark ? 70 : 50,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-            child: Material(
-              color: Colors.transparent,
-              child: sheet,
-            ),
+            child: Material(color: Colors.transparent, child: sheet),
           );
         }
 
@@ -446,71 +505,90 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _buildDetailRow({required IconData icon, required String content, required Color color}) {
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String content,
+    required Color color,
+  }) {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(content, style: const TextStyle(fontSize: 16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onLongPress: () {
-         Clipboard.setData(ClipboardData(text: content));
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制')));
+        Clipboard.setData(ClipboardData(text: content));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('已复制')));
       },
     );
   }
-  
-  Widget _buildActionRow({required IconData icon, required String text, required Color color, VoidCallback? onTap}) {
-       return ListTile(
+
+  Widget _buildActionRow({
+    required IconData icon,
+    required String text,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
+    return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(text, style: const TextStyle(fontSize: 16, color: Colors.redAccent)),
+      title: Text(
+        text,
+        style: const TextStyle(fontSize: 16, color: Colors.redAccent),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onTap: onTap,
     );
   }
 
   void _deleteCourse(BuildContext context, Course course) {
-      showDialog(
-        context: context, 
-        builder: (context) => AlertDialog(
-          title: const Text('删除课程'),
-          content: Text('确认要删除 "${course.courseName}" 吗？'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Close sheet
-                await ScheduleDataService.deleteCourse(course.id);
-                _initData();
-              }, 
-              child: const Text('删除', style: TextStyle(color: Colors.red))
-            ),
-          ],
-        )
-      );
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除课程'),
+        content: Text('确认要删除 "${course.courseName}" 吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Close sheet
+              await ScheduleDataService.deleteCourse(course.id);
+              _initData();
+            },
+            child: const Text('删除', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
-  
+
   Future<void> _editCourse(BuildContext context, Course course) async {
-     final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
-      );
-      
-      // If result is strict string 'deleted', it was deleted
-      if (result == 'deleted') {
-          _initData();
-          return;
-      }
-      
-      if (result != null && result is Course) {
-          await ScheduleDataService.updateCourse(result);
-          _initData();
-      }
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
+    );
+
+    // If result is strict string 'deleted', it was deleted
+    if (result == 'deleted') {
+      _initData();
+      return;
+    }
+
+    if (result != null && result is Course) {
+      await ScheduleDataService.updateCourse(result);
+      _initData();
+    }
   }
 
   int _calculateCurrentWeek(DateTime startDate) {
     // 简单的周次计算逻辑
     // 确保startDate是周一
-    final startMonday = startDate.subtract(Duration(days: startDate.weekday - 1));
+    final startMonday = startDate.subtract(
+      Duration(days: startDate.weekday - 1),
+    );
     final now = DateTime.now();
     final diff = now.difference(startMonday).inDays;
     if (diff < 0) return 1;
@@ -531,13 +609,15 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         final theme = Theme.of(context);
 
         Widget sheet = Container(
-          decoration: isLiquidGlass ? null : BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
+          decoration: isLiquidGlass
+              ? null
+              : BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
           height: MediaQuery.of(context).size.height * 0.5,
           child: Column(
             children: [
@@ -548,7 +628,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                   child: Container(
                     width: 40,
                     height: 5,
-                    decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
                   ),
                 ),
               ),
@@ -557,29 +640,46 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                     const Text("切换课表", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                     IconButton(
-                       icon: const Icon(Icons.add),
-                       onPressed: () async {
-                         Navigator.pop(context);
-                         final existingNames = tables.map((t) => t.tableName).toList();
-                         final newTable = await Navigator.push(
-                           context,
-                           MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(existingNames: existingNames)),
-                         );
-                         if (newTable != null && newTable is ScheduleTable) {
-                           await ScheduleDataService.addScheduleTable(newTable);
-                           await ScheduleDataService.setCurrentTableId(newTable.id);
-                           _initData();
-                         }
-                       },
-                     )
+                    const Text(
+                      "切换课表",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final existingNames = tables
+                            .map((t) => t.tableName)
+                            .toList();
+                        final newTable = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (c) => ScheduleSettingsScreen(
+                              existingNames: existingNames,
+                            ),
+                          ),
+                        );
+                        if (newTable != null && newTable is ScheduleTable) {
+                          await ScheduleDataService.addScheduleTable(newTable);
+                          await ScheduleDataService.setCurrentTableId(
+                            newTable.id,
+                          );
+                          _initData();
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Text("长按删除课表", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                child: Text(
+                  "长按删除课表",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               ),
               Expanded(
                 child: ListView.builder(
@@ -590,7 +690,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     return ListTile(
                       title: Text(table.tableName),
                       subtitle: Text("开学: ${table.startDate}"),
-                      trailing: isCurrent ? const Icon(Icons.check, color: Colors.blue) : null,
+                      trailing: isCurrent
+                          ? const Icon(Icons.check, color: Colors.blue)
+                          : null,
                       selected: isCurrent,
                       onTap: () async {
                         await ScheduleDataService.setCurrentTableId(table.id);
@@ -602,22 +704,34 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('删除课表'),
-                            content: Text('确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。'),
+                            content: Text(
+                              '确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。',
+                            ),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('取消'),
+                              ),
                               TextButton(
                                 onPressed: () async {
                                   Navigator.pop(context); // Close dialog
-                                  await ScheduleDataService.deleteScheduleTable(table.id);
+                                  await ScheduleDataService.deleteScheduleTable(
+                                    table.id,
+                                  );
                                   if (context.mounted) {
-                                     Navigator.pop(context); // Close bottom sheet to avoid stale data
-                                     _initData(); // Refresh, _initData handles fallback if current is deleted
+                                    Navigator.pop(
+                                      context,
+                                    ); // Close bottom sheet to avoid stale data
+                                    _initData(); // Refresh, _initData handles fallback if current is deleted
                                   }
                                 },
-                                child: const Text('删除', style: TextStyle(color: Colors.red))
+                                child: const Text(
+                                  '删除',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ),
                             ],
-                          )
+                          ),
                         );
                       },
                     );
@@ -642,24 +756,19 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               lightIntensity: isDark ? 70 : 50,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-            child: Material(
-              color: Colors.transparent,
-              child: sheet,
-            ),
+            child: Material(color: Colors.transparent, child: sheet),
           );
         }
 
         return sheet;
-      }
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_currentTable == null) {
@@ -673,27 +782,33 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () async {
-                    final allTables = await ScheduleDataService.loadScheduleTables();
-                    final existingNames = allTables.map((t) => t.tableName).toList();
-                    if (!context.mounted) return;
-                    final newTable = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(existingNames: existingNames)),
-                    );
-                    if (newTable != null && newTable is ScheduleTable) {
-                      await ScheduleDataService.addScheduleTable(newTable);
-                      await ScheduleDataService.setCurrentTableId(newTable.id);
-                      _initData();
-                    }
-                }, 
-                child: const Text("新建课表")
-              )
+                  final allTables =
+                      await ScheduleDataService.loadScheduleTables();
+                  final existingNames = allTables
+                      .map((t) => t.tableName)
+                      .toList();
+                  if (!context.mounted) return;
+                  final newTable = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (c) =>
+                          ScheduleSettingsScreen(existingNames: existingNames),
+                    ),
+                  );
+                  if (newTable != null && newTable is ScheduleTable) {
+                    await ScheduleDataService.addScheduleTable(newTable);
+                    await ScheduleDataService.setCurrentTableId(newTable.id);
+                    _initData();
+                  }
+                },
+                child: const Text("新建课表"),
+              ),
             ],
-          )
+          ),
         ),
       );
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: GestureDetector(
@@ -705,19 +820,27 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(_currentTable!.tableName, style: const TextStyle(fontSize: 14)),
+                  Text(
+                    _currentTable!.tableName,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   const Icon(Icons.arrow_drop_down, size: 18),
                 ],
               ),
               Text(
                 '第 $_currentWeek 周',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                ),
               ),
             ],
           ),
         ),
         centerTitle: false,
-        backgroundColor: ThemeService().liquidGlassEnabled ? Colors.transparent : null,
+        backgroundColor: ThemeService().liquidGlassEnabled
+            ? Colors.transparent
+            : null,
         elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
           Tooltip(
@@ -738,19 +861,24 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 );
               }
               return MenuAnchor(
-                builder: (BuildContext context, MenuController controller, Widget? child) {
-                  return IconButton(
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
+                builder:
+                    (
+                      BuildContext context,
+                      MenuController controller,
+                      Widget? child,
+                    ) {
+                      return IconButton(
+                        onPressed: () {
+                          if (controller.isOpen) {
+                            controller.close();
+                          } else {
+                            controller.open();
+                          }
+                        },
+                        icon: const Icon(Icons.more_vert),
+                        tooltip: '菜单',
+                      );
                     },
-                    icon: const Icon(Icons.more_vert),
-                    tooltip: '菜单',
-                  );
-                },
                 menuChildren: [
                   SubmenuButton(
                     leadingIcon: const Icon(Icons.download),
@@ -762,7 +890,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           if (!mounted) return;
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (c) => const LoginWebviewScreen()),
+                            MaterialPageRoute(
+                              builder: (c) => const LoginWebviewScreen(),
+                            ),
                           );
                           if (result == true) {
                             _initData();
@@ -771,11 +901,16 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         child: const Text('从教务导入'),
                       ),
                       MenuItemButton(
-                        leadingIcon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                        leadingIcon: const Icon(
+                          Icons.picture_as_pdf,
+                          color: Colors.redAccent,
+                        ),
                         onPressed: () async {
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (c) => const ImportClassPdfScreen()),
+                            MaterialPageRoute(
+                              builder: (c) => const ImportClassPdfScreen(),
+                            ),
                           );
                           if (result != null) {
                             _initData();
@@ -792,7 +927,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       if (_currentTable != null) {
                         final result = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (c) => AddCourseScreen(course: null)),
+                          MaterialPageRoute(
+                            builder: (c) => AddCourseScreen(course: null),
+                          ),
                         );
                         if (result != null && result is Course) {
                           result.tableId = _currentTable!.id;
@@ -807,7 +944,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     leadingIcon: const Icon(Icons.settings),
                     onPressed: () async {
                       if (_currentTable != null) {
-                        final allTables = await ScheduleDataService.loadScheduleTables();
+                        final allTables =
+                            await ScheduleDataService.loadScheduleTables();
                         final existingNames = allTables
                             .where((t) => t.id != _currentTable!.id)
                             .map((t) => t.tableName)
@@ -815,10 +953,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         if (!context.mounted) return;
                         final newTable = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!, existingNames: existingNames)),
+                          MaterialPageRoute(
+                            builder: (c) => ScheduleSettingsScreen(
+                              table: _currentTable!,
+                              existingNames: existingNames,
+                            ),
+                          ),
                         );
                         if (newTable != null && newTable is ScheduleTable) {
-                          await ScheduleDataService.updateScheduleTable(newTable);
+                          await ScheduleDataService.updateScheduleTable(
+                            newTable,
+                          );
                           _initData();
                         }
                       }
@@ -889,12 +1034,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 12, bottom: 4),
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              top: 12,
+                              bottom: 4,
+                            ),
                             child: Text(
                               '导入课表',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -909,7 +1060,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               if (!mounted) return;
                               final result = await Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (c) => const LoginWebviewScreen()),
+                                MaterialPageRoute(
+                                  builder: (c) => const LoginWebviewScreen(),
+                                ),
                               );
                               if (result == true) _initData();
                             },
@@ -923,12 +1076,21 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               Navigator.pop(dialogContext);
                               final result = await Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (c) => const ImportClassPdfScreen()),
+                                MaterialPageRoute(
+                                  builder: (c) => const ImportClassPdfScreen(),
+                                ),
                               );
                               if (result != null) _initData();
                             },
                           ),
-                          Divider(height: 1, indent: 16, endIndent: 16, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                          Divider(
+                            height: 1,
+                            indent: 16,
+                            endIndent: 16,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.1,
+                            ),
+                          ),
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.add,
@@ -938,7 +1100,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               if (_currentTable != null) {
                                 final result = await Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (c) => AddCourseScreen(course: null)),
+                                  MaterialPageRoute(
+                                    builder: (c) =>
+                                        AddCourseScreen(course: null),
+                                  ),
                                 );
                                 if (result != null && result is Course) {
                                   result.tableId = _currentTable!.id;
@@ -955,7 +1120,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (_currentTable != null) {
-                                final allTables = await ScheduleDataService.loadScheduleTables();
+                                final allTables =
+                                    await ScheduleDataService.loadScheduleTables();
                                 final existingNames = allTables
                                     .where((t) => t.id != _currentTable!.id)
                                     .map((t) => t.tableName)
@@ -963,10 +1129,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                 if (!context.mounted) return;
                                 final newTable = await Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!, existingNames: existingNames)),
+                                  MaterialPageRoute(
+                                    builder: (c) => ScheduleSettingsScreen(
+                                      table: _currentTable!,
+                                      existingNames: existingNames,
+                                    ),
+                                  ),
                                 );
-                                if (newTable != null && newTable is ScheduleTable) {
-                                  await ScheduleDataService.updateScheduleTable(newTable);
+                                if (newTable != null &&
+                                    newTable is ScheduleTable) {
+                                  await ScheduleDataService.updateScheduleTable(
+                                    newTable,
+                                  );
                                   _initData();
                                 }
                               }
@@ -1014,7 +1188,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: iconColor ?? theme.colorScheme.onSurface),
+            Icon(
+              icon,
+              size: 20,
+              color: iconColor ?? theme.colorScheme.onSurface,
+            ),
             const SizedBox(width: 12),
             Text(
               label,
@@ -1030,19 +1208,24 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Widget _buildWeekSchedule(int weekNum) {
-    final weekStart = _currentTable!.startDateObj.add(Duration(days: (weekNum - 1) * 7));
+    final weekStart = _currentTable!.startDateObj.add(
+      Duration(days: (weekNum - 1) * 7),
+    );
     // Correct to Monday if necessary, though logic handled in model ideally
-    final adjustedWeekStart = weekStart.subtract(Duration(days: weekStart.weekday - 1));
+    final adjustedWeekStart = weekStart.subtract(
+      Duration(days: weekStart.weekday - 1),
+    );
 
     // Calculate visible days
     List<int> visibleIndices = [0, 1, 2, 3, 4]; // Mon-Fri always visible
     if (_currentTable!.showSat) visibleIndices.add(5);
     if (_currentTable!.showSun) visibleIndices.add(6);
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final dayColWidth = (constraints.maxWidth - _timeColWidth) / visibleIndices.length;
-        
+        final dayColWidth =
+            (constraints.maxWidth - _timeColWidth) / visibleIndices.length;
+
         return Column(
           children: [
             // Header (Date)
@@ -1050,18 +1233,34 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               height: _headerHeight,
               child: Row(
                 children: [
-                  SizedBox(width: _timeColWidth, child: Center(child: Text("${weekStart.month}\n月", textAlign: TextAlign.center,))),
+                  SizedBox(
+                    width: _timeColWidth,
+                    child: Center(
+                      child: Text(
+                        "${weekStart.month}\n月",
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
                   ...visibleIndices.map((index) {
                     final date = adjustedWeekStart.add(Duration(days: index));
-                    final isToday = DateTime.now().day == date.day && DateTime.now().month == date.month && DateTime.now().year == date.year;
+                    final isToday =
+                        DateTime.now().day == date.day &&
+                        DateTime.now().month == date.month &&
+                        DateTime.now().year == date.year;
                     return Container(
                       width: dayColWidth,
-                      color: isToday ? Colors.blue.withValues(alpha: 0.1) : null,
+                      color: isToday
+                          ? Colors.blue.withValues(alpha: 0.1)
+                          : null,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(['一','二','三','四','五','六','日'][index]),
-                          Text("${date.day}", style: const TextStyle(fontSize: 12)),
+                          Text(['一', '二', '三', '四', '五', '六', '日'][index]),
+                          Text(
+                            "${date.day}",
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ],
                       ),
                     );
@@ -1069,7 +1268,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 ],
               ),
             ),
-            
+
             // Grid
             Expanded(
               child: SingleChildScrollView(
@@ -1082,32 +1281,59 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       child: Column(
                         children: List.generate(_currentTable!.nodes, (index) {
                           final node = index + 1;
-                          final detail = _timeDetails.firstWhere((d) => d.node == node, orElse: () => TimeDetail(node: node, startTime: '', endTime: '', timeTableId: 0));
-                          
+                          final detail = _timeDetails.firstWhere(
+                            (d) => d.node == node,
+                            orElse: () => TimeDetail(
+                              node: node,
+                              startTime: '',
+                              endTime: '',
+                              timeTableId: 0,
+                            ),
+                          );
+
                           return Container(
                             height: _cellHeight,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: Colors.grey.withValues(alpha: 0.1)))
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                ),
+                              ),
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "${index + 1}", 
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
+                                  "${index + 1}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
                                 if (detail.startTime.isNotEmpty) ...[
-                                   Text(detail.startTime, style: const TextStyle(fontSize: 9, color: Colors.grey)),
-                                   Text(detail.endTime, style: const TextStyle(fontSize: 9, color: Colors.grey)),
-                                ]
+                                  Text(
+                                    detail.startTime,
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    detail.endTime,
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           );
                         }),
                       ),
                     ),
-                    
+
                     // Courses
                     SizedBox(
                       width: constraints.maxWidth - _timeColWidth,
@@ -1116,62 +1342,140 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         children: [
                           // Background Grid Lines
                           ...List.generate(_currentTable!.nodes, (i) {
-                             return Positioned(
-                               top: (i + 1) * _cellHeight,
-                               left: 0, 
-                               right: 0,
-                               child: Divider(height: 1, color: Colors.grey.withValues(alpha: 0.2)),
-                             );
+                            return Positioned(
+                              top: (i + 1) * _cellHeight,
+                              left: 0,
+                              right: 0,
+                              child: Divider(
+                                height: 1,
+                                color: Colors.grey.withValues(alpha: 0.2),
+                              ),
+                            );
                           }),
-                          
+
                           // Generic Course Builder
                           ...() {
-                             final List<Widget> widgets = [];
-                             final activeCourses = _courses.where((c) => c.inWeek(weekNum)).toList();
-                             
-                             // Set to track occupied slots to prevent overlapping
-                             // Format: "day-node" e.g. "1-3" (Monday, Node 3)
-                             final Set<String> occupiedSlots = {};
-                             
-                             // 1. Add Active Courses (High Priority)
-                             for (var course in activeCourses) {
-                               widgets.add(_buildSingleCourseItem(context, course, visibleIndices, dayColWidth, false));
-                               // Mark slots as occupied
-                               for(int i = 0; i < course.step; i++) {
-                                 occupiedSlots.add("${course.day}-${course.startNode + i}");
-                               }
-                             }
-                             
-                             // 2. Add Other Week Courses
-                             // Logic: Look ahead from next week. The first course found for an empty slot is displayed.
-                             if (_currentTable!.showOtherWeekCourse) {
-                                // Iterate weeks from next week to end of semester
-                                for (int w = weekNum + 1; w <= _currentTable!.maxWeek; w++) {
-                                   final futureCourses = _courses.where((c) => c.inWeek(w)).toList();
-                                   
-                                   for (var course in futureCourses) {
-                                       // Check if this course's slots are already filled
-                                       bool isBlocked = false;
-                                       for(int i = 0; i < course.step; i++) {
-                                          if (occupiedSlots.contains("${course.day}-${course.startNode + i}")) {
-                                            isBlocked = true;
-                                            break;
-                                          }
-                                       }
-                                       
-                                       if (!isBlocked) {
-                                          widgets.add(_buildSingleCourseItem(context, course, visibleIndices, dayColWidth, true));
-                                          // Mark slots as occupied so further weeks don't override this one
-                                          // (We show the SOONEST future course)
-                                          for(int i = 0; i < course.step; i++) {
-                                             occupiedSlots.add("${course.day}-${course.startNode + i}");
-                                          }
-                                       }
-                                   }
+                            final List<Widget> widgets = [];
+                            final activeCourses = _courses
+                                .where((c) => c.inWeek(weekNum))
+                                .toList();
+
+                            // Set to track occupied slots to prevent overlapping
+                            // Format: "day-node" e.g. "1-3" (Monday, Node 3)
+                            final Set<String> occupiedSlots = {};
+
+                            // 1. Add Active Courses (High Priority)
+                            // Calculate overlaps to split width dynamically
+                            Map<Course, int> flexColIndex = {};
+                            Map<Course, int> flexTotalCols = {};
+                            for (int day = 1; day <= 7; day++) {
+                              var dayCourses = activeCourses
+                                  .where((c) => c.day == day)
+                                  .toList();
+                              dayCourses.sort(
+                                (a, b) => a.startNode.compareTo(b.startNode),
+                              );
+
+                              List<List<Course>> columns = [];
+                              for (var c in dayCourses) {
+                                bool placed = false;
+                                for (int i = 0; i < columns.length; i++) {
+                                  bool overlap = columns[i].any(
+                                    (placedC) =>
+                                        c.startNode <=
+                                            placedC.startNode +
+                                                placedC.step -
+                                                1 &&
+                                        c.startNode + c.step - 1 >=
+                                            placedC.startNode,
+                                  );
+                                  if (!overlap) {
+                                    columns[i].add(c);
+                                    flexColIndex[c] = i;
+                                    placed = true;
+                                    break;
+                                  }
                                 }
-                             }
-                             
-                             return widgets;
+                                if (!placed) {
+                                  columns.add([c]);
+                                  flexColIndex[c] = columns.length - 1;
+                                }
+                              }
+
+                              // To make layout cleaner, define connected components of overlap
+                              // Just give courses in this day the max columns required.
+                              for (var c in dayCourses) {
+                                flexTotalCols[c] = columns.length;
+                              }
+                            }
+
+                            for (var course in activeCourses) {
+                              widgets.add(
+                                _buildSingleCourseItem(
+                                  context: context,
+                                  course: course,
+                                  visibleIndices: visibleIndices,
+                                  dayColWidth: dayColWidth,
+                                  isNonCurrentWeek: false,
+                                  colIndex: flexColIndex[course] ?? 0,
+                                  totalCols: flexTotalCols[course] ?? 1,
+                                ),
+                              );
+                              for (int i = 0; i < course.step; i++) {
+                                occupiedSlots.add(
+                                  "${course.day}-${course.startNode + i}",
+                                );
+                              }
+                            }
+
+                            // 2. Add Other Week Courses
+                            // Logic: Look ahead from next week. The first course found for an empty slot is displayed.
+                            if (_currentTable!.showOtherWeekCourse) {
+                              // Iterate weeks from next week to end of semester
+                              for (
+                                int w = weekNum + 1;
+                                w <= _currentTable!.maxWeek;
+                                w++
+                              ) {
+                                final futureCourses = _courses
+                                    .where((c) => c.inWeek(w))
+                                    .toList();
+
+                                for (var course in futureCourses) {
+                                  // Check if this course's slots are already filled
+                                  bool isBlocked = false;
+                                  for (int i = 0; i < course.step; i++) {
+                                    if (occupiedSlots.contains(
+                                      "${course.day}-${course.startNode + i}",
+                                    )) {
+                                      isBlocked = true;
+                                      break;
+                                    }
+                                  }
+
+                                  if (!isBlocked) {
+                                    widgets.add(
+                                      _buildSingleCourseItem(
+                                        context: context,
+                                        course: course,
+                                        visibleIndices: visibleIndices,
+                                        dayColWidth: dayColWidth,
+                                        isNonCurrentWeek: true,
+                                      ),
+                                    );
+                                    // Mark slots as occupied so further weeks don't override this one
+                                    // (We show the SOONEST future course)
+                                    for (int i = 0; i < course.step; i++) {
+                                      occupiedSlots.add(
+                                        "${course.day}-${course.startNode + i}",
+                                      );
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            return widgets;
                           }(),
                         ],
                       ),
@@ -1186,116 +1490,162 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _buildSingleCourseItem(BuildContext context, Course course, List<int> visibleIndices, double dayColWidth, bool isNonCurrentWeek) {
-      // Correct day index (1-7) -> (0-6)
-      final dayIndex = course.day - 1;
-      
-      // Calculate display column index
-      final displayIndex = visibleIndices.indexOf(dayIndex);
-      
-      // If day is not visible, skip rendering
-      if (displayIndex == -1) return const SizedBox();
-      
-      final top = _calculateTop(course);
-      final height = _calculateHeight(course);
+  Widget _buildSingleCourseItem({
+    required BuildContext context,
+    required Course course,
+    required List<int> visibleIndices,
+    required double dayColWidth,
+    required bool isNonCurrentWeek,
+    int colIndex = 0,
+    int totalCols = 1,
+  }) {
+    // Correct day index (1-7) -> (0-6)
+    final dayIndex = course.day - 1;
 
-      // Get start time string — 优先使用课程自带的 startTime
-      String? startTimeStr;
-      if (course.startTime != null && course.startTime!.isNotEmpty) {
-        startTimeStr = course.startTime;
-      } else {
-        // 优先使用教学楼覆盖时间
-        final override = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode);
-        if (override != null) {
-          startTimeStr = override;
-        } else if (_timeDetails.isNotEmpty) {
-          try {
-            final detail = _timeDetails.firstWhere((d) => d.node == course.startNode);
-            startTimeStr = detail.startTime;
-          } catch (_) {}
-        }
+    // Calculate display column index
+    final displayIndex = visibleIndices.indexOf(dayIndex);
+
+    // If day is not visible, skip rendering
+    if (displayIndex == -1) return const SizedBox();
+
+    final top = _calculateTop(course);
+    final height = _calculateHeight(course);
+
+    // Get start time string — 优先使用课程自带的 startTime
+    String? startTimeStr;
+    if (course.startTime != null && course.startTime!.isNotEmpty) {
+      startTimeStr = course.startTime;
+    } else {
+      // 优先使用教学楼覆盖时间
+      final override = BuildingTimeOverride.getOverrideStartTime(
+        course.room,
+        course.startNode,
+      );
+      if (override != null) {
+        startTimeStr = override;
+      } else if (_timeDetails.isNotEmpty) {
+        try {
+          final detail = _timeDetails.firstWhere(
+            (d) => d.node == course.startNode,
+          );
+          startTimeStr = detail.startTime;
+        } catch (_) {}
       }
+    }
 
-      // Adjust styles for non-current week
-      final bgColor = isNonCurrentWeek 
-          ? course.colorObj.withValues(alpha: 0.3) // Example: lighter/dimmer
-          : course.colorObj;
-      final textColor = isNonCurrentWeek
-          ? Color(_currentTable!.courseTextColor).withValues(alpha: 0.6)
-          : Color(_currentTable!.courseTextColor);
+    // Adjust styles for non-current week
+    final bgColor = isNonCurrentWeek
+        ? course.colorObj.withValues(alpha: 0.3) // Example: lighter/dimmer
+        : course.colorObj;
+    final textColor = isNonCurrentWeek
+        ? Color(_currentTable!.courseTextColor).withValues(alpha: 0.6)
+        : Color(_currentTable!.courseTextColor);
 
-      return Positioned(
-        left: displayIndex * dayColWidth,
-        top: top,
-        width: dayColWidth - 1, // spacing
-        height: height - 1, // spacing
-        child: GestureDetector(
-          onTap: () => _showCourseDetail(context, course),
-          child: Container(
-            margin: const EdgeInsets.all(1),
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(4),
-              border: isNonCurrentWeek ? Border.all(color: Colors.grey.withValues(alpha:0.3)) : null,
-            ),
-            child: Column(
-              children: [
-                if (_currentTable!.showTime && startTimeStr != null && startTimeStr.isNotEmpty)
-                  Text(
-                    startTimeStr,
-                    style: TextStyle(
-                      color: textColor.withValues(alpha: 0.9),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (isNonCurrentWeek)
-                        Text(
-                          "[非本周]",
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+    return Positioned(
+      left: displayIndex * dayColWidth + colIndex * (dayColWidth / totalCols),
+      top: top,
+      width: (dayColWidth / totalCols) - 1, // spacing
+      height: height - 1, // spacing
+      child: GestureDetector(
+        onTap: () => _showCourseDetail(context, course),
+        child: Container(
+          margin: const EdgeInsets.all(1),
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(4),
+            border: isNonCurrentWeek
+                ? Border.all(color: Colors.grey.withValues(alpha: 0.3))
+                : null,
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Column(
+                  children: [
+                    if (_currentTable!.showTime &&
+                        startTimeStr != null &&
+                        startTimeStr.isNotEmpty)
                       Text(
-                        course.courseName,
+                        startTimeStr,
                         style: TextStyle(
-                          color: textColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          color: textColor.withValues(alpha: 0.9),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (course.room.isNotEmpty)
-                        Text(
-                          course.room,
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 9,
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (isNonCurrentWeek)
+                            Text(
+                              "[非本周]",
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          if (course.studyType == CourseStudyType.retake)
+                            Text(
+                              "[重修]",
+                              style: TextStyle(
+                                color: Colors.red.withOpacity(0.8),
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          if (course.studyType == CourseStudyType.exempt)
+                            Text(
+                              "[免听]",
+                              style: TextStyle(
+                                color: Colors.green.withOpacity(0.8),
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          Text(
+                            course.courseName,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          textAlign: TextAlign.center,
-                        )
-                    ],
+                          if (course.room.isNotEmpty)
+                            Text(
+                              course.room,
+                              style: TextStyle(color: textColor, fontSize: 9),
+                              textAlign: TextAlign.center,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (totalCols > 1)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red,
+                    size: 16,
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
-} // End of _ScheduleScreenState class? No, we are replacing inside the class method.
-// Wait, I am pasting _buildSingleCourseItem OUTSIDE the method but inside the class.
-// But the replace_string function needs context.
-// Let's be careful about brackets.
-
+}

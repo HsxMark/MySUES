@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+enum CourseStudyType {
+  normal, // 正常修读
+  retake, // 重修
+  exempt, // 免听
+}
+
 /// 课程模型，对应 WakeupSchedule_Kotlin 中的 CourseBean
 class Course {
   int id;
@@ -16,6 +22,7 @@ class Course {
   int tableId; // 所属课表ID
   String? startTime; // 自定义开始时间 HH:mm
   String? endTime; // 自定义结束时间 HH:mm
+  CourseStudyType studyType; // 免听/重修/正常修读
 
   Course({
     this.id = 0,
@@ -32,6 +39,7 @@ class Course {
     this.tableId = 0,
     this.startTime,
     this.endTime,
+    this.studyType = CourseStudyType.normal,
   });
 
   /// 获取节次描述字符串
@@ -70,6 +78,7 @@ class Course {
       tableId: json['tableId'] as int? ?? 0,
       startTime: json['startTime'] as String?,
       endTime: json['endTime'] as String?,
+      studyType: _studyTypeFromInt(json['studyType'] as int? ?? 0),
     );
   }
 
@@ -89,7 +98,15 @@ class Course {
       'tableId': tableId,
       'startTime': startTime,
       'endTime': endTime,
+      'studyType': studyType.index,
     };
+  }
+
+  static CourseStudyType _studyTypeFromInt(int value) {
+    if (value >= 0 && value < CourseStudyType.values.length) {
+      return CourseStudyType.values[value];
+    }
+    return CourseStudyType.normal;
   }
 
   Color get colorObj {
