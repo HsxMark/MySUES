@@ -7,25 +7,26 @@ class ScheduleTable {
   int timeTableId; // 关联的时间表ID
   String startDate; // 开学日期 yyyy-MM-dd
   int maxWeek; // 最大周数
-  
+
   // UI Settings
   int itemHeight;
   int itemTextSize;
   int strokeColor;
   int textColor;
   int courseTextColor;
-  
+
   // Show Settings
   bool showSat;
   bool showSun;
   bool showOtherWeekCourse;
   bool showTime;
   bool showFloatingButton;
+  bool showHiddenCourses;
 
   ScheduleTable({
     this.id = 0,
     required this.tableName,
-    this.nodes = 15, 
+    this.nodes = 15,
     this.background = '',
     this.timeTableId = 1,
     required this.startDate,
@@ -40,6 +41,7 @@ class ScheduleTable {
     this.showOtherWeekCourse = true,
     this.showTime = false,
     this.showFloatingButton = true,
+    this.showHiddenCourses = false,
   });
 
   factory ScheduleTable.fromJson(Map<String, dynamic> json) {
@@ -61,6 +63,7 @@ class ScheduleTable {
       showOtherWeekCourse: json['showOtherWeekCourse'] as bool? ?? true,
       showTime: json['showTime'] as bool? ?? false,
       showFloatingButton: json['showFloatingButton'] as bool? ?? true,
+      showHiddenCourses: json['showHiddenCourses'] as bool? ?? false,
     );
   }
 
@@ -83,6 +86,7 @@ class ScheduleTable {
       'showOtherWeekCourse': showOtherWeekCourse,
       'showTime': showTime,
       'showFloatingButton': showFloatingButton,
+      'showHiddenCourses': showHiddenCourses,
     };
   }
 

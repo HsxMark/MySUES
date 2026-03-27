@@ -6,7 +6,11 @@ class ScheduleSettingsScreen extends StatefulWidget {
   final ScheduleTable? table; // Null for new table
   final List<String> existingNames;
 
-  const ScheduleSettingsScreen({super.key, this.table, this.existingNames = const []});
+  const ScheduleSettingsScreen({
+    super.key,
+    this.table,
+    this.existingNames = const [],
+  });
 
   @override
   State<ScheduleSettingsScreen> createState() => _ScheduleSettingsScreenState();
@@ -22,30 +26,40 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   late bool _showSun;
   late bool _showOtherWeekCourse;
   late bool _showFloatingButton;
+  late bool _showHiddenCourses;
 
   @override
   void initState() {
     super.initState();
     if (widget.table != null) {
       _nameController = TextEditingController(text: widget.table!.tableName);
-      _maxWeekController = TextEditingController(text: widget.table!.maxWeek.toString());
-      _nodesController = TextEditingController(text: widget.table!.nodes.toString());
+      _maxWeekController = TextEditingController(
+        text: widget.table!.maxWeek.toString(),
+      );
+      _nodesController = TextEditingController(
+        text: widget.table!.nodes.toString(),
+      );
       _startDate = widget.table!.startDate;
       _showTime = widget.table!.showTime;
       _showSat = widget.table!.showSat;
       _showSun = widget.table!.showSun;
       _showOtherWeekCourse = widget.table!.showOtherWeekCourse;
       _showFloatingButton = widget.table!.showFloatingButton;
+      _showHiddenCourses = widget.table!.showHiddenCourses;
     } else {
       _nameController = TextEditingController(text: '新课表');
       _maxWeekController = TextEditingController(text: '30');
       _nodesController = TextEditingController(text: '15'); // Default to 15
-      _startDate = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).toIso8601String().split('T')[0];
+      _startDate = DateTime.now()
+          .subtract(Duration(days: DateTime.now().weekday - 1))
+          .toIso8601String()
+          .split('T')[0];
       _showTime = false;
       _showSat = true;
       _showSun = true;
       _showOtherWeekCourse = true;
       _showFloatingButton = true;
+      _showHiddenCourses = false;
     }
   }
 
@@ -62,44 +76,58 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('课表设置'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _save,
-          )
-        ],
+        actions: [IconButton(icon: const Icon(Icons.check), onPressed: _save)],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(labelText: '课表名称', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: '课表名称',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
           ListTile(
             title: const Text('开学日期'),
             subtitle: Text(_startDate),
             trailing: const Icon(Icons.calendar_today),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.grey.shade300)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: Colors.grey.shade300),
+            ),
             onTap: _pickDate,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _maxWeekController,
-            decoration: const InputDecoration(labelText: '学期周数', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: '学期周数',
+              border: OutlineInputBorder(),
+            ),
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _nodesController,
-            decoration: const InputDecoration(labelText: '每天节数', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: '每天节数',
+              border: OutlineInputBorder(),
+            ),
             keyboardType: TextInputType.number,
           ),
           const Divider(),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Text('课表显示设置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+            child: Text(
+              '课表显示设置',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
           ),
           SwitchListTile(
             title: const Text('显示课程时间'),
@@ -127,11 +155,24 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             value: _showFloatingButton,
             onChanged: (v) => setState(() => _showFloatingButton = v),
           ),
+          SwitchListTile(
+            title: const Text('显示已隐藏免听课程'),
+            subtitle: const Text('开启后在课表视图中显示已隐藏的免听课程'),
+            value: _showHiddenCourses,
+            onChanged: (v) => setState(() => _showHiddenCourses = v),
+          ),
           if (widget.table != null) ...[
             const Divider(),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text('高级设置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+              child: Text(
+                '高级设置',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
             ),
             ListTile(
               title: const Text('节假日调休'),
@@ -140,7 +181,9 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => ScheduleShiftScreen(table: widget.table!)),
+                  MaterialPageRoute(
+                    builder: (_) => ScheduleShiftScreen(table: widget.table!),
+                  ),
                 );
               },
             ),
@@ -170,27 +213,27 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
     final nodes = int.tryParse(_nodesController.text) ?? 0;
 
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('课表名称不能为空')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('课表名称不能为空')));
       return;
     }
     if (maxWeek < 15) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('学期周数不能少于 15 周')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('学期周数不能少于 15 周')));
       return;
     }
     if (nodes < 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('每天节数不能少于 10 节')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('每天节数不能少于 10 节')));
       return;
     }
     if (widget.existingNames.contains(name)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('课表名称已存在，请使用其他名称')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('课表名称已存在，请使用其他名称')));
       return;
     }
 
@@ -204,6 +247,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       widget.table!.showSun = _showSun;
       widget.table!.showOtherWeekCourse = _showOtherWeekCourse;
       widget.table!.showFloatingButton = _showFloatingButton;
+      widget.table!.showHiddenCourses = _showHiddenCourses;
       Navigator.pop(context, widget.table);
     } else {
       final newTable = ScheduleTable(
@@ -217,8 +261,9 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
         showSun: _showSun,
         showOtherWeekCourse: _showOtherWeekCourse,
         showFloatingButton: _showFloatingButton,
+        showHiddenCourses: _showHiddenCourses,
       );
-       Navigator.pop(context, newTable);
+      Navigator.pop(context, newTable);
     }
   }
 }

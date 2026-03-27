@@ -1357,7 +1357,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           ...() {
                             final List<Widget> widgets = [];
                             final activeCourses = _courses
-                                .where((c) => c.inWeek(weekNum))
+                                .where(
+                                  (c) =>
+                                      c.inWeek(weekNum) &&
+                                      (!c.isHidden ||
+                                          (_currentTable?.showHiddenCourses ??
+                                              false)),
+                                )
                                 .toList();
 
                             // Set to track occupied slots to prevent overlapping
@@ -1438,7 +1444,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                 w++
                               ) {
                                 final futureCourses = _courses
-                                    .where((c) => c.inWeek(w))
+                                    .where(
+                                      (c) =>
+                                          c.inWeek(w) &&
+                                          (!c.isHidden ||
+                                              (_currentTable
+                                                      ?.showHiddenCourses ??
+                                                  false)),
+                                    )
                                     .toList();
 
                                 for (var course in futureCourses) {

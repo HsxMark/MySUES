@@ -48,7 +48,8 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   // Public API for floating button
   DateTime get selectedDate => _selectedDate;
   DateTime get semesterStart => _semesterStart;
-  DateTime get semesterEnd => _semesterStart.add(Duration(days: _totalDays - 1));
+  DateTime get semesterEnd =>
+      _semesterStart.add(Duration(days: _totalDays - 1));
   bool get showFloatingButton => _currentTable?.showFloatingButton ?? true;
 
   bool get isViewingToday {
@@ -59,7 +60,10 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   void jumpToDate(DateTime date) {
-    final dayIndex = date.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+    final dayIndex = date
+        .difference(_semesterStart)
+        .inDays
+        .clamp(0, _totalDays - 1);
     _pageController.animateToPage(
       dayIndex,
       duration: const Duration(milliseconds: 300),
@@ -113,7 +117,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
       _currentWeek = _calculateCurrentWeek(_currentTable!.startDateObj);
       final dataResults = await Future.wait([
         ScheduleDataService.loadCourses(tableId: _currentTable!.id),
-        ScheduleDataService.loadTimeDetails(timeTableId: _currentTable!.timeTableId),
+        ScheduleDataService.loadTimeDetails(
+          timeTableId: _currentTable!.timeTableId,
+        ),
       ]);
       _courses = dataResults[0] as List<Course>;
       _timeDetails = dataResults[1] as List<TimeDetail>;
@@ -126,7 +132,10 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
       _totalDays = _totalWeeks * 7;
 
       // 设置PageController到今天对应的页
-      final todayIndex = _selectedDate.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+      final todayIndex = _selectedDate
+          .difference(_semesterStart)
+          .inDays
+          .clamp(0, _totalDays - 1);
       final todayWeekIndex = (todayIndex / 7).floor().clamp(0, _totalWeeks - 1);
       _pageController = PageController(initialPage: todayIndex);
       _weekPageController = PageController(initialPage: todayWeekIndex);
@@ -138,7 +147,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   int _calculateCurrentWeek(DateTime startDate) {
-    final startMonday = startDate.subtract(Duration(days: startDate.weekday - 1));
+    final startMonday = startDate.subtract(
+      Duration(days: startDate.weekday - 1),
+    );
     final now = DateTime.now();
     final diff = now.difference(startMonday).inDays;
     if (diff < 0) return 1;
@@ -156,7 +167,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   String _getTimeRange(Course course) {
-    if (course.startTime != null && course.endTime != null && course.startTime!.isNotEmpty) {
+    if (course.startTime != null &&
+        course.endTime != null &&
+        course.startTime!.isNotEmpty) {
       return '${course.startTime} - ${course.endTime}';
     }
     if (_timeDetails.isEmpty) return '';
@@ -165,10 +178,15 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
       final endNode = course.startNode + course.step - 1;
       final end = _timeDetails.firstWhere((t) => t.node == endNode);
 
-      final startTime = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode)
-          ?? start.startTime;
-      final endTime = BuildingTimeOverride.getOverrideEndTime(course.room, endNode)
-          ?? end.endTime;
+      final startTime =
+          BuildingTimeOverride.getOverrideStartTime(
+            course.room,
+            course.startNode,
+          ) ??
+          start.startTime;
+      final endTime =
+          BuildingTimeOverride.getOverrideEndTime(course.room, endNode) ??
+          end.endTime;
       return '$startTime - $endTime';
     } catch (e) {
       return '';
@@ -191,7 +209,10 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
       final m = _parseTime(course.startTime!);
       if (m > 0) return m;
     }
-    final override = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode);
+    final override = BuildingTimeOverride.getOverrideStartTime(
+      course.room,
+      course.startNode,
+    );
     if (override != null) return _parseTime(override);
     try {
       final detail = _timeDetails.firstWhere((t) => t.node == course.startNode);
@@ -201,18 +222,49 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     }
   }
 
+  /// 获取课程的结束时间（分钟数）
+  int _getCourseEndMinutes(Course course) {
+    if (course.endTime != null && course.endTime!.isNotEmpty) {
+      return _parseTime(course.endTime!);
+    }
+    final endNode = course.startNode + course.step - 1;
+    final overrideEnd = BuildingTimeOverride.getOverrideEndTime(
+      course.room,
+      endNode,
+    );
+    if (overrideEnd != null) {
+      return _parseTime(overrideEnd);
+    }
+    try {
+      final endDetail = _timeDetails.firstWhere((t) => t.node == endNode);
+      return _parseTime(endDetail.endTime);
+    } catch (_) {
+      return _courseStartMinutes(course) + course.step * 45;
+    }
+  }
+
   /// 获取当天需要显示的课程
   List<Course> _getCoursesForDate(DateTime date) {
     final week = _weekForDate(date);
     final dayOfWeek = date.weekday; // 1=Mon ... 7=Sun
-    final filtered = _courses.where((c) => c.day == dayOfWeek && c.inWeek(week)).toList();
-    filtered.sort((a, b) => _courseStartMinutes(a).compareTo(_courseStartMinutes(b)));
+    final filtered = _courses
+        .where(
+          (c) =>
+              c.day == dayOfWeek &&
+              c.inWeek(week) &&
+              (!c.isHidden || (_currentTable?.showHiddenCourses ?? false)),
+        )
+        .toList();
+    filtered.sort(
+      (a, b) => _courseStartMinutes(a).compareTo(_courseStartMinutes(b)),
+    );
     return filtered;
   }
 
   /// 获取时间轴的小时列表
   List<int> _getTimelineHours() {
-    if (_timeDetails.isEmpty) return List.generate(13, (i) => i + 8); // 8:00 - 20:00
+    if (_timeDetails.isEmpty)
+      return List.generate(13, (i) => i + 8); // 8:00 - 20:00
     final firstHour = _parseTime(_timeDetails.first.startTime) ~/ 60;
     final lastHour = (_parseTime(_timeDetails.last.endTime) / 60).ceil();
     return List.generate(lastHour - firstHour + 1, (i) => i + firstHour);
@@ -263,38 +315,59 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
                       onPressed: () => _deleteCourse(context, course),
-                      child: const Text('删除', style: TextStyle(color: Colors.red, fontSize: 16)),
+                      child: const Text(
+                        '删除',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
                     ),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                         _editCourse(context, course);
                       },
-                      child: const Text('编辑', style: TextStyle(color: Colors.red, fontSize: 16)),
+                      child: const Text(
+                        '编辑',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
                     ),
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 4,
+                ),
                 child: Text(
                   course.courseName,
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 12,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
                     Text("详情", style: TextStyle(color: Colors.grey)),
-                    Text("以下内容可长按复制", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text(
+                      "以下内容可长按复制",
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
                   ],
                 ),
               ),
@@ -312,13 +385,15 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                           children: [
                             _buildDetailRow(
                               icon: Icons.calendar_today_outlined,
-                              content: '第 ${course.startWeek} - ${course.endWeek} 周',
+                              content:
+                                  '第 ${course.startWeek} - ${course.endWeek} 周',
                               color: Colors.redAccent,
                             ),
                             const Divider(height: 1, indent: 56),
                             _buildDetailRow(
                               icon: Icons.access_time,
-                              content: '周${_weekDayNames[course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}',
+                              content:
+                                  '周${_weekDayNames[course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}',
                               color: Colors.redAccent,
                             ),
                             if (course.teacher.isNotEmpty) ...[
@@ -354,7 +429,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                               text: '复制课程名称',
                               color: Colors.redAccent,
                               onTap: () {
-                                Clipboard.setData(ClipboardData(text: course.courseName));
+                                Clipboard.setData(
+                                  ClipboardData(text: course.courseName),
+                                );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('已复制课程名称')),
                                 );
@@ -400,10 +477,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
               lightIntensity: isDark ? 70 : 50,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-            child: Material(
-              color: Colors.transparent,
-              child: sheet,
-            ),
+            child: Material(color: Colors.transparent, child: sheet),
           );
         }
 
@@ -412,22 +486,36 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     );
   }
 
-  Widget _buildDetailRow({required IconData icon, required String content, required Color color}) {
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String content,
+    required Color color,
+  }) {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(content, style: const TextStyle(fontSize: 16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onLongPress: () {
         Clipboard.setData(ClipboardData(text: content));
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('已复制')));
       },
     );
   }
 
-  Widget _buildActionRow({required IconData icon, required String text, required Color color, VoidCallback? onTap}) {
+  Widget _buildActionRow({
+    required IconData icon,
+    required String text,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(text, style: const TextStyle(fontSize: 16, color: Colors.redAccent)),
+      title: Text(
+        text,
+        style: const TextStyle(fontSize: 16, color: Colors.redAccent),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onTap: onTap,
     );
@@ -440,7 +528,10 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
         title: const Text('删除课程'),
         content: Text('确认要删除 "${course.courseName}" 吗？'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
@@ -473,9 +564,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_currentTable == null) {
@@ -489,12 +578,18 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () async {
-                  final allTables = await ScheduleDataService.loadScheduleTables();
-                  final existingNames = allTables.map((t) => t.tableName).toList();
+                  final allTables =
+                      await ScheduleDataService.loadScheduleTables();
+                  final existingNames = allTables
+                      .map((t) => t.tableName)
+                      .toList();
                   if (!context.mounted) return;
                   final newTable = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(existingNames: existingNames)),
+                    MaterialPageRoute(
+                      builder: (c) =>
+                          ScheduleSettingsScreen(existingNames: existingNames),
+                    ),
                   );
                   if (newTable != null && newTable is ScheduleTable) {
                     await ScheduleDataService.addScheduleTable(newTable);
@@ -542,19 +637,24 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 );
               }
               return MenuAnchor(
-                builder: (BuildContext context, MenuController controller, Widget? child) {
-                  return IconButton(
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
+                builder:
+                    (
+                      BuildContext context,
+                      MenuController controller,
+                      Widget? child,
+                    ) {
+                      return IconButton(
+                        onPressed: () {
+                          if (controller.isOpen) {
+                            controller.close();
+                          } else {
+                            controller.open();
+                          }
+                        },
+                        icon: const Icon(Icons.more_vert),
+                        tooltip: '菜单',
+                      );
                     },
-                    icon: const Icon(Icons.more_vert),
-                    tooltip: '菜单',
-                  );
-                },
                 menuChildren: [
                   SubmenuButton(
                     leadingIcon: const Icon(Icons.download),
@@ -566,18 +666,25 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                           if (!mounted) return;
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (c) => const LoginWebviewScreen()),
+                            MaterialPageRoute(
+                              builder: (c) => const LoginWebviewScreen(),
+                            ),
                           );
                           if (result == true) _initData();
                         },
                         child: const Text('从教务导入'),
                       ),
                       MenuItemButton(
-                        leadingIcon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                        leadingIcon: const Icon(
+                          Icons.picture_as_pdf,
+                          color: Colors.redAccent,
+                        ),
                         onPressed: () async {
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (c) => const ImportClassPdfScreen()),
+                            MaterialPageRoute(
+                              builder: (c) => const ImportClassPdfScreen(),
+                            ),
                           );
                           if (result != null) _initData();
                         },
@@ -592,7 +699,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                       if (_currentTable != null) {
                         final result = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (c) => AddCourseScreen(course: null)),
+                          MaterialPageRoute(
+                            builder: (c) => AddCourseScreen(course: null),
+                          ),
                         );
                         if (result != null && result is Course) {
                           result.tableId = _currentTable!.id;
@@ -607,7 +716,8 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                     leadingIcon: const Icon(Icons.settings),
                     onPressed: () async {
                       if (_currentTable != null) {
-                        final allTables = await ScheduleDataService.loadScheduleTables();
+                        final allTables =
+                            await ScheduleDataService.loadScheduleTables();
                         final existingNames = allTables
                             .where((t) => t.id != _currentTable!.id)
                             .map((t) => t.tableName)
@@ -616,11 +726,16 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         final newTable = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (c) => ScheduleSettingsScreen(table: _currentTable!, existingNames: existingNames),
+                            builder: (c) => ScheduleSettingsScreen(
+                              table: _currentTable!,
+                              existingNames: existingNames,
+                            ),
                           ),
                         );
                         if (newTable != null && newTable is ScheduleTable) {
-                          await ScheduleDataService.updateScheduleTable(newTable);
+                          await ScheduleDataService.updateScheduleTable(
+                            newTable,
+                          );
                           _initData();
                         }
                       }
@@ -650,18 +765,26 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                   _selectedDate = newDate;
                 });
                 // Notify container to refresh FAB label
-                ScheduleViewContainer.containerKey.currentState?.setState(() {});
+                ScheduleViewContainer.containerKey.currentState?.setState(
+                  () {},
+                );
                 // 同步周选择器
-                final targetWeek = (index / 7).floor().clamp(0, _totalWeeks - 1);
+                final targetWeek = (index / 7).floor().clamp(
+                  0,
+                  _totalWeeks - 1,
+                );
                 if (!_isSyncingPages && _weekPageController.hasClients) {
-                  final currentWeekPage = _weekPageController.page?.round() ?? 0;
+                  final currentWeekPage =
+                      _weekPageController.page?.round() ?? 0;
                   if (currentWeekPage != targetWeek) {
                     _isSyncingPages = true;
-                    _weekPageController.animateToPage(
-                      targetWeek,
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                    ).then((_) => _isSyncingPages = false);
+                    _weekPageController
+                        .animateToPage(
+                          targetWeek,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                        )
+                        .then((_) => _isSyncingPages = false);
                   }
                 }
               },
@@ -691,19 +814,26 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
           if (_isSyncingPages) return;
           // 保持同一星期几，切换到新的周
           final weekday = _selectedDate.weekday; // 1=Mon...7=Sun
-          final newDate = _semesterStart.add(Duration(days: weekIndex * 7 + weekday - 1));
-          final dayIndex = newDate.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+          final newDate = _semesterStart.add(
+            Duration(days: weekIndex * 7 + weekday - 1),
+          );
+          final dayIndex = newDate
+              .difference(_semesterStart)
+              .inDays
+              .clamp(0, _totalDays - 1);
           setState(() {
             _selectedDate = newDate;
           });
           // 同步日视图
           if (_pageController.hasClients) {
             _isSyncingPages = true;
-            _pageController.animateToPage(
-              dayIndex,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-            ).then((_) => _isSyncingPages = false);
+            _pageController
+                .animateToPage(
+                  dayIndex,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                )
+                .then((_) => _isSyncingPages = false);
           }
         },
         itemBuilder: (context, weekIndex) {
@@ -713,17 +843,22 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
             child: Row(
               children: List.generate(7, (index) {
                 final date = monday.add(Duration(days: index));
-                final isSelected = date.year == _selectedDate.year &&
+                final isSelected =
+                    date.year == _selectedDate.year &&
                     date.month == _selectedDate.month &&
                     date.day == _selectedDate.day;
-                final isToday = date.year == now.year &&
+                final isToday =
+                    date.year == now.year &&
                     date.month == now.month &&
                     date.day == now.day;
 
                 return Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      final pageIndex = date.difference(_semesterStart).inDays.clamp(0, _totalDays - 1);
+                      final pageIndex = date
+                          .difference(_semesterStart)
+                          .inDays
+                          .clamp(0, _totalDays - 1);
                       _pageController.animateToPage(
                         pageIndex,
                         duration: const Duration(milliseconds: 250),
@@ -739,7 +874,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             fontSize: 13,
                             color: isSelected
                                 ? theme.colorScheme.onSurface
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                : theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -759,11 +896,13 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             '${date.day}',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                               color: isSelected
                                   ? (isToday
-                                      ? theme.colorScheme.surface
-                                      : theme.colorScheme.onPrimary)
+                                        ? theme.colorScheme.surface
+                                        : theme.colorScheme.onPrimary)
                                   : theme.colorScheme.onSurface,
                             ),
                           ),
@@ -859,20 +998,34 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('切换课表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      '切换课表',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.add),
                       onPressed: () async {
                         Navigator.pop(context);
-                        final existingNames = tables.map((t) => t.tableName).toList();
+                        final existingNames = tables
+                            .map((t) => t.tableName)
+                            .toList();
                         if (!this.context.mounted) return;
                         final newTable = await Navigator.push(
                           this.context,
-                          MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(existingNames: existingNames)),
+                          MaterialPageRoute(
+                            builder: (c) => ScheduleSettingsScreen(
+                              existingNames: existingNames,
+                            ),
+                          ),
                         );
                         if (newTable != null && newTable is ScheduleTable) {
                           await ScheduleDataService.addScheduleTable(newTable);
-                          await ScheduleDataService.setCurrentTableId(newTable.id);
+                          await ScheduleDataService.setCurrentTableId(
+                            newTable.id,
+                          );
                           _initData();
                         }
                       },
@@ -882,7 +1035,10 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Text('长按删除课表', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                child: Text(
+                  '长按删除课表',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               ),
               Expanded(
                 child: ListView.builder(
@@ -893,7 +1049,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                     return ListTile(
                       title: Text(table.tableName),
                       subtitle: Text('开学: ${table.startDate}'),
-                      trailing: isCurrent ? const Icon(Icons.check, color: Colors.blue) : null,
+                      trailing: isCurrent
+                          ? const Icon(Icons.check, color: Colors.blue)
+                          : null,
                       selected: isCurrent,
                       onTap: () async {
                         await ScheduleDataService.setCurrentTableId(table.id);
@@ -905,19 +1063,29 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('删除课表'),
-                            content: Text('确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。'),
+                            content: Text(
+                              '确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。',
+                            ),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('取消'),
+                              ),
                               TextButton(
                                 onPressed: () async {
                                   Navigator.pop(context);
-                                  await ScheduleDataService.deleteScheduleTable(table.id);
+                                  await ScheduleDataService.deleteScheduleTable(
+                                    table.id,
+                                  );
                                   if (context.mounted) {
                                     Navigator.pop(context);
                                     _initData();
                                   }
                                 },
-                                child: const Text('删除', style: TextStyle(color: Colors.red)),
+                                child: const Text(
+                                  '删除',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ),
                             ],
                           ),
@@ -945,10 +1113,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
               lightIntensity: isDark ? 70 : 50,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-            child: Material(
-              color: Colors.transparent,
-              child: sheet,
-            ),
+            child: Material(color: Colors.transparent, child: sheet),
           );
         }
 
@@ -957,7 +1122,11 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     );
   }
 
-  Widget _buildDailyTimeline(List<Course> courses, ThemeData theme, DateTime date) {
+  Widget _buildDailyTimeline(
+    List<Course> courses,
+    ThemeData theme,
+    DateTime date,
+  ) {
     final hours = _getTimelineHours();
     if (hours.isEmpty) return const SizedBox();
     final firstHour = hours.first;
@@ -966,8 +1135,48 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     final totalHeight = hours.length * hourHeight;
 
     final now = DateTime.now();
-    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+    final isToday =
+        date.year == now.year && date.month == now.month && date.day == now.day;
     final nowMinutes = now.hour * 60 + now.minute;
+
+    // Calculate layout for overlapping courses
+    Map<Course, int> flexColIndex = {};
+    Map<Course, int> flexTotalCols = {};
+
+    // Sort courses by start minutes
+    var sortedCourses = List<Course>.from(courses);
+    sortedCourses.sort(
+      (a, b) => _courseStartMinutes(a).compareTo(_courseStartMinutes(b)),
+    );
+
+    List<List<Course>> columns = [];
+    for (var course in sortedCourses) {
+      bool placed = false;
+      for (int i = 0; i < columns.length; i++) {
+        // Check if overlaps with any course in this column
+        bool overlap = columns[i].any((placedC) {
+          int start1 = _courseStartMinutes(course);
+          int end1 = _getCourseEndMinutes(course);
+          int start2 = _courseStartMinutes(placedC);
+          int end2 = _getCourseEndMinutes(placedC);
+          return start1 < end2 && end1 > start2; // overlapping time
+        });
+
+        if (!overlap) {
+          columns[i].add(course);
+          flexColIndex[course] = i;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        columns.add([course]);
+        flexColIndex[course] = columns.length - 1;
+      }
+    }
+    for (var c in sortedCourses) {
+      flexTotalCols[c] = columns.isNotEmpty ? columns.length : 1;
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 8, bottom: 32),
@@ -994,7 +1203,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             fontSize: 13,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.4,
+                            ),
                           ),
                         ),
                       ),
@@ -1014,31 +1225,31 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
             ...courses.map((course) {
               final timeRange = _getTimeRange(course);
               int startMin = _courseStartMinutes(course);
-              int endMin;
-              if (course.endTime != null && course.endTime!.isNotEmpty) {
-                endMin = _parseTime(course.endTime!);
-              } else {
-                final endNode = course.startNode + course.step - 1;
-                final overrideEnd = BuildingTimeOverride.getOverrideEndTime(course.room, endNode);
-                if (overrideEnd != null) {
-                  endMin = _parseTime(overrideEnd);
-                } else {
-                  try {
-                    final endDetail = _timeDetails.firstWhere((t) => t.node == endNode);
-                    endMin = _parseTime(endDetail.endTime);
-                  } catch (_) {
-                    endMin = startMin + course.step * 45;
-                  }
-                }
-              }
+              int endMin = _getCourseEndMinutes(course);
 
               final top = _minutesToPosition(startMin, hourHeight, firstHour);
-              final height = math.max((endMin - startMin) / 60.0 * hourHeight, 48.0);
+              final height = math.max(
+                (endMin - startMin) / 60.0 * hourHeight,
+                48.0,
+              );
+
+              int colIndex = flexColIndex[course] ?? 0;
+              int totalCols = flexTotalCols[course] ?? 1;
 
               return Positioned(
                 top: top,
-                left: leftMargin + 4,
-                right: 12,
+                left:
+                    leftMargin +
+                    4 +
+                    colIndex *
+                        ((MediaQuery.of(context).size.width) -
+                            leftMargin -
+                            16) /
+                        totalCols,
+                width:
+                    ((MediaQuery.of(context).size.width) - leftMargin - 16) /
+                        totalCols -
+                    (totalCols > 1 ? 4 : 0),
                 height: height,
                 child: GestureDetector(
                   onTap: () => _showCourseDetail(context, course),
@@ -1047,36 +1258,77 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                       color: course.colorObj,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    child: Stack(
+                      alignment: Alignment.centerLeft,
                       children: [
-                        Flexible(
-                          child: Text(
-                            course.courseName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(_currentTable!.courseTextColor),
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (timeRange.isNotEmpty || course.room.isNotEmpty)
-                          const SizedBox(height: 4),
-                        if (timeRange.isNotEmpty || course.room.isNotEmpty)
-                          Flexible(
-                            child: Text(
-                              [timeRange, if (course.room.isNotEmpty) course.room].where((s) => s.isNotEmpty).join(' · '),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Color(_currentTable!.courseTextColor).withValues(alpha: 0.85),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (course.studyType == CourseStudyType.retake)
+                              Text(
+                                '[重修]',
+                                style: TextStyle(
+                                  color: Colors.red.shade900,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            if (course.studyType == CourseStudyType.exempt)
+                              Text(
+                                '[免听]',
+                                style: TextStyle(
+                                  color: Colors.green.shade900,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            Flexible(
+                              child: Text(
+                                course.courseName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(_currentTable!.courseTextColor),
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (timeRange.isNotEmpty || course.room.isNotEmpty)
+                              const SizedBox(height: 4),
+                            if (timeRange.isNotEmpty || course.room.isNotEmpty)
+                              Flexible(
+                                child: Text(
+                                  [
+                                    timeRange,
+                                    if (course.room.isNotEmpty) course.room,
+                                  ].where((s) => s.isNotEmpty).join(' · '),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(
+                                      _currentTable!.courseTextColor,
+                                    ).withValues(alpha: 0.85),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                        ),
+                        if (totalCols > 1)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.orange,
+                              size: 16,
                             ),
                           ),
                       ],
@@ -1094,19 +1346,24 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    Expanded(
-                      child: Container(height: 2, color: Colors.red),
-                    ),
+                    Expanded(child: Container(height: 2, color: Colors.red)),
                   ],
                 ),
               ),
@@ -1156,12 +1413,18 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 12, bottom: 4),
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              top: 12,
+                              bottom: 4,
+                            ),
                             child: Text(
                               '导入课表',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1176,7 +1439,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                               if (!mounted) return;
                               final result = await Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (c) => const LoginWebviewScreen()),
+                                MaterialPageRoute(
+                                  builder: (c) => const LoginWebviewScreen(),
+                                ),
                               );
                               if (result == true) _initData();
                             },
@@ -1190,7 +1455,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                               Navigator.pop(dialogContext);
                               final result = await Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (c) => const ImportClassPdfScreen()),
+                                MaterialPageRoute(
+                                  builder: (c) => const ImportClassPdfScreen(),
+                                ),
                               );
                               if (result != null) _initData();
                             },
@@ -1199,7 +1466,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             height: 1,
                             indent: 16,
                             endIndent: 16,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.1,
+                            ),
                           ),
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
@@ -1210,7 +1479,10 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                               if (_currentTable != null) {
                                 final result = await Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (c) => AddCourseScreen(course: null)),
+                                  MaterialPageRoute(
+                                    builder: (c) =>
+                                        AddCourseScreen(course: null),
+                                  ),
                                 );
                                 if (result != null && result is Course) {
                                   result.tableId = _currentTable!.id;
@@ -1227,7 +1499,8 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (_currentTable != null) {
-                                final allTables = await ScheduleDataService.loadScheduleTables();
+                                final allTables =
+                                    await ScheduleDataService.loadScheduleTables();
                                 final existingNames = allTables
                                     .where((t) => t.id != _currentTable!.id)
                                     .map((t) => t.tableName)
@@ -1236,11 +1509,17 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                                 final newTable = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (c) => ScheduleSettingsScreen(table: _currentTable!, existingNames: existingNames),
+                                    builder: (c) => ScheduleSettingsScreen(
+                                      table: _currentTable!,
+                                      existingNames: existingNames,
+                                    ),
                                   ),
                                 );
-                                if (newTable != null && newTable is ScheduleTable) {
-                                  await ScheduleDataService.updateScheduleTable(newTable);
+                                if (newTable != null &&
+                                    newTable is ScheduleTable) {
+                                  await ScheduleDataService.updateScheduleTable(
+                                    newTable,
+                                  );
                                   _initData();
                                 }
                               }
@@ -1288,7 +1567,11 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: iconColor ?? theme.colorScheme.onSurface),
+            Icon(
+              icon,
+              size: 20,
+              color: iconColor ?? theme.colorScheme.onSurface,
+            ),
             const SizedBox(width: 12),
             Text(
               label,

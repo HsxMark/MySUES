@@ -23,6 +23,7 @@ class Course {
   String? startTime; // 自定义开始时间 HH:mm
   String? endTime; // 自定义结束时间 HH:mm
   CourseStudyType studyType; // 免听/重修/正常修读
+  bool isHidden = false;
 
   Course({
     this.id = 0,
@@ -40,6 +41,7 @@ class Course {
     this.startTime,
     this.endTime,
     this.studyType = CourseStudyType.normal,
+    this.isHidden = false,
   });
 
   /// 获取节次描述字符串
@@ -79,6 +81,7 @@ class Course {
       startTime: json['startTime'] as String?,
       endTime: json['endTime'] as String?,
       studyType: _studyTypeFromInt(json['studyType'] as int? ?? 0),
+      isHidden: json['isHidden'] as bool? ?? false,
     );
   }
 
@@ -99,6 +102,7 @@ class Course {
       'startTime': startTime,
       'endTime': endTime,
       'studyType': studyType.index,
+      'isHidden': isHidden,
     };
   }
 

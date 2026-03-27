@@ -31,6 +31,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   int _type = 0; // 0: All, 1: Odd, 2: Even
   Color _selectedColor = Colors.blue;
   CourseStudyType _studyType = CourseStudyType.normal;
+  bool _isHidden = false;
   List<TimeDetail> _timeDetails = [];
 
   final List<Color> _colors = [
@@ -374,25 +375,59 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                 ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: DropdownButtonFormField<CourseStudyType>(
-                    key: ValueKey(_studyType),
-                    initialValue: _studyType,
-                    decoration: const InputDecoration(labelText: '当前状态'),
-                    items: const [
-                      DropdownMenuItem(
-                        value: CourseStudyType.normal,
-                        child: Text('正常修读'),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButtonFormField<CourseStudyType>(
+                        key: ValueKey(_studyType),
+                        initialValue: _studyType,
+                        decoration: const InputDecoration(labelText: '当前状态'),
+                        items: const [
+                          DropdownMenuItem(
+                            value: CourseStudyType.normal,
+                            child: Text('正常修读'),
+                          ),
+                          DropdownMenuItem(
+                            value: CourseStudyType.retake,
+                            child: Text('重修'),
+                          ),
+                          DropdownMenuItem(
+                            value: CourseStudyType.exempt,
+                            child: Text('免听'),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          setState(() {
+                            _studyType = v!;
+                            if (_studyType != CourseStudyType.exempt) {
+                              _isHidden = false;
+                            }
+                          });
+                        },
                       ),
-                      DropdownMenuItem(
-                        value: CourseStudyType.retake,
-                        child: Text('重修'),
-                      ),
-                      DropdownMenuItem(
-                        value: CourseStudyType.exempt,
-                        child: Text('免听'),
-                      ),
+                      if (_studyType == CourseStudyType.exempt) ...[
+                        const SizedBox(height: 12),
+                        CheckboxListTile(
+                          title: const Text(
+                            '是否在课表中隐藏？',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          subtitle: const Text(
+                            '隐藏后将不会在课表视图中显示该课程',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          value: _isHidden,
+                          onChanged: (val) {
+                            setState(() {
+                              _isHidden = val ?? false;
+                            });
+                          },
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          dense: true,
+                        ),
+                      ],
                     ],
-                    onChanged: (v) => setState(() => _studyType = v!),
                   ),
                 ),
               ),
@@ -501,6 +536,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
             ? _endTimeController.text
             : null,
         studyType: _studyType,
+        isHidden: _isHidden,
       );
 
       Navigator.pop(context, course);
