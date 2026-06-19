@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'main_entry_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -10,7 +11,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  late VideoPlayerController _controller;
+  static const String _dayAsset = 'assets/videos/splash-day.gif';
+  static const String _nightAsset = 'assets/videos/splash-night.gif';
+  static const Duration _dayDuration = Duration(milliseconds: 2336);
+  static const Duration _nightDuration = Duration(milliseconds: 2002);
+
+  late String _asset;
+  late Duration _animationDuration;
+  Timer? _navigationTimer;
   bool _initialized = false;
   bool _navigated = false;
 
@@ -21,67 +29,59 @@ class _SplashScreenState extends State<SplashScreen> {
     _initialized = true;
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final String asset = isDark
-        ? 'assets/videos/splash-night.mp4'
-        : 'assets/videos/splash-day.mp4';
+    _asset = isDark ? _nightAsset : _dayAsset;
+    _animationDuration = isDark ? _nightDuration : _dayDuration;
 
-    _controller = VideoPlayerController.asset(asset)
-      ..initialize().then((_) {
-        if (!mounted) return;
-        setState(() {});
-        _controller.play();
-      });
+    precacheImage(AssetImage(_asset), context);
+    _navigationTimer = Timer(_animationDuration, _navigateToMain);
+  }
 
-    _controller.addListener(() {
-      if (!mounted || _navigated) return;
-      if (_controller.value.isInitialized &&
-          !_controller.value.isPlaying &&
-          _controller.value.position >= _controller.value.duration) {
-        _navigated = true;
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const MainEntryScreen(),
-            transitionDuration: Duration.zero,
-          ),
-        );
-      }
-    });
+  void _navigateToMain() {
+    if (!mounted || _navigated) return;
+    _navigated = true;
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const MainEntryScreen(),
+        transitionDuration: Duration.zero,
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _navigationTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    const double kWidthFactor  = 0.40;
+    const double kWidthFactor = 0.40;
     const double kHeightFactor = 0.40;
     final screenSize = MediaQuery.sizeOf(context);
-    final double videoW = screenSize.width  * kWidthFactor;
-    final double videoH = screenSize.height * kHeightFactor;
+    final double animationW = screenSize.width * kWidthFactor;
+    final double animationH = screenSize.height * kHeightFactor;
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? Colors.black : Colors.white,
-      body: _controller.value.isInitialized
-          ? Center(
-              child: SizedBox(
-                width: videoW,
-                height: videoH,
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: _controller.value.size.width,
-                    height: _controller.value.size.height,
-                    child: VideoPlayer(_controller),
-                  ),
-                ),
-              ),
-            )
-          : const SizedBox.shrink(),
+      body: Center(
+        child: SizedBox(
+          width: animationW,
+          height: animationH,
+          child: Image.asset(
+            _asset,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _navigateToMain();
+              });
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
     );
   }
 }
