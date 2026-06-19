@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mysues/models/schedule_table.dart';
 import 'package:mysues/models/student_info.dart';
 import 'package:mysues/screens/profile_edit_screen.dart';
 import 'package:mysues/screens/settings/settings_screen.dart';
 import 'package:mysues/screens/about_screen.dart';
 import 'package:mysues/screens/login_webview_screen.dart'; // Import this
+import 'package:mysues/services/schedule_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/sync_disclaimer.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
@@ -24,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Mock data removed. Initialized to null.
   String? _studentId;
   String? _name; 
-  int _currentWeek = 1; // Default
+  int _currentWeek = 0; // Default
   int _totalWeeks = 30; // Default
 
   File? _avatarFile;
@@ -66,12 +68,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _college = prefs.getString(_collegePrefsKey);
       _className = prefs.getString(_classPrefsKey);
       _lastSyncTime = prefs.getString(_lastSyncTimeKey);
-      
-      // Calculate week? 
-      // Need a way to set start date. For now keeping defaults or logic based on saved start date?
-      // ScheduleDataService could provide current week.
-      // _currentWeek = await ScheduleDataService.calculateCurrentWeek();
-      // For now, leave defaults as placeholders until Schedule logic is fully linked.
     });
 
     // Load Avatar
@@ -107,6 +103,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _major = info['major'] ?? '未知';
       });
     }
+
+    await _loadSemesterProgress();
+  }
+
+  Future<void> _loadSemesterProgress() async {
+    final results = await Future.wait([
+      ScheduleDataService.loadScheduleTables(),
+      ScheduleDataService.getCurrentTableId(),
+    ]);
+    final tables = results[0] as List<ScheduleTable>;
+    final currentTableId = results[1] as int;
+
+    if (tables.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _currentWeek = 0;
+        _totalWeeks = 30;
+      });
+      return;
+    }
+
+    final table = tables.firstWhere(
+      (t) => t.id == currentTableId,
+      orElse: () => tables.first,
+    );
+    final totalWeeks = table.maxWeek;
+    final currentWeek = _calculateSemesterWeek(table.startDateObj, totalWeeks);
+
+    if (!mounted) return;
+    setState(() {
+      _currentWeek = currentWeek;
+      _totalWeeks = totalWeeks;
+    });
+  }
+
+  int _calculateSemesterWeek(DateTime startDate, int totalWeeks) {
+    if (totalWeeks <= 0) return 0;
+
+    final startMonday = DateUtils.dateOnly(
+      startDate.subtract(Duration(days: startDate.weekday - 1)),
+    );
+    final today = DateUtils.dateOnly(DateTime.now());
+    final rawWeek = (today.difference(startMonday).inDays / 7).floor() + 1;
+
+    if (rawWeek < 0) return 0;
+    if (rawWeek > totalWeeks) return totalWeeks;
+    return rawWeek;
   }
 
   Future<void> _navigateToEditProfile() async {
@@ -296,7 +339,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProgressSection(BuildContext context) {
     // Semester Progress
-    final double semesterProgress = _currentWeek / _totalWeeks;
+    final double semesterProgress =
+        _totalWeeks > 0 ? (_currentWeek / _totalWeeks).clamp(0.0, 1.0) : 0.0;
     final int semesterPercentage = (semesterProgress * 100).round();
 
     // University Progress Calculation
@@ -305,8 +349,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         final yearStr = _studentId!.substring(4, 6);
         final int entranceYear = 2000 + (int.tryParse(yearStr) ?? 0);
-        final int currentYear = 2026;
-        final int currentMonth = 2; // Feb
+        final now = DateTime.now();
+        final int currentYear = now.year;
+        final int currentMonth = now.month;
 
         // Calculate current semester (1-based)
         // If Sept (9) or later: (Current - Entrance) * 2 + 1
@@ -357,10 +402,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         value: semesterProgress,
                         backgroundColor: Colors.grey[200],
                         strokeWidth: 8,
-                      ),
-                      Text(
-                        '${_currentWeek}/${_totalWeeks}',
-                        style: const TextStyle(fontSize: 10),
                       ),
                     ],
                   ),
