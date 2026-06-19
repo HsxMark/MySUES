@@ -10,8 +10,27 @@ import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
+import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class ScheduleWidgetProvider : HomeWidgetProvider() {
+    private data class CourseEntry(
+        val name: String,
+        val time: String,
+        val endTime: String,
+        val loc: String,
+        val color: String?
+    )
+
+    private data class ScheduleDay(
+        val title: String,
+        val week: String,
+        val courses: List<CourseEntry>
+    )
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -41,8 +60,23 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                     setOnClickPendingIntent(R.id.widget_root, pendingIntent)
                 }
 
-                val title = widgetData.getString("title", "今日无课")
-                val week = widgetData.getString("week", "")
+                val scheduleDay = loadScheduleDay(widgetData)
+                val hasCache = hasScheduleCache(widgetData)
+                val courses = when {
+                    scheduleDay != null -> filterUpcomingCourses(scheduleDay.courses)
+                    hasCache -> emptyList()
+                    else -> filterUpcomingCourses(loadLegacyCourses(widgetData))
+                }
+                val title = when {
+                    scheduleDay != null -> scheduleDay.title
+                    hasCache -> "请打开APP更新课表"
+                    else -> widgetData.getString("title", "今日无课")
+                }
+                val week = when {
+                    scheduleDay != null -> scheduleDay.week
+                    hasCache -> ""
+                    else -> widgetData.getString("week", "")
+                }
                 
                 setTextViewText(R.id.widget_title, title)
                 setTextViewText(R.id.widget_week, week)
@@ -50,30 +84,25 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                 var hasVisibleCourse = false
 
                 for (i in 1..8) {
-                    val courseName = widgetData.getString("course_${i}_name", "")
-                    val courseTime = widgetData.getString("course_${i}_time", "")
-                    val courseEnd = widgetData.getString("course_${i}_endtime", "")
-                    val courseLoc = widgetData.getString("course_${i}_loc", "")
-                    val courseColor = widgetData.getString("course_${i}_color", "")
-                    
                     val rowId = context.resources.getIdentifier("course_row_$i", "id", context.packageName)
                     val nameId = context.resources.getIdentifier("course_${i}_name", "id", context.packageName)
                     val timeId = context.resources.getIdentifier("course_${i}_time", "id", context.packageName)
                     val endtimeId = context.resources.getIdentifier("course_${i}_endtime", "id", context.packageName)
                     val locId = context.resources.getIdentifier("course_${i}_loc", "id", context.packageName)
                     val barId = context.resources.getIdentifier("course_${i}_bar", "id", context.packageName)
+                    val course = courses.getOrNull(i - 1)
 
-                    if (courseName.isNullOrEmpty() || i > maxCourses) {
+                    if (course == null || i > maxCourses) {
                         setViewVisibility(rowId, View.GONE)
                     } else {
                         hasVisibleCourse = true
                         setViewVisibility(rowId, View.VISIBLE)
-                        setTextViewText(nameId, courseName)
-                        setTextViewText(timeId, courseTime)
-                        setTextViewText(endtimeId, courseEnd)
-                        setTextViewText(locId, courseLoc)
+                        setTextViewText(nameId, course.name)
+                        setTextViewText(timeId, course.time)
+                        setTextViewText(endtimeId, course.endTime)
+                        setTextViewText(locId, course.loc)
 
-                        val resolvedColor = parseCourseColor(courseColor) ?: fallbackColor(i)
+                        val resolvedColor = parseCourseColor(course.color) ?: fallbackColor(i)
                         setInt(barId, "setBackgroundColor", resolvedColor)
                     }
                 }
@@ -98,6 +127,99 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
         // Re-render widget when size changes
         val widgetData = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
         onUpdate(context, appWidgetManager, intArrayOf(appWidgetId), widgetData)
+    }
+
+    private fun hasScheduleCache(widgetData: SharedPreferences): Boolean {
+        val raw = widgetData.getString("schedule_days_v1", null)
+        if (raw.isNullOrBlank()) return false
+
+        return try {
+            val days = JSONObject(raw).optJSONArray("days")
+            days != null && days.length() > 0
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun loadScheduleDay(widgetData: SharedPreferences): ScheduleDay? {
+        val raw = widgetData.getString("schedule_days_v1", null)
+        if (raw.isNullOrBlank()) return null
+
+        return try {
+            val targetDate = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(Date())
+            val days = JSONObject(raw).optJSONArray("days") ?: return null
+
+            for (i in 0 until days.length()) {
+                val day = days.optJSONObject(i) ?: continue
+                if (day.optString("date") != targetDate) continue
+
+                val courseList = mutableListOf<CourseEntry>()
+                val courses = day.optJSONArray("courses")
+                if (courses != null) {
+                    for (j in 0 until courses.length()) {
+                        val course = courses.optJSONObject(j) ?: continue
+                        val name = course.optString("name")
+                        if (name.isBlank()) continue
+
+                        courseList.add(
+                            CourseEntry(
+                                name = name,
+                                time = course.optString("time"),
+                                endTime = course.optString("endTime"),
+                                loc = course.optString("loc"),
+                                color = course.optString("color").takeIf { it.isNotBlank() }
+                            )
+                        )
+                    }
+                }
+
+                return ScheduleDay(
+                    title = day.optString("title", "今日无课"),
+                    week = day.optString("week"),
+                    courses = courseList
+                )
+            }
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun loadLegacyCourses(widgetData: SharedPreferences): List<CourseEntry> {
+        val courses = mutableListOf<CourseEntry>()
+        for (i in 1..8) {
+            val name = widgetData.getString("course_${i}_name", "") ?: ""
+            if (name.isBlank()) continue
+
+            courses.add(
+                CourseEntry(
+                    name = name,
+                    time = widgetData.getString("course_${i}_time", "") ?: "",
+                    endTime = widgetData.getString("course_${i}_endtime", "") ?: "",
+                    loc = widgetData.getString("course_${i}_loc", "") ?: "",
+                    color = widgetData.getString("course_${i}_color", "")
+                )
+            )
+        }
+        return courses
+    }
+
+    private fun filterUpcomingCourses(courses: List<CourseEntry>): List<CourseEntry> {
+        val now = Calendar.getInstance()
+        val currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+        return courses.filter { course ->
+            val endMinutes = parseMinutes(course.endTime)
+            endMinutes == null || endMinutes > currentMinutes
+        }
+    }
+
+    private fun parseMinutes(time: String): Int? {
+        val parts = time.split(":")
+        if (parts.size != 2) return null
+
+        val hour = parts[0].toIntOrNull() ?: return null
+        val minute = parts[1].toIntOrNull() ?: return null
+        return hour * 60 + minute
     }
 
     private fun parseCourseColor(rawColor: String?): Int? {

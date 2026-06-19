@@ -15,33 +15,28 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let sharedDefaults = UserDefaults(suiteName: "group.com.hsxmark.mysues")
-        let title = sharedDefaults?.string(forKey: "title") ?? "今日无课"
-        let week = sharedDefaults?.string(forKey: "week") ?? ""
-        let updateDateStr = sharedDefaults?.string(forKey: "updateDate") ?? ""
-        
-        let allCourses = loadAllCourses(from: sharedDefaults)
-        
         let now = Date()
         let calendar = Calendar.current
-        
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let todayStr = formatter.string(from: now)
-        
-        // Build timeline entries: one for now, and one after each course ends
-        var entries: [SimpleEntry] = []
-        
-        if !updateDateStr.isEmpty && updateDateStr != todayStr {
-            entries.append(SimpleEntry(date: now, title: "请打开APP更新课表", week: "", courses: []))
-            let timeline = Timeline(entries: entries, policy: .atEnd)
-            completion(timeline)
+        let nextMidnight = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: now) ?? now)
+        let scheduleDay = loadScheduleDay(from: sharedDefaults, for: now)
+
+        if hasScheduleCache(in: sharedDefaults), scheduleDay == nil {
+            let entry = SimpleEntry(date: now, title: "请打开APP更新课表", week: "", courses: [])
+            completion(Timeline(entries: [entry], policy: .atEnd))
             return
         }
-        
+
+        let title = scheduleDay?.title ?? sharedDefaults?.string(forKey: "title") ?? "今日无课"
+        let week = scheduleDay?.week ?? sharedDefaults?.string(forKey: "week") ?? ""
+        let allCourses = scheduleDay?.courses ?? loadAllCourses(from: sharedDefaults)
+
+        // Build timeline entries: one for now, and one after each course ends
+        var entries: [SimpleEntry] = []
+
         // Collect unique end-time dates (today) for courses that haven't ended yet
         var refreshDates: [Date] = [now]
         for course in allCourses {
-            if let endDate = todayDate(from: course.endTime, calendar: calendar), endDate > now {
+            if let endDate = date(from: course.endTime, on: now, calendar: calendar), endDate > now {
                 refreshDates.append(endDate)
             }
         }
@@ -53,7 +48,7 @@ struct Provider: TimelineProvider {
         
         for date in refreshDates {
             let remaining = allCourses.filter { course in
-                guard let endDate = todayDate(from: course.endTime, calendar: calendar) else {
+                guard let endDate = self.date(from: course.endTime, on: date, calendar: calendar) else {
                     return true // Can't determine end time, keep it
                 }
                 return endDate > date
@@ -65,7 +60,7 @@ struct Provider: TimelineProvider {
         }
         
         // After all courses end, show empty state
-        if let lastEnd = allCourses.compactMap({ todayDate(from: $0.endTime, calendar: calendar) }).max(), lastEnd > now {
+        if let lastEnd = allCourses.compactMap({ date(from: $0.endTime, on: now, calendar: calendar) }).max(), lastEnd > now {
             entries.append(SimpleEntry(date: lastEnd, title: title, week: week, courses: []))
         }
         
@@ -73,8 +68,56 @@ struct Provider: TimelineProvider {
             entries.append(SimpleEntry(date: now, title: title, week: week, courses: []))
         }
         
-        let timeline = Timeline(entries: entries, policy: .atEnd)
+        let timeline = Timeline(entries: entries, policy: .after(nextMidnight))
         completion(timeline)
+    }
+
+    func hasScheduleCache(in sharedDefaults: UserDefaults?) -> Bool {
+        guard let raw = sharedDefaults?.string(forKey: "schedule_days_v1"),
+              let data = raw.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let days = json["days"] as? [[String: Any]] else {
+            return false
+        }
+        return !days.isEmpty
+    }
+
+    func loadScheduleDay(from sharedDefaults: UserDefaults?, for date: Date) -> ScheduleDay? {
+        guard let raw = sharedDefaults?.string(forKey: "schedule_days_v1"),
+              let data = raw.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let days = json["days"] as? [[String: Any]] else {
+            return nil
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let targetDate = formatter.string(from: date)
+
+        guard let day = days.first(where: { $0["date"] as? String == targetDate }) else {
+            return nil
+        }
+
+        let coursesJson = day["courses"] as? [[String: Any]] ?? []
+        let courses = coursesJson.enumerated().compactMap { (idx, rawCourse) -> CourseEntry? in
+            guard let name = rawCourse["name"] as? String, !name.isEmpty else {
+                return nil
+            }
+            return CourseEntry(
+                name: name,
+                time: rawCourse["time"] as? String ?? "",
+                endTime: rawCourse["endTime"] as? String ?? "",
+                loc: rawCourse["loc"] as? String ?? "",
+                colorIdx: idx % 2,
+                colorHex: rawCourse["color"] as? String
+            )
+        }
+
+        return ScheduleDay(
+            title: day["title"] as? String ?? "今日无课",
+            week: day["week"] as? String ?? "",
+            courses: courses
+        )
     }
     
     func loadAllCourses(from sharedDefaults: UserDefaults?) -> [CourseEntry] {
@@ -92,11 +135,11 @@ struct Provider: TimelineProvider {
         return courses
     }
     
-    func todayDate(from timeStr: String, calendar: Calendar) -> Date? {
+    func date(from timeStr: String, on date: Date, calendar: Calendar) -> Date? {
         guard !timeStr.isEmpty else { return nil }
         let parts = timeStr.split(separator: ":")
         guard parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) else { return nil }
-        return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: Date())
+        return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date)
     }
     
     func loadData() -> SimpleEntry {
@@ -118,7 +161,7 @@ struct Provider: TimelineProvider {
         
         let allCourses = loadAllCourses(from: sharedDefaults)
         let remaining = allCourses.filter { course in
-            guard let endDate = todayDate(from: course.endTime, calendar: calendar) else { return true }
+            guard let endDate = date(from: course.endTime, on: now, calendar: calendar) else { return true }
             return endDate > now
         }
         let reindexed = remaining.enumerated().map { (idx, c) in
@@ -136,6 +179,12 @@ struct CourseEntry: Hashable {
     let loc: String
     let colorIdx: Int
     let colorHex: String?
+}
+
+struct ScheduleDay {
+    let title: String
+    let week: String
+    let courses: [CourseEntry]
 }
 
 struct SimpleEntry: TimelineEntry {
