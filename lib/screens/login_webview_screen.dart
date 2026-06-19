@@ -561,6 +561,11 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     }
   }
 
+  void _updateStep(String step) {
+    if (!mounted) return;
+    setState(() => _currentStep = step);
+  }
+
   Future<void> _extractExam() async {
     try {
       String targetBase =
@@ -568,42 +573,49 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
       // 1. 确保 WebView 已导航到课表页面（建立 session 上下文）
       final currentUrl = await _controller.currentUrl();
+      if (!mounted) return;
       if (currentUrl == null ||
           !currentUrl.contains("student/for-std/course-table")) {
-        setState(() => _currentStep = "正在跳转到教务系统...");
+        _updateStep("正在跳转到教务系统...");
         String courseUrl = "$targetBase/student/for-std/course-table";
         await _controller.loadRequest(Uri.parse(courseUrl));
+        if (!mounted) return;
 
         int retries = 0;
         while (retries < 15) {
           await Future.delayed(const Duration(milliseconds: 1000));
+          if (!mounted) return;
           final url = await _controller.currentUrl();
+          if (!mounted) return;
           if (url != null && url.contains("course-table")) break;
           retries++;
         }
       }
 
       // 2. 等待学期列表加载完成（确认页面会话已就绪，最多30秒）
-      setState(() => _currentStep = "正在等待页面加载...");
+      _updateStep("正在等待页面加载...");
       List<String> semesterIds = [];
       int retryCount = 0;
       while (retryCount < 30) {
         semesterIds = await FetchCourseService.fetchSemesterIds(_controller);
+        if (!mounted) return;
         if (semesterIds.isNotEmpty) break;
         await Future.delayed(const Duration(milliseconds: 1000));
+        if (!mounted) return;
         retryCount++;
       }
 
       if (semesterIds.isEmpty) {
         _showSnack("页面未就绪，请重试");
-        setState(() => _currentStep = "页面加载超时，请重试");
+        _updateStep("页面加载超时，请重试");
         return;
       }
 
       // 3. 从课表数据中提取 studentId（与成绩提取相同的可靠方式）
-      setState(() => _currentStep = "正在解析学生信息...");
+      _updateStep("正在解析学生信息...");
       String? studentId;
       final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
       studentId = prefs.getString('user_internal_id');
 
       if (studentId == null || studentId.isEmpty) {
@@ -613,6 +625,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           targetBase,
           latestSemester,
         );
+        if (!mounted) return;
 
         if (courseData != null && courseData['studentTableVms'] != null) {
           final vms = courseData['studentTableVms'] as List;
@@ -621,11 +634,14 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
             if (vm['id'] != null) {
               studentId = vm['id'].toString();
               await prefs.setString('user_internal_id', studentId);
+              if (!mounted) return;
               if (vm['code'] != null) {
                 await prefs.setString('student_id', vm['code'].toString());
+                if (!mounted) return;
               }
               if (vm['name'] != null) {
                 await prefs.setString('user_nickname', vm['name'].toString());
+                if (!mounted) return;
               }
             }
           }
@@ -634,48 +650,45 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
       if (studentId == null || studentId.isEmpty) {
         _showSnack("无法获取学生信息，请重试");
-        setState(() => _currentStep = "获取学生信息失败");
+        _updateStep("获取学生信息失败");
         return;
       }
 
       // 4. 提取考试数据（带重试，iOS WKWebView 首次 XHR 可能因 session cookie 延迟而失败）
       List<Exam> exams = [];
       for (int attempt = 1; attempt <= 3; attempt++) {
-        setState(
-          () => _currentStep =
-              "正在提取考试安排...${attempt > 1 ? ' (第${attempt}次尝试)' : ''}",
-        );
+        _updateStep("正在提取考试安排...${attempt > 1 ? ' (第$attempt次尝试)' : ''}");
         exams = await FetchExamService.fetchExams(
           _controller,
           targetBase,
           studentId: studentId,
         );
+        if (!mounted) return;
         if (exams.isNotEmpty) break;
         if (attempt < 3) {
-          setState(() => _currentStep = "未获取到数据，等待重试...");
+          _updateStep("未获取到数据，等待重试...");
           await Future.delayed(const Duration(seconds: 2));
+          if (!mounted) return;
         }
       }
 
       if (exams.isEmpty) {
         _showSnack("未检测到考试数据");
-        setState(() => _currentStep = "未找到考试数据");
+        _updateStep("未找到考试数据");
         return;
       }
 
       await ExamService.saveExams(exams);
-      String msg = "成功导入 ${exams.length} 条考试记录！";
-      _showSnack(msg);
-      setState(() => _currentStep = msg);
+      if (!mounted) return;
 
       _isDataChanged = true;
-      _recordSyncTime();
+      await _recordSyncTime();
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       debugPrint("Extract Exam Error: $e");
       _showSnack("提取失败: $e");
-      setState(() => _currentStep = "提取失败，请重试");
+      _updateStep("提取失败，请重试");
     }
   }
 

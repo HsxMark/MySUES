@@ -25,14 +25,6 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   void initState() {
     super.initState();
     _loadExams();
-    // Listen for updates from other screens (e.g. LoginWebview)
-    ExamService.examsUpdateNotifier.addListener(_loadExams);
-  }
-
-  @override
-  void dispose() {
-    ExamService.examsUpdateNotifier.removeListener(_loadExams);
-    super.dispose();
   }
 
   Future<void> _loadExams() async {
@@ -41,6 +33,24 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       setState(() {
         _allExams = exams;
       });
+    }
+  }
+
+  Future<void> _importFromAcademic() async {
+    final screenContext = context;
+    if (!await showSyncDisclaimer(screenContext)) return;
+    if (!screenContext.mounted) return;
+
+    final result = await Navigator.of(screenContext).push<bool>(
+      MaterialPageRoute(builder: (context) => const LoginWebviewScreen()),
+    );
+
+    if (result == true && screenContext.mounted) {
+      await _loadExams();
+      if (!screenContext.mounted) return;
+      ScaffoldMessenger.of(
+        screenContext,
+      ).showSnackBar(const SnackBar(content: Text('考试安排导入成功')));
     }
   }
 
@@ -78,7 +88,8 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
     try {
       final datePart = timeString.substring(0, 10);
       final now = DateTime.now();
-      final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final todayStr =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
       return datePart == todayStr;
     } catch (e) {
       return false;
@@ -93,7 +104,9 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       appBar: AppBar(
         title: const Text('考试信息'),
         centerTitle: true,
-        backgroundColor: ThemeService().liquidGlassEnabled ? Colors.transparent : null,
+        backgroundColor: ThemeService().liquidGlassEnabled
+            ? Colors.transparent
+            : null,
         elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
           ListenableBuilder(
@@ -107,36 +120,28 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                 );
               }
               return MenuAnchor(
-                builder: (BuildContext context, MenuController controller, Widget? child) {
-                  return IconButton(
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
+                builder:
+                    (
+                      BuildContext context,
+                      MenuController controller,
+                      Widget? child,
+                    ) {
+                      return IconButton(
+                        onPressed: () {
+                          if (controller.isOpen) {
+                            controller.close();
+                          } else {
+                            controller.open();
+                          }
+                        },
+                        icon: const Icon(Icons.more_vert),
+                        tooltip: '菜单',
+                      );
                     },
-                    icon: const Icon(Icons.more_vert),
-                    tooltip: '菜单',
-                  );
-                },
                 menuChildren: [
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.sync_alt),
-                    onPressed: () async {
-                      if (!await showSyncDisclaimer(context)) return;
-                      if (!mounted) return;
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginWebviewScreen(),
-                        ),
-                      );
-                      // LoginWebviewScreen returns true if data changed
-                      if (result == true && mounted) {
-                        await _loadExams();
-                      }
-                    },
+                    onPressed: _importFromAcademic,
                     child: const Text('从教务处导入'),
                   ),
                   MenuItemButton(
@@ -147,7 +152,10 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                     child: const Text('添加自定义考试'),
                   ),
                   MenuItemButton(
-                    leadingIcon: const Icon(Icons.delete_outline, color: Colors.grey),
+                    leadingIcon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.grey,
+                    ),
                     onPressed: () {
                       _clearFinishedExams();
                     },
@@ -179,13 +187,19 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
               ],
             ),
           ),
-          
+
           // Filter
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
-                const Text('筛选: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  '筛选: ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(width: 8),
                 _buildFilterChip('全部'),
                 const SizedBox(width: 8),
@@ -201,7 +215,10 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
             child: displayExams.isEmpty
                 ? const Center(child: Text('暂无符合条件的考试信息'))
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
                     itemCount: displayExams.length,
                     itemBuilder: (context, index) {
                       final exam = displayExams[index];
@@ -260,20 +277,17 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                             label: '从教务处导入',
                             onTap: () async {
                               Navigator.pop(dialogContext);
-                              if (!await showSyncDisclaimer(context)) return;
-                              if (!mounted) return;
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginWebviewScreen(),
-                                ),
-                              );
-                              if (result == true && mounted) {
-                                await _loadExams();
-                              }
+                              await _importFromAcademic();
                             },
                           ),
-                          Divider(height: 1, indent: 16, endIndent: 16, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                          Divider(
+                            height: 1,
+                            indent: 16,
+                            endIndent: 16,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.1,
+                            ),
+                          ),
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.add,
@@ -334,7 +348,11 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: iconColor ?? theme.colorScheme.onSurface),
+            Icon(
+              icon,
+              size: 20,
+              color: iconColor ?? theme.colorScheme.onSurface,
+            ),
             const SizedBox(width: 12),
             Text(
               label,
@@ -353,9 +371,9 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
     await ExamService.clearFinishedExams();
     _loadExams();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已清除所有已结束的考试')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('已清除所有已结束的考试')));
     }
   }
 
@@ -381,43 +399,60 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         final theme = Theme.of(context);
 
         Widget sheet = Container(
-          decoration: isLiquidGlass ? null : BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
+          decoration: isLiquidGlass
+              ? null
+              : BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
           padding: const EdgeInsets.only(top: 8),
           height: MediaQuery.of(context).size.height * 0.75,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-               // Handle bar
-               Center(
-                 child: Container(
-                   width: 40, 
-                   height: 5, 
-                   decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
-                 ),
-               ),
-               // Top buttons
-               Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                 child: Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: [
-                     TextButton(
-                       onPressed: () async {
-                          // Confirm delete
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
+              // Top buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        // Confirm delete
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('确认删除'),
                             content: const Text('删除后无法恢复，是否继续？'),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('删除', style: TextStyle(color: Colors.red))),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('取消'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text(
+                                  '删除',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
                             ],
                           ),
                         );
@@ -428,117 +463,142 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                             _loadExams();
                           }
                         }
-                       },
-                       child: const Text('删除', style: TextStyle(color: Colors.red, fontSize: 16)),
-                     ),
-                     TextButton(
-                       onPressed: () {
-                         Navigator.pop(context);
-                         _navigateToAddExam(existingExam: exam);
-                       },
-                       child: const Text('编辑', style: TextStyle(color: Colors.redAccent, fontSize: 16)),
-                     ),
-                   ],
-                 ),
-               ),
-               // Title
-               Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
-                 child: Text(
-                   exam.courseName,
-                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                 ),
-               ),
-               // Sub headers
-                Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
-                 child: Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: const [
-                     Text("详情", style: TextStyle(color: Colors.grey)),
-                     Text("以下内容可长按复制", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                   ],
-                 ),
-               ),
-               
-               // Info Card
-               Expanded(
-                 child: SingleChildScrollView(
-                   child: Column(
-                     children: [
-                       Container(
-                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                         decoration: BoxDecoration(
-                           color: Theme.of(context).cardColor,
-                           borderRadius: BorderRadius.circular(16),
-                         ),
-                         child: Column(
-                           children: [
-                             _buildDetailRow(
-                               icon: Icons.access_time, 
-                               content: exam.timeString,
-                               color: Colors.redAccent
-                             ),
-                             const Divider(height: 1, indent: 56),
-                             _buildDetailRow(
-                               icon: Icons.location_on_outlined, 
-                               content: exam.location,
-                               color: Colors.redAccent
-                             ),
-                             const Divider(height: 1, indent: 56),
-                             _buildDetailRow(
-                               icon: Icons.category_outlined,
-                               content: exam.type,
-                               color: Colors.redAccent
-                             ),
-                             const Divider(height: 1, indent: 56),
-                             _buildDetailRow(
-                               icon: Icons.info_outline,
-                               content: exam.status,
-                               color: Colors.redAccent
-                             ),
-                           ],
-                         ),
-                       ),
-                       
-                       const SizedBox(height: 16),
-                       // Actions Card
-                        Container(
-                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                         decoration: BoxDecoration(
-                           color: Theme.of(context).cardColor,
-                           borderRadius: BorderRadius.circular(16),
-                         ),
-                         child: Column(
-                           children: [
-                             _buildActionRow(
-                               icon: Icons.copy, 
-                               text: '复制考试名称',
-                               color: Colors.redAccent,
-                               onTap: () {
-                                 Clipboard.setData(ClipboardData(text: exam.courseName));
-                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制考试名称')));
-                               }
-                             ),
-                             const Divider(height: 1, indent: 56),
-                             _buildActionRow(
-                               icon: Icons.copy, 
-                               text: '复制考试信息为文本',
-                               color: Colors.redAccent,
-                               onTap: () {
-                                 final info = '${exam.courseName}\n时间: ${exam.timeString}\n地点: ${exam.location}';
-                                 Clipboard.setData(ClipboardData(text: info));
-                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制考试信息')));
-                               }
-                             ),
-                           ],
-                         ),
-                       ),
-                       const SizedBox(height: 30),
-                     ],
-                   ),
-                 ),
-               ),
+                      },
+                      child: const Text(
+                        '删除',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _navigateToAddExam(existingExam: exam);
+                      },
+                      child: const Text(
+                        '编辑',
+                        style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 4,
+                ),
+                child: Text(
+                  exam.courseName,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              // Sub headers
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text("详情", style: TextStyle(color: Colors.grey)),
+                    Text(
+                      "以下内容可长按复制",
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Info Card
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildDetailRow(
+                              icon: Icons.access_time,
+                              content: exam.timeString,
+                              color: Colors.redAccent,
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildDetailRow(
+                              icon: Icons.location_on_outlined,
+                              content: exam.location,
+                              color: Colors.redAccent,
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildDetailRow(
+                              icon: Icons.category_outlined,
+                              content: exam.type,
+                              color: Colors.redAccent,
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildDetailRow(
+                              icon: Icons.info_outline,
+                              content: exam.status,
+                              color: Colors.redAccent,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                      // Actions Card
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildActionRow(
+                              icon: Icons.copy,
+                              text: '复制考试名称',
+                              color: Colors.redAccent,
+                              onTap: () {
+                                Clipboard.setData(
+                                  ClipboardData(text: exam.courseName),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('已复制考试名称')),
+                                );
+                              },
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildActionRow(
+                              icon: Icons.copy,
+                              text: '复制考试信息为文本',
+                              color: Colors.redAccent,
+                              onTap: () {
+                                final info =
+                                    '${exam.courseName}\n时间: ${exam.timeString}\n地点: ${exam.location}';
+                                Clipboard.setData(ClipboardData(text: info));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('已复制考试信息')),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -557,10 +617,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
               lightIntensity: isDark ? 70 : 50,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-            child: Material(
-              color: Colors.transparent,
-              child: sheet,
-            ),
+            child: Material(color: Colors.transparent, child: sheet),
           );
         }
 
@@ -569,22 +626,36 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
     );
   }
 
-  Widget _buildDetailRow({required IconData icon, required String content, required Color color}) {
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String content,
+    required Color color,
+  }) {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(content, style: const TextStyle(fontSize: 16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onLongPress: () {
-         Clipboard.setData(ClipboardData(text: content));
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制')));
+        Clipboard.setData(ClipboardData(text: content));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('已复制')));
       },
     );
   }
-  
-  Widget _buildActionRow({required IconData icon, required String text, required Color color, VoidCallback? onTap}) {
-       return ListTile(
+
+  Widget _buildActionRow({
+    required IconData icon,
+    required String text,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
+    return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(text, style: const TextStyle(fontSize: 16, color: Colors.redAccent)),
+      title: Text(
+        text,
+        style: const TextStyle(fontSize: 16, color: Colors.redAccent),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onTap: onTap,
     );
@@ -638,11 +709,19 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
             const SizedBox(height: 8),
             const Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange,
+                  size: 16,
+                ),
                 SizedBox(width: 4),
                 Text(
                   '今日考试，请注意时间！',
-                  style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -673,10 +752,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                   : theme.colorScheme.surface.withValues(alpha: 0.6),
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: 36),
-            child: Material(
-              color: Colors.transparent,
-              child: content,
-            ),
+            child: Material(color: Colors.transparent, child: content),
           ),
         ),
       );
@@ -690,7 +766,9 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         color: isTodayExam ? Colors.yellow[100] : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: isTodayExam ? const BorderSide(color: Colors.orange, width: 2) : BorderSide.none,
+          side: isTodayExam
+              ? const BorderSide(color: Colors.orange, width: 2)
+              : BorderSide.none,
         ),
         child: content,
       ),
@@ -702,7 +780,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
     if (status == '已结束') {
       color = Colors.grey;
     } else if (status == '未结束' || status == '进行中') {
-      color = Colors.blue; 
+      color = Colors.blue;
     } else {
       color = Colors.blue;
     }
@@ -729,26 +807,16 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Colors.grey[600],
-        ),
+        Icon(icon, size: 16, color: Colors.grey[600]),
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
         ),
       ],
