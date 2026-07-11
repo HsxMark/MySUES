@@ -564,6 +564,15 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       child: Stack(
         alignment: Alignment.center,
         children: [
+          ExcludeSemantics(
+            child: IgnorePointer(
+              child: Icon(
+                Icons.school_rounded,
+                size: 96,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -583,14 +592,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 textAlign: TextAlign.center,
               ),
             ],
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Icon(
-              Icons.school_rounded,
-              size: 48,
-              color: Colors.white.withValues(alpha: 0.22),
-            ),
           ),
         ],
       ),
