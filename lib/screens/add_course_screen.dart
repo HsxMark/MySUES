@@ -204,7 +204,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   child: Column(
                     children: [
                       DropdownButtonFormField<int>(
-                        value: _day,
+                        initialValue: _day,
                         decoration: const InputDecoration(labelText: '星期'),
                         items: List.generate(
                           7,
@@ -222,7 +222,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<int>(
-                              value: _startNode,
+                              initialValue: _startNode,
                               decoration: const InputDecoration(
                                 labelText: '开始节次',
                               ),
@@ -252,7 +252,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: DropdownButtonFormField<int>(
-                              value: _endNode,
+                              initialValue: _endNode,
                               decoration: const InputDecoration(
                                 labelText: '结束节次',
                               ),

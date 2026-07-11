@@ -537,7 +537,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           Icon(
             Icons.school_rounded,
             size: 48,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
           ),
         ],
       ),
@@ -582,9 +582,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                  width: double.infinity,
                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                  decoration: BoxDecoration(
-                   color: Colors.orange.withOpacity(0.1),
+                   color: Colors.orange.withValues(alpha: 0.1),
                    borderRadius: BorderRadius.circular(8),
-                   border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                   border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                  ),
                  child: Row(
                    children: [
@@ -614,9 +614,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -666,9 +666,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         margin: const EdgeInsets.only(left: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.red.withOpacity(0.5)),
+                          border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
                         ),
                         child: const Text(
                           '挂科',

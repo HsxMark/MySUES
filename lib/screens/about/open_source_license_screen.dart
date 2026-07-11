@@ -25,7 +25,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
               color: Theme.of(context).cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -53,7 +53,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
+                            color: Colors.green.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
@@ -97,7 +97,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
               color: Theme.of(context).cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -144,7 +144,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text('免费商用', style: TextStyle(fontSize: 10, color: Colors.blue)),

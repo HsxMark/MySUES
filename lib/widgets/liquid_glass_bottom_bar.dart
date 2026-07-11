@@ -323,7 +323,7 @@ class _ExtraButtonState extends State<_ExtraButton> {
           child: LiquidGlass.grouped(
             shape: const LiquidOval(),
             child: GlassGlow(
-              child: Container(
+              child: SizedBox(
                 height: widget.config.size,
                 width: widget.config.size,
                 child: Center(

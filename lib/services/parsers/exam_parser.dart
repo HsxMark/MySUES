@@ -31,10 +31,15 @@ class ExamParser {
       
       for (int i = 0; i < cols.length; i++) {
           String txt = cols[i].text.trim();
-          if (txt.contains("课程名称") || txt.contains("Course")) nameIdx = i;
-          else if (txt.contains("时间") || txt.contains("Time")) timeIdx = i;
-          else if (txt.contains("地点") || txt.contains("Location") || txt.contains("Room")) locIdx = i;
-          else if (txt.contains("座") || txt.contains("Seat")) seatIdx = i;
+          if (txt.contains("课程名称") || txt.contains("Course")) {
+            nameIdx = i;
+          } else if (txt.contains("时间") || txt.contains("Time")) {
+            timeIdx = i;
+          } else if (txt.contains("地点") || txt.contains("Location") || txt.contains("Room")) {
+            locIdx = i;
+          } else if (txt.contains("座") || txt.contains("Seat")) {
+            seatIdx = i;
+          }
       }
 
       if (nameIdx == -1 || timeIdx == -1) return [];

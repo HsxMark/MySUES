@@ -216,8 +216,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               blur: 8,
               lightIntensity: isDark ? 0.6 : 0.8,
               glassColor: isDark 
-                  ? Colors.black.withOpacity(0.3) 
-                  : Colors.white.withOpacity(0.6),
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.6),
                lightAngle: math.pi / 4,
             ),
             child: content,
@@ -265,7 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                   backgroundImage: _avatarFile != null ? FileImage(_avatarFile!) : null,
                   child: _avatarFile == null
                       ? Padding(
@@ -472,10 +472,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                    color: (_lastSyncTime != null) ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: (_lastSyncTime != null) ? Colors.green.withOpacity(0.3) : Colors.orange.withOpacity(0.3)
+                      color: (_lastSyncTime != null) ? Colors.green.withValues(alpha: 0.3) : Colors.orange.withValues(alpha: 0.3)
                     ),
                   ),
                   child: Text(

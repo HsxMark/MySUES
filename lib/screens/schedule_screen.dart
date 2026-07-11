@@ -54,8 +54,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   bool _isLoading = true;
 
   // UI Constants (loaded from ScheduleTable)
-  double _timeColWidth = 50.0;
-  double _headerHeight = 50.0;
+  final double _timeColWidth = 50.0;
+  final double _headerHeight = 50.0;
   double _cellHeight = 60.0; // Default, will override
 
   // Public API for floating button
@@ -1850,7 +1850,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                             Text(
                               "[重修]",
                               style: TextStyle(
-                                color: Colors.red.withOpacity(0.8),
+                                color: Colors.red.withValues(alpha: 0.8),
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1860,7 +1860,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                             Text(
                               "[免听]",
                               style: TextStyle(
-                                color: Colors.green.withOpacity(0.8),
+                                color: Colors.green.withValues(alpha: 0.8),
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                               ),

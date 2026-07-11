@@ -391,7 +391,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                                 ),
                               ),
                             );
-                          }).toList(),
+                          }),
                           const SizedBox(height: 8),
                           const Text('是否继续保存？您可以在课表中正常查看它们，或后续修改免听/重修状态。'),
                         ],
@@ -719,14 +719,18 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       }
 
       final prefs = await SharedPreferences.getInstance();
-      if (info['name'] != null)
+      if (info['name'] != null) {
         await prefs.setString('user_nickname', info['name']!);
-      if (info['studentId'] != null)
+      }
+      if (info['studentId'] != null) {
         await prefs.setString('student_id', info['studentId']!);
-      if (info['major'] != null)
+      }
+      if (info['major'] != null) {
         await prefs.setString('user_major', info['major']!);
-      if (info['college'] != null)
+      }
+      if (info['college'] != null) {
         await prefs.setString('user_college', info['college']!);
+      }
 
       String msg = "已更新信息: ${info['name']}";
       if (info['studentId'] != null) msg += " (${info['studentId']})";

@@ -264,8 +264,9 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
 
   /// 获取时间轴的小时列表
   List<int> _getTimelineHours() {
-    if (_timeDetails.isEmpty)
+    if (_timeDetails.isEmpty) {
       return List.generate(13, (i) => i + 8); // 8:00 - 20:00
+    }
     final firstHour = _parseTime(_timeDetails.first.startTime) ~/ 60;
     final lastHour = (_parseTime(_timeDetails.last.endTime) / 60).ceil();
     return List.generate(lastHour - firstHour + 1, (i) => i + firstHour);

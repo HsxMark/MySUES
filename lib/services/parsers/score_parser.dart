@@ -34,10 +34,15 @@ class ScoreParser {
     
     for (int i = 0; i < cols.length; i++) {
         String txt = cols[i].text.trim();
-        if (txt.contains("课程名称") || txt.contains("Course")) nameIdx = i;
-        else if (txt.contains("学分") || txt.contains("Credit")) creditIdx = i;
-        else if (txt.contains("绩点") || txt.contains("GPA")) gpaIdx = i;
-        else if (txt.contains("学期") || txt.contains("Semester")) semIdx = i;
+        if (txt.contains("课程名称") || txt.contains("Course")) {
+          nameIdx = i;
+        } else if (txt.contains("学分") || txt.contains("Credit")) {
+          creditIdx = i;
+        } else if (txt.contains("绩点") || txt.contains("GPA")) {
+          gpaIdx = i;
+        } else if (txt.contains("学期") || txt.contains("Semester")) {
+          semIdx = i;
+        }
     }
 
     if (nameIdx == -1) return []; // Essential columns missing
