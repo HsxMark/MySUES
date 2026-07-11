@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:mysues/services/theme_service.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class DisplaySettingsScreen extends StatefulWidget {
   const DisplaySettingsScreen({super.key});
@@ -55,26 +56,24 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     final int themeModeIndex = currentMode == ThemeMode.system
         ? 0
         : (currentMode == ThemeMode.light ? 1 : 2);
-    
+
     final currentFontFamily = ThemeService().fontFamily;
     final fontName = _getFontName(currentFontFamily);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('界面与显示'),
-      ),
+      appBar: AppBar(title: const LText('界面与显示')),
       body: ListView(
         children: [
           _buildSectionHeader('外观'),
           ListTile(
-            title: const Text('深色模式'),
-            subtitle: Text(_getThemeModeText(themeModeIndex)),
+            title: const LText('深色模式'),
+            subtitle: LText(_getThemeModeText(themeModeIndex)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showThemePicker(themeModeIndex),
           ),
           ListTile(
-            title: const Text('设置背景图片'),
-            subtitle: Text(
+            title: const LText('设置背景图片'),
+            subtitle: LText(
               ThemeService().backgroundImagePath != null ? '已设置' : '未设置',
             ),
             trailing: ThemeService().backgroundImagePath != null
@@ -99,9 +98,12 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                     fit: StackFit.expand,
                     children: [
                       // Checkerboard-like background to show transparency
-                      Container(color: Theme.of(context).scaffoldBackgroundColor),
+                      Container(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
                       Opacity(
-                        opacity: _previewOpacity ?? ThemeService().backgroundOpacity,
+                        opacity:
+                            _previewOpacity ?? ThemeService().backgroundOpacity,
                         child: Image.file(
                           File(ThemeService().backgroundImagePath!),
                           fit: BoxFit.cover,
@@ -117,14 +119,16 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const Text('背景透明度'),
+                  const LText('背景透明度'),
                   Expanded(
                     child: Slider(
-                      value: _previewOpacity ?? ThemeService().backgroundOpacity,
+                      value:
+                          _previewOpacity ?? ThemeService().backgroundOpacity,
                       min: 0.1,
                       max: 1.0,
                       divisions: 9,
-                      label: '${((_previewOpacity ?? ThemeService().backgroundOpacity) * 100).round()}%',
+                      label:
+                          '${((_previewOpacity ?? ThemeService().backgroundOpacity) * 100).round()}%',
                       onChanged: (value) {
                         setState(() {
                           _previewOpacity = value;
@@ -140,7 +144,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                   ),
                   SizedBox(
                     width: 40,
-                    child: Text(
+                    child: LText(
                       '${((_previewOpacity ?? ThemeService().backgroundOpacity) * 100).round()}%',
                       textAlign: TextAlign.end,
                     ),
@@ -149,24 +153,24 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
               ),
             ),
           SwitchListTile(
-            title: const Text('开屏动画'),
-            subtitle: const Text('启动应用时显示开屏动画'),
+            title: const LText('开屏动画'),
+            subtitle: const LText('启动应用时显示开屏动画'),
             value: _splashAnimationEnabled,
             onChanged: (value) => _saveSplashAnimation(value),
           ),
           const Divider(),
           _buildSectionHeader('字体'),
           ListTile(
-            title: const Text('字体样式'),
-            subtitle: Text(fontName),
+            title: const LText('字体样式'),
+            subtitle: LText(fontName),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showFontPicker(currentFontFamily),
           ),
           const Divider(),
           _buildSectionHeader('实验性功能'),
           SwitchListTile(
-            title: const Text('液态玻璃效果 (BETA)'),
-            subtitle: const Text('开启后界面将呈现磨砂玻璃质感'),
+            title: const LText('液态玻璃效果 (BETA)'),
+            subtitle: const LText('开启后界面将呈现磨砂玻璃质感'),
             value: _liquidGlassEnabled,
             onChanged: (value) => _saveLiquidGlass(value),
           ),
@@ -178,7 +182,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
+      child: LText(
         title,
         style: TextStyle(
           color: Theme.of(context).primaryColor,
@@ -224,7 +228,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: const Text('跟随系统'),
+                title: const LText('跟随系统'),
                 leading: Radio<int>(
                   value: 0,
                   groupValue: currentIndex,
@@ -239,7 +243,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 },
               ),
               ListTile(
-                title: const Text('浅色模式'),
+                title: const LText('浅色模式'),
                 leading: Radio<int>(
                   value: 1,
                   groupValue: currentIndex,
@@ -254,7 +258,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 },
               ),
               ListTile(
-                title: const Text('深色模式'),
+                title: const LText('深色模式'),
                 leading: Radio<int>(
                   value: 2,
                   groupValue: currentIndex,
@@ -283,8 +287,10 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
         Widget buildTile(String title, String? family) {
           final isSelected = currentFamily == family;
           return ListTile(
-            title: Text(title),
-            trailing: isSelected ? const Icon(Icons.check, color: Colors.blue) : null,
+            title: LText(title),
+            trailing: isSelected
+                ? const Icon(Icons.check, color: Colors.blue)
+                : null,
             onTap: () async {
               await ThemeService().updateFontFamily(family);
               if (mounted) Navigator.pop(context);

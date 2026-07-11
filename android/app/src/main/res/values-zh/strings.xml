@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">苏伊士</string>
+    <string name="widget_update_required">请打开 App 更新课表</string>
+    <string name="widget_no_courses">今日无课</string>
+    <string name="widget_empty_message">享受美好的空闲时光～</string>
+    <string name="widget_title_preview">测试课表标题 | 3.5 周四</string>
+    <string name="widget_week_preview">第 1 周</string>
+    <string name="widget_course_preview">课程名</string>
+    <string name="widget_location_preview">地点</string>
+    <string name="widget_display_name">课表小组件</string>
+    <string name="widget_description">快速查看今日课表，让你不再错过任何一节课。</string>
 </resources>

@@ -9,6 +9,7 @@ import '../services/theme_service.dart';
 import 'add_exam_screen.dart';
 import 'login_webview_screen.dart';
 import '../utils/sync_disclaimer.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class ExamInfoScreen extends StatefulWidget {
   const ExamInfoScreen({super.key});
@@ -50,7 +51,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       if (!screenContext.mounted) return;
       ScaffoldMessenger.of(
         screenContext,
-      ).showSnackBar(const SnackBar(content: Text('考试安排导入成功')));
+      ).showSnackBar(const SnackBar(content: LText('考试安排导入成功')));
     }
   }
 
@@ -102,7 +103,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('考试信息'),
+        title: const LText('考试信息'),
         centerTitle: true,
         backgroundColor: ThemeService().liquidGlassEnabled
             ? Colors.transparent
@@ -116,7 +117,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                 return IconButton(
                   onPressed: () => _showLiquidGlassMenu(context),
                   icon: const Icon(Icons.more_vert),
-                  tooltip: '菜单',
+                  tooltip: legacyTranslate(context, '菜单'),
                 );
               }
               return MenuAnchor(
@@ -135,21 +136,21 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                           }
                         },
                         icon: const Icon(Icons.more_vert),
-                        tooltip: '菜单',
+                        tooltip: legacyTranslate(context, '菜单'),
                       );
                     },
                 menuChildren: [
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.sync_alt),
                     onPressed: _importFromAcademic,
-                    child: const Text('从教务处导入'),
+                    child: const LText('从教务处导入'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.add, color: Colors.grey),
                     onPressed: () {
                       _navigateToAddExam();
                     },
-                    child: const Text('添加自定义考试'),
+                    child: const LText('添加自定义考试'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(
@@ -159,7 +160,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                     onPressed: () {
                       _clearFinishedExams();
                     },
-                    child: const Text('清除已结束'),
+                    child: const LText('清除已结束'),
                   ),
                 ],
               );
@@ -179,7 +180,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                 const Icon(Icons.info_outline, size: 16, color: Colors.red),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: const Text(
+                  child: const LText(
                     '考试信息非即时获取，仅供参考，请以教务处系统提示为准！',
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   ),
@@ -196,7 +197,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
             ),
             child: Row(
               children: [
-                const Text(
+                const LText(
                   '筛选: ',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
@@ -213,7 +214,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
           // List
           Expanded(
             child: displayExams.isEmpty
-                ? const Center(child: Text('暂无符合条件的考试信息'))
+                ? const Center(child: LText('暂无符合条件的考试信息'))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
@@ -354,7 +355,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
               color: iconColor ?? theme.colorScheme.onSurface,
             ),
             const SizedBox(width: 12),
-            Text(
+            LText(
               label,
               style: TextStyle(
                 fontSize: 15,
@@ -373,7 +374,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('已清除所有已结束的考试')));
+      ).showSnackBar(const SnackBar(content: LText('已清除所有已结束的考试')));
     }
   }
 
@@ -439,16 +440,16 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('确认删除'),
-                            content: const Text('删除后无法恢复，是否继续？'),
+                            title: const LText('确认删除'),
+                            content: const LText('删除后无法恢复，是否继续？'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text('取消'),
+                                child: const LText('取消'),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text(
+                                child: const LText(
                                   '删除',
                                   style: TextStyle(color: Colors.red),
                                 ),
@@ -464,7 +465,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                           }
                         }
                       },
-                      child: const Text(
+                      child: const LText(
                         '删除',
                         style: TextStyle(color: Colors.red, fontSize: 16),
                       ),
@@ -474,7 +475,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                         Navigator.pop(context);
                         _navigateToAddExam(existingExam: exam);
                       },
-                      child: const Text(
+                      child: const LText(
                         '编辑',
                         style: TextStyle(color: Colors.redAccent, fontSize: 16),
                       ),
@@ -488,7 +489,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                   horizontal: 24.0,
                   vertical: 4,
                 ),
-                child: Text(
+                child: LText(
                   exam.courseName,
                   style: const TextStyle(
                     fontSize: 28,
@@ -505,8 +506,8 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
-                    Text("详情", style: TextStyle(color: Colors.grey)),
-                    Text(
+                    LText("详情", style: TextStyle(color: Colors.grey)),
+                    LText(
                       "以下内容可长按复制",
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
@@ -573,7 +574,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                                   ClipboardData(text: exam.courseName),
                                 );
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('已复制考试名称')),
+                                  const SnackBar(content: LText('已复制考试名称')),
                                 );
                               },
                             ),
@@ -587,7 +588,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                                     '${exam.courseName}\n时间: ${exam.timeString}\n地点: ${exam.location}';
                                 Clipboard.setData(ClipboardData(text: info));
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('已复制考试信息')),
+                                  const SnackBar(content: LText('已复制考试信息')),
                                 );
                               },
                             ),
@@ -633,13 +634,13 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   }) {
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(content, style: const TextStyle(fontSize: 16)),
+      title: LText(content, style: const TextStyle(fontSize: 16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onLongPress: () {
         Clipboard.setData(ClipboardData(text: content));
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('已复制')));
+        ).showSnackBar(const SnackBar(content: LText('已复制')));
       },
     );
   }
@@ -652,7 +653,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   }) {
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(
+      title: LText(
         text,
         style: const TextStyle(fontSize: 16, color: Colors.redAccent),
       ),
@@ -663,7 +664,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
 
   Widget _buildFilterChip(String label) {
     return ChoiceChip(
-      label: Text(label),
+      label: LText(label),
       selected: _filterStatus == label,
       onSelected: (bool selected) {
         if (selected) {
@@ -688,7 +689,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
+                child: LText(
                   exam.courseName,
                   style: const TextStyle(
                     fontSize: 18,
@@ -715,7 +716,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                   size: 16,
                 ),
                 SizedBox(width: 4),
-                Text(
+                LText(
                   '今日考试，请注意时间！',
                   style: TextStyle(
                     color: Colors.orange,
@@ -792,7 +793,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color),
       ),
-      child: Text(
+      child: LText(
         status,
         style: TextStyle(
           color: color,
@@ -809,12 +810,12 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       children: [
         Icon(icon, size: 16, color: Colors.grey[600]),
         const SizedBox(width: 8),
-        Text(
+        LText(
           '$label: ',
           style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
         Expanded(
-          child: Text(
+          child: LText(
             value,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),

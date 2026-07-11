@@ -7,6 +7,8 @@ import '../models/schedule_table.dart';
 import '../models/time_table.dart';
 import '../services/schedule_service.dart';
 import '../services/exam_service.dart';
+import '../l10n/app_localizations.dart';
+import 'locale_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._();
@@ -20,7 +22,8 @@ class NotificationService {
   static const String _examReminderKey = 'notification_exam_reminder';
   static const String _examReminderDaysKey = 'notification_exam_reminder_days';
   static const String _examReminderHourKey = 'notification_exam_reminder_hour';
-  static const String _examReminderMinuteKey = 'notification_exam_reminder_minute';
+  static const String _examReminderMinuteKey =
+      'notification_exam_reminder_minute';
 
   // Notification ID ranges
   static const int _courseIdBase = 1000;
@@ -36,8 +39,9 @@ class NotificationService {
     tz_data.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Shanghai'));
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -54,7 +58,8 @@ class NotificationService {
   Future<bool> requestPermissions() async {
     final android = _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (android != null) {
       final granted = await android.requestNotificationsPermission();
       await android.requestExactAlarmsPermission();
@@ -63,7 +68,8 @@ class NotificationService {
 
     final ios = _plugin
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (ios != null) {
       final granted = await ios.requestPermissions(
         alert: true,
@@ -75,7 +81,8 @@ class NotificationService {
 
     final macos = _plugin
         .resolvePlatformSpecificImplementation<
-            MacOSFlutterLocalNotificationsPlugin>();
+          MacOSFlutterLocalNotificationsPlugin
+        >();
     if (macos != null) {
       final granted = await macos.requestPermissions(
         alert: true,
@@ -171,6 +178,9 @@ class NotificationService {
 
   Future<void> scheduleCourseReminders() async {
     await cancelCourseReminders();
+    final l10n = await AppLocalizations.delegate.load(
+      LocaleService().effectiveLocale,
+    );
 
     final tableId = await ScheduleDataService.getCurrentTableId();
     if (tableId == 0) return;
@@ -195,8 +205,7 @@ class NotificationService {
 
     final now = DateTime.now();
     final startDate = table.startDateObj;
-    final currentWeek =
-        ((now.difference(startDate).inDays) / 7).floor() + 1;
+    final currentWeek = ((now.difference(startDate).inDays) / 7).floor() + 1;
 
     int notificationId = _courseIdBase;
     final scheduledIds = <String>[];
@@ -240,22 +249,25 @@ class NotificationService {
         );
 
         // Notification time: 15 minutes before
-        final notificationTime =
-            courseDateTime.subtract(const Duration(minutes: 15));
+        final notificationTime = courseDateTime.subtract(
+          const Duration(minutes: 15),
+        );
 
         // Skip if already past
         if (notificationTime.isBefore(now)) continue;
 
         final currentId = notificationId++;
-        final roomInfo = course.room.isNotEmpty ? '\n教室: ${course.room}' : '';
+        final roomInfo = course.room.isNotEmpty
+            ? '\n${l10n.classroomLabel}: ${course.room}'
+            : '';
         try {
           await _scheduleNotification(
             id: currentId,
             channelId: 'course_reminders',
-            channelName: '课程提醒',
-            channelDescription: '上课前15分钟提醒',
-            title: '课程提醒',
-            body: '${course.courseName} 将在15分钟后开始$roomInfo',
+            channelName: l10n.courseReminder,
+            channelDescription: l10n.courseReminderDescription,
+            title: l10n.courseReminder,
+            body: l10n.courseStartsSoon(course.courseName, roomInfo),
             scheduledTime: notificationTime,
           );
           scheduledIds.add(currentId.toString());
@@ -284,6 +296,9 @@ class NotificationService {
 
   Future<void> scheduleExamReminders() async {
     await cancelExamReminders();
+    final l10n = await AppLocalizations.delegate.load(
+      LocaleService().effectiveLocale,
+    );
 
     final exams = await ExamService.loadExams();
     if (exams.isEmpty) return;
@@ -316,21 +331,28 @@ class NotificationService {
       if (notificationTime.isBefore(now)) continue;
 
       final currentId = notificationId++;
-      final locationInfo =
-          exam.location.isNotEmpty ? '\n地点: ${exam.location}' : '';
-      final examTimeInfo = exam.timeString.isNotEmpty
-          ? '\n时间: ${exam.timeString}'
+      final locationInfo = exam.location.isNotEmpty
+          ? '\n${l10n.locationLabel}: ${exam.location}'
           : '';
-      final daysText = daysBefore == 1 ? '明天' : '$daysBefore天后';
+      final examTimeInfo = exam.timeString.isNotEmpty
+          ? '\n${l10n.timeLabel}: ${exam.timeString}'
+          : '';
+      final daysText = daysBefore == 1
+          ? l10n.tomorrow
+          : l10n.daysLater(daysBefore);
       try {
         await _scheduleNotification(
           id: currentId,
           channelId: 'exam_reminders',
-          channelName: '考试提醒',
-          channelDescription: '考试前$daysBefore天提醒',
-          title: '考试提醒',
-          body:
-              '${exam.courseName} $daysText考试$examTimeInfo$locationInfo',
+          channelName: l10n.examReminder,
+          channelDescription: l10n.examReminderDescription(daysBefore),
+          title: l10n.examReminder,
+          body: l10n.examReminderBody(
+            exam.courseName,
+            daysText,
+            examTimeInfo,
+            locationInfo,
+          ),
           scheduledTime: notificationTime,
         );
         scheduledIds.add(currentId.toString());

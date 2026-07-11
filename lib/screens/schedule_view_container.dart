@@ -11,6 +11,7 @@ import '../utils/screen_breakpoints.dart';
 import 'schedule_screen.dart';
 import 'daily_schedule_screen.dart';
 import '../widgets/draggable_floating_button.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 /// 课表视图容器，管理周视图和日视图之间的切换
 class ScheduleViewContainer extends StatefulWidget {
@@ -264,12 +265,12 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
       if (week == null || text.isEmpty) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('请输入有效的周次数字')));
+        ).showSnackBar(const SnackBar(content: LText('请输入有效的周次数字')));
         return;
       }
       if (week < 1 || week > state.maxWeek) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('周次超出范围，请输入 1-${state.maxWeek}')),
+          SnackBar(content: LText('周次超出范围，请输入 1-${state.maxWeek}')),
         );
         return;
       }
@@ -281,13 +282,13 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('跳转到周次'),
+          title: const LText('跳转到周次'),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: '周次 (1-${state.maxWeek})',
+              labelText: legacyTranslate(context, '周次 (1-${state.maxWeek})'),
               border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => tryJump(ctx),
@@ -295,9 +296,9 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('取消'),
+              child: const LText('取消'),
             ),
-            TextButton(onPressed: () => tryJump(ctx), child: const Text('跳转')),
+            TextButton(onPressed: () => tryJump(ctx), child: const LText('跳转')),
           ],
         );
       },
@@ -386,13 +387,13 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
       if (week == null || text.isEmpty) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('请输入有效的周次数字')));
+        ).showSnackBar(const SnackBar(content: LText('请输入有效的周次数字')));
         return;
       }
       if (week < 1 || week > maxWeek) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('周次超出范围，请输入 1-$maxWeek')));
+        ).showSnackBar(SnackBar(content: LText('周次超出范围，请输入 1-$maxWeek')));
         return;
       }
 
@@ -407,13 +408,13 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('跳转到周次'),
+          title: const LText('跳转到周次'),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: '周次 (1-$maxWeek)',
+              labelText: legacyTranslate(context, '周次 (1-$maxWeek)'),
               border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => tryJump(dialogContext),
@@ -421,11 +422,11 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('取消'),
+              child: const LText('取消'),
             ),
             TextButton(
               onPressed: () => tryJump(dialogContext),
-              child: const Text('跳转'),
+              child: const LText('跳转'),
             ),
           ],
         );
@@ -604,11 +605,6 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  String _weekdayName(DateTime date) {
-    const names = ['一', '二', '三', '四', '五', '六', '日'];
-    return names[date.weekday - 1];
-  }
-
   String _formatMinutes(int minutes) {
     final h = minutes ~/ 60;
     final m = minutes % 60;
@@ -661,7 +657,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
                   Icon(Icons.event_note, color: theme.colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: LText(
                       _splitTable == null
                           ? '日程'
                           : '${_splitTable!.tableName} · 第$_splitCurrentWeek周',
@@ -672,7 +668,10 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
                     ),
                   ),
                   IconButton(
-                    tooltip: _isOnSplitActualWeek ? '跳转到指定周' : '回到当前周',
+                    tooltip: legacyTranslate(
+                      context,
+                      _isOnSplitActualWeek ? '跳转到指定周' : '回到当前周',
+                    ),
                     onPressed: _onSplitJumpTap,
                     icon: Icon(
                       _isOnSplitActualWeek
@@ -724,7 +723,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
       padding: const EdgeInsets.only(left: 4, right: 4, bottom: 6),
       child: Row(
         children: [
-          Text(
+          LText(
             title,
             style: Theme.of(
               context,
@@ -746,7 +745,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
           ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+        child: LText(text, style: Theme.of(context).textTheme.bodySmall),
       ),
     );
   }
@@ -792,7 +791,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: LText(
                       event.course.courseName,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
@@ -807,7 +806,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
+                  LText(
                     '第${event.week}周',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.primary,
@@ -817,8 +816,13 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
-                '${event.date.month}月${event.date.day}日 周${_weekdayName(event.date)}  ${_formatMinutes(event.startMinutes)}-${_formatMinutes(event.endMinutes)}',
+              LText(
+                localizedScheduleEventDate(
+                  context,
+                  event.date,
+                  _formatMinutes(event.startMinutes),
+                  _formatMinutes(event.endMinutes),
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.textTheme.bodySmall?.color?.withValues(
                     alpha: 0.8,
@@ -827,7 +831,7 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
               ),
               if (event.course.room.isNotEmpty) ...[
                 const SizedBox(height: 2),
-                Text(
+                LText(
                   event.course.room,
                   style: theme.textTheme.bodySmall,
                   maxLines: 1,

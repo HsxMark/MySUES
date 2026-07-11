@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class TranscriptDetailsScreen extends StatelessWidget {
   const TranscriptDetailsScreen({super.key});
@@ -6,10 +7,7 @@ class TranscriptDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('成绩说明'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const LText('成绩说明'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -34,12 +32,9 @@ class TranscriptDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             Center(
-              child: Text(
+              child: LText(
                 'MySUES',
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
               ),
             ),
           ],
@@ -76,7 +71,7 @@ class TranscriptDetailsScreen extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 28),
               const SizedBox(width: 12),
-              Text(
+              LText(
                 title,
                 style: const TextStyle(
                   fontSize: 18,
@@ -86,7 +81,7 @@ class TranscriptDetailsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
+          LText(
             content,
             style: TextStyle(
               fontSize: 15,

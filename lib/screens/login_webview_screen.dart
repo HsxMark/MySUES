@@ -14,6 +14,7 @@ import '../services/score_service.dart';
 import '../services/exam_service.dart';
 import '../utils/course_conflict_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class LoginWebviewScreen extends StatefulWidget {
   const LoginWebviewScreen({super.key});
@@ -220,13 +221,13 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           if (info['code'] != null) msg += " (${info['code']})";
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(msg)));
+          ).showSnackBar(SnackBar(content: LText(msg)));
           _recordSyncTime();
         } else {
           if (!mounted) return;
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text("未能提取到有效的个人信息")));
+          ).showSnackBar(const SnackBar(content: LText("未能提取到有效的个人信息")));
         }
 
         // Cleanup & Exit
@@ -271,7 +272,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: const Text("请选择导入学期"),
+          title: const LText("请选择导入学期"),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -280,8 +281,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
               itemBuilder: (ctx, index) {
                 final item = semesterOptions[index];
                 return ListTile(
-                  title: Text(item['name']),
-                  subtitle: Text("ID: ${item['id']}"),
+                  title: LText(item['name']),
+                  subtitle: LText("ID: ${item['id']}"),
                   onTap: () => Navigator.pop(ctx, item),
                 );
               },
@@ -290,7 +291,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, null),
-              child: const Text("取消"),
+              child: const LText("取消"),
             ),
           ],
         ),
@@ -367,13 +368,13 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                 context: context,
                 builder: (ctx) {
                   return AlertDialog(
-                    title: const Text('注意：存在课程冲突'),
+                    title: const LText('注意：存在课程冲突'),
                     content: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('您有以下课程在同一时间段产生冲突：'),
+                          const LText('您有以下课程在同一时间段产生冲突：'),
                           const SizedBox(height: 8),
                           ...conflictGroups.values.map((group) {
                             String names = group
@@ -384,7 +385,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                                 .join('\n');
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Text(
+                              child: LText(
                                 names,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -393,18 +394,18 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                             );
                           }),
                           const SizedBox(height: 8),
-                          const Text('是否继续保存？您可以在课表中正常查看它们，或后续修改免听/重修状态。'),
+                          const LText('是否继续保存？您可以在课表中正常查看它们，或后续修改免听/重修状态。'),
                         ],
                       ),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(false),
-                        child: const Text('取消导入'),
+                        child: const LText('取消导入'),
                       ),
                       FilledButton(
                         onPressed: () => Navigator.of(ctx).pop(true),
-                        child: const Text('继续保存'),
+                        child: const LText('继续保存'),
                       ),
                     ],
                   );
@@ -420,7 +421,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           if (mounted) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(const SnackBar(content: Text('已取消导入')));
+            ).showSnackBar(const SnackBar(content: LText('已取消导入')));
           }
           return;
         }
@@ -434,7 +435,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("成功导入 $uniqueCount 门课程 (共 ${courses.length} 条记录)"),
+            content: LText("成功导入 $uniqueCount 门课程 (共 ${courses.length} 条记录)"),
           ),
         );
         _recordSyncTime();
@@ -768,7 +769,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: LText(msg)));
   }
 
   @override
@@ -780,11 +781,11 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("WebVPN 网页提取"),
+          title: const LText("WebVPN 网页提取"),
           actions: [
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: "清理缓存",
+              tooltip: legacyTranslate(context, "清理缓存"),
               onPressed: () async {
                 await _controller.clearCache();
                 await _controller.clearLocalStorage();
@@ -807,7 +808,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
               color: Colors.blue.shade50,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Text(
+              child: LText(
                 _currentStep,
                 style: TextStyle(color: Colors.blue.shade900, fontSize: 12),
                 textAlign: TextAlign.center,
@@ -840,7 +841,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(height: 12),
-                          const Text(
+                          const LText(
                             "请选择要提取的内容",
                             style: TextStyle(
                               fontSize: 18,
@@ -850,7 +851,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           const SizedBox(height: 12),
                           ListTile(
                             leading: const Icon(Icons.person),
-                            title: const Text("提取个人信息"),
+                            title: const LText("提取个人信息"),
                             onTap: () {
                               Navigator.pop(context);
                               _isFetchingInfo = true;
@@ -859,7 +860,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           ),
                           ListTile(
                             leading: const Icon(Icons.calendar_month),
-                            title: const Text("提取课表"),
+                            title: const LText("提取课表"),
                             onTap: () {
                               Navigator.pop(context);
                               _isFetchingInfo = false;
@@ -868,7 +869,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           ),
                           ListTile(
                             leading: const Icon(Icons.score),
-                            title: const Text("提取成绩"),
+                            title: const LText("提取成绩"),
                             onTap: () {
                               Navigator.pop(context);
                               _extractScore();
@@ -876,7 +877,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           ),
                           ListTile(
                             leading: const Icon(Icons.assignment),
-                            title: const Text("提取考试安排"),
+                            title: const LText("提取考试安排"),
                             onTap: () {
                               Navigator.pop(context);
                               _extractExam();
@@ -896,7 +897,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                   ),
                 ),
                 icon: const Icon(Icons.menu_open),
-                label: const Text("提取菜单", style: TextStyle(fontSize: 16)),
+                label: const LText("提取菜单", style: TextStyle(fontSize: 16)),
               ),
             ),
           ),

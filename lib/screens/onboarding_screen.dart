@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class OnboardingScreen extends StatefulWidget {
   /// When true, completing the tutorial will NOT write to SharedPreferences.
@@ -84,7 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   padding: const EdgeInsets.only(top: 12, right: 16),
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('跳过'),
+                    child: const LText('跳过'),
                   ),
                 ),
               ),
@@ -131,19 +132,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               // Bottom button
               Padding(
-                padding:
-                    const EdgeInsets.only(left: 40, right: 40, bottom: 40),
+                padding: const EdgeInsets.only(left: 40, right: 40, bottom: 40),
                 child: SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: _isLastPage
                       ? FilledButton(
                           onPressed: _nextPage,
-                          child: const Text('进入 苏伊士'),
+                          child: const LText('进入 苏伊士'),
                         )
                       : OutlinedButton(
                           onPressed: _nextPage,
-                          child: const Text('下一步'),
+                          child: const LText('下一步'),
                         ),
                 ),
               ),
@@ -161,28 +161,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            page.image,
-            width: 120,
-            height: 120,
-            fit: BoxFit.contain,
-          ),
+          Image.asset(page.image, width: 120, height: 120, fit: BoxFit.contain),
           const SizedBox(height: 32),
-          Text(
+          LText(
             page.title,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          Text(
+          LText(
             page.description,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: Colors.grey[600]),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -197,21 +190,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          Text(
+          LText(
             page.title,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(
+          LText(
             page.description,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: Colors.grey[600]),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -220,9 +211,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ? Row(
                     children: [
                       Expanded(
-                        child: Center(
-                          child: _buildImageContainer(page.image),
-                        ),
+                        child: Center(child: _buildImageContainer(page.image)),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -232,9 +221,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ],
                   )
-                : Center(
-                    child: _buildImageContainer(page.image),
-                  ),
+                : Center(child: _buildImageContainer(page.image)),
           ),
           const SizedBox(height: 16),
         ],
@@ -256,10 +243,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: Image.asset(
-          imagePath,
-          fit: BoxFit.contain,
-        ),
+        child: Image.asset(imagePath, fit: BoxFit.contain),
       ),
     );
   }

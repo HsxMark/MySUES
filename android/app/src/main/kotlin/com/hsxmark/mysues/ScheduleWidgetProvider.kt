@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -60,7 +61,7 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                     setOnClickPendingIntent(R.id.widget_root, pendingIntent)
                 }
 
-                val scheduleDay = loadScheduleDay(widgetData)
+                val scheduleDay = loadScheduleDay(context, widgetData)
                 val hasCache = hasScheduleCache(widgetData)
                 val courses = when {
                     scheduleDay != null -> filterUpcomingCourses(scheduleDay.courses)
@@ -69,8 +70,11 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                 }
                 val title = when {
                     scheduleDay != null -> scheduleDay.title
-                    hasCache -> "请打开APP更新课表"
-                    else -> widgetData.getString("title", "今日无课")
+                    hasCache -> localizedString(context, widgetData, R.string.widget_update_required)
+                    else -> widgetData.getString(
+                        "title",
+                        localizedString(context, widgetData, R.string.widget_no_courses)
+                    )
                 }
                 val week = when {
                     scheduleDay != null -> scheduleDay.week
@@ -111,6 +115,10 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                     setViewVisibility(R.id.empty_message, View.GONE)
                 } else {
                     setViewVisibility(R.id.empty_message, View.VISIBLE)
+                    setTextViewText(
+                        R.id.empty_message,
+                        localizedString(context, widgetData, R.string.widget_empty_message)
+                    )
                 }
             }
             appWidgetManager.updateAppWidget(widgetId, views)
@@ -141,7 +149,10 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
         }
     }
 
-    private fun loadScheduleDay(widgetData: SharedPreferences): ScheduleDay? {
+    private fun loadScheduleDay(
+        context: Context,
+        widgetData: SharedPreferences
+    ): ScheduleDay? {
         val raw = widgetData.getString("schedule_days_v1", null)
         if (raw.isNullOrBlank()) return null
 
@@ -174,7 +185,10 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                 }
 
                 return ScheduleDay(
-                    title = day.optString("title", "今日无课"),
+                    title = day.optString(
+                        "title",
+                        localizedString(context, widgetData, R.string.widget_no_courses)
+                    ),
                     week = day.optString("week"),
                     courses = courseList
                 )
@@ -241,5 +255,17 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
         } else {
             Color.parseColor("#F39C12")
         }
+    }
+
+    private fun localizedString(
+        context: Context,
+        widgetData: SharedPreferences,
+        resourceId: Int
+    ): String {
+        val language = widgetData.getString("effective_locale", null)
+            ?: Locale.getDefault().language
+        val configuration = Configuration(context.resources.configuration)
+        configuration.setLocale(Locale(if (language == "zh") "zh" else "en"))
+        return context.createConfigurationContext(configuration).getString(resourceId)
     }
 }

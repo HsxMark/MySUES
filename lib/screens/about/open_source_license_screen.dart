@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class OpenSourceLicenseScreen extends StatelessWidget {
   const OpenSourceLicenseScreen({super.key});
@@ -7,15 +8,13 @@ class OpenSourceLicenseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('开源信息'),
-      ),
+      appBar: AppBar(title: const LText('开源信息')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            const LText(
               '项目信息',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -38,12 +37,15 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              LText(
                                 'MySUES',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                               SizedBox(height: 4),
-                              Text(
+                              LText(
                                 '欢迎参与贡献或进行 bug 反馈',
                                 style: TextStyle(fontSize: 13),
                               ),
@@ -51,26 +53,39 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text(
+                          child: const LText(
                             'GPL-3.0',
-                            style: TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
-                      onTap: () => launchUrl(Uri.parse('https://github.com/HsxMark/MySUES')),
+                      onTap: () => launchUrl(
+                        Uri.parse('https://github.com/HsxMark/MySUES'),
+                      ),
                       child: Row(
                         children: [
-                          Icon(Icons.open_in_new, size: 14, color: Theme.of(context).primaryColor),
+                          Icon(
+                            Icons.open_in_new,
+                            size: 14,
+                            color: Theme.of(context).primaryColor,
+                          ),
                           const SizedBox(width: 4),
-                          Text(
+                          LText(
                             'github.com/HsxMark/MySUES',
                             style: TextStyle(
                               fontSize: 13,
@@ -87,7 +102,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
+            const LText(
               '字体资源',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -104,22 +119,22 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     _buildFontInfo(
-                       context,
-                       'HarmonyOS Sans',
-                       '华为软件技术有限公司',
-                       '遵循 HarmonyOS Sans 字体授权协议'
-                     ),
-                     const Padding(
-                       padding: EdgeInsets.symmetric(vertical: 12.0),
-                       child: Divider(height: 1),
-                     ),
-                     _buildFontInfo(
-                       context,
-                       'MiSans',
-                       '小米科技有限责任公司',
-                       '遵循 MiSans 字体知识产权许可协议'
-                     ),
+                    _buildFontInfo(
+                      context,
+                      'HarmonyOS Sans',
+                      '华为软件技术有限公司',
+                      '遵循 HarmonyOS Sans 字体授权协议',
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Divider(height: 1),
+                    ),
+                    _buildFontInfo(
+                      context,
+                      'MiSans',
+                      '小米科技有限责任公司',
+                      '遵循 MiSans 字体知识产权许可协议',
+                    ),
                   ],
                 ),
               ),
@@ -130,13 +145,18 @@ class OpenSourceLicenseScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFontInfo(BuildContext context, String name, String provider, String license) {
+  Widget _buildFontInfo(
+    BuildContext context,
+    String name,
+    String provider,
+    String license,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(
+            LText(
               name,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
@@ -147,17 +167,17 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                 color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('免费商用', style: TextStyle(fontSize: 10, color: Colors.blue)),
-            )
+              child: const LText(
+                '免费商用',
+                style: TextStyle(fontSize: 10, color: Colors.blue),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(
-          '由 $provider 提供',
-          style: const TextStyle(fontSize: 13),
-        ),
+        LText('由 $provider 提供', style: const TextStyle(fontSize: 13)),
         const SizedBox(height: 2),
-        Text(
+        LText(
           license,
           style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
         ),

@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/screens/settings/display_settings_screen.dart';
 import 'package:mysues/screens/settings/notifications_screen.dart';
+import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/services/locale_service.dart';
+import 'package:mysues/services/notification_service.dart';
+import 'package:mysues/services/widget_service.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -9,41 +14,55 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('设置'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: LText(context.l10n.settings), centerTitle: true),
       body: ListView(
         children: [
-          _buildGroupTitle(context, '通用'),
+          _buildGroupTitle(context, context.l10n.general),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
-            title: const Text('通知'),
+            title: LText(context.l10n.notifications),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
               );
             },
           ),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
-            title: const Text('界面与显示'),
+            title: LText(context.l10n.appearanceAndDisplay),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const DisplaySettingsScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const DisplaySettingsScreen(),
+                ),
               );
             },
           ),
-          const Divider(),
-          _buildGroupTitle(context, '数据与隐私'),
           ListTile(
-            leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-            title: const Text('清除所有数据', style: TextStyle(color: Colors.red)),
-            subtitle: const Text('包括课表、成绩、个人信息及偏好设置'),
+            leading: const Icon(Icons.language_outlined),
+            title: LText(context.l10n.language),
+            subtitle: LText(_languageName(context, LocaleService().language)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showLanguagePicker(context),
+          ),
+          const Divider(),
+          _buildGroupTitle(context, context.l10n.dataAndPrivacy),
+          ListTile(
+            leading: const Icon(
+              Icons.delete_forever_outlined,
+              color: Colors.red,
+            ),
+            title: LText(
+              context.l10n.clearAllData,
+              style: const TextStyle(color: Colors.red),
+            ),
+            subtitle: LText(context.l10n.clearAllDataSubtitle),
             onTap: () => _showClearDataDialog(context),
           ),
         ],
@@ -51,10 +70,42 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  String _languageName(BuildContext context, AppLanguage language) =>
+      switch (language) {
+        AppLanguage.system => context.l10n.languageSystem,
+        AppLanguage.zhHans => context.l10n.languageChinese,
+        AppLanguage.english => context.l10n.languageEnglish,
+      };
+
+  void _showLanguagePicker(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: AppLanguage.values.map((language) {
+            return RadioListTile<AppLanguage>(
+              value: language,
+              groupValue: LocaleService().language,
+              title: LText(_languageName(sheetContext, language)),
+              onChanged: (value) async {
+                if (value == null) return;
+                await LocaleService().setLanguage(value);
+                await WidgetService.updateWidget();
+                await NotificationService().rescheduleAll();
+                if (sheetContext.mounted) Navigator.pop(sheetContext);
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildGroupTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
+      child: LText(
         title,
         style: TextStyle(
           color: Theme.of(context).primaryColor,
@@ -69,19 +120,22 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清除所有数据？'),
-        content: const Text('此操作不可撤销。所有本地存储的课表、成绩、个人设置等都将被永久删除，App将恢复到初始状态。'),
+        title: LText(context.l10n.clearAllDataQuestion),
+        content: LText(context.l10n.clearAllDataWarning),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: LText(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _showFinalClearDataDialog(context);
             },
-            child: const Text('确认清除', style: TextStyle(color: Colors.red)),
+            child: LText(
+              context.l10n.confirmClear,
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -92,8 +146,8 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('再次确认'),
-        content: const Text('真的要删除所有数据吗？数据一旦清除将无法找回。'),
+        title: LText(context.l10n.confirmAgain),
+        content: LText(context.l10n.confirmClearFinal),
         actions: [
           // Swapped order: Confirm button first on the left, Cancel on the right
           TextButton(
@@ -101,11 +155,17 @@ class SettingsScreen extends StatelessWidget {
               Navigator.pop(context);
               _performClearData(context);
             },
-            child: const Text('确认清除', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: LText(
+              context.l10n.confirmClear,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: LText(context.l10n.cancel),
           ),
         ],
       ),
@@ -116,18 +176,18 @@ class SettingsScreen extends StatelessWidget {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      
+
       // TODO: Add clearing of any local files/databases here if implemented later
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('数据已清除，请重启应用')),
+          SnackBar(content: LText(context.l10n.dataClearedRestart)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('清除失败: $e')),
+          SnackBar(content: LText(context.l10n.clearFailed(e.toString()))),
         );
       }
     }

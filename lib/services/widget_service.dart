@@ -6,6 +6,8 @@ import 'package:mysues/services/schedule_service.dart';
 import 'package:mysues/models/schedule_table.dart';
 import 'package:mysues/models/time_table.dart';
 import 'package:mysues/utils/building_time_override.dart';
+import 'package:mysues/l10n/app_localizations.dart';
+import 'package:mysues/services/locale_service.dart';
 
 class WidgetService {
   static const String appGroupId = 'group.com.hsxmark.mysues';
@@ -16,7 +18,11 @@ class WidgetService {
 
   static Future<void> updateWidget() async {
     try {
+      await LocaleService().loadSettings();
+      final locale = LocaleService().effectiveLocale;
+      final l10n = await AppLocalizations.delegate.load(locale);
       await HomeWidget.setAppGroupId(appGroupId);
+      await HomeWidget.saveWidgetData('effective_locale', locale.languageCode);
 
       final currentTableId = await ScheduleDataService.getCurrentTableId();
       final allTables = await ScheduleDataService.loadScheduleTables();
@@ -35,7 +41,7 @@ class WidgetService {
           'validThrough': '',
           'days': <Map<String, dynamic>>[],
         });
-        await _writeLegacyEmpty(title: '未设置课表');
+        await _writeLegacyEmpty(title: l10n.scheduleNotConfigured);
         await HomeWidget.updateWidget(
           androidName: androidWidgetName,
           iOSName: iOSWidgetName,
@@ -61,6 +67,7 @@ class WidgetService {
             table: currentTable,
             allCourses: allCourses,
             timeDetails: timeDetails,
+            l10n: l10n,
           ),
         );
       }
@@ -95,6 +102,7 @@ class WidgetService {
     required ScheduleTable table,
     required List<Course> allCourses,
     required List<TimeDetail> timeDetails,
+    required AppLocalizations l10n,
   }) {
     final week = _calculateWeekForDate(date, table.startDateObj);
     final courses =
@@ -110,8 +118,12 @@ class WidgetService {
 
     return {
       'date': _formatDate(date),
-      'title': '${date.month}.${date.day} ${_getWeekdayString(date.weekday)}',
-      'week': '第 $week 周',
+      'title': l10n.weekdayShort(
+        date.month,
+        date.day,
+        _getWeekdayString(date.weekday, l10n),
+      ),
+      'week': l10n.weekNumber(week),
       'courses': courses
           .map((course) => _buildCourseEntry(course, timeDetails))
           .toList(),
@@ -267,8 +279,16 @@ class WidgetService {
     }
   }
 
-  static String _getWeekdayString(int weekday) {
-    const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  static String _getWeekdayString(int weekday, AppLocalizations l10n) {
+    final weekdays = [
+      l10n.mondayShort,
+      l10n.tuesdayShort,
+      l10n.wednesdayShort,
+      l10n.thursdayShort,
+      l10n.fridayShort,
+      l10n.saturdayShort,
+      l10n.sundayShort,
+    ];
     if (weekday >= 1 && weekday <= 7) return weekdays[weekday - 1];
     return '';
   }

@@ -13,6 +13,7 @@ import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/sync_disclaimer.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'dart:math' as math;
+import 'package:mysues/l10n/legacy_text.dart';
 // Ensure Course is imported
 
 class ProfileScreen extends StatefulWidget {
@@ -21,11 +22,11 @@ class ProfileScreen extends StatefulWidget {
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
- 
+
 class _ProfileScreenState extends State<ProfileScreen> {
   // Mock data removed. Initialized to null.
   String? _studentId;
-  String? _name; 
+  String? _name;
   int _currentWeek = 0; // Default
   int _totalWeeks = 30; // Default
 
@@ -35,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _className;
   String? _nickname;
   String? _lastSyncTime;
-  
+
   static const String _studentIdKey = 'student_id';
   static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _majorPrefsKey = 'user_major';
@@ -43,7 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const String _classPrefsKey = 'user_class';
   static const String _nicknamePrefsKey = 'user_nickname';
   static const String _lastSyncTimeKey = 'last_sync_time_academic';
-  
+
   bool get _isLoggedIn => _studentId != null && _studentId!.isNotEmpty;
 
   @override
@@ -54,16 +55,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     setState(() {
       _studentId = prefs.getString(_studentIdKey);
       _nickname = prefs.getString(_nicknamePrefsKey);
-      _name = _nickname; // Use nickname as name for now, or fetch separate 'real_name' if saved
-      // Usually nickname is user set alias, name is real name. 
+      _name =
+          _nickname; // Use nickname as name for now, or fetch separate 'real_name' if saved
+      // Usually nickname is user set alias, name is real name.
       // If we extract name from system, we might want to save to 'user_nickname' or a new 'real_name'.
       // StudentInfoParser creates 'name'. LoginWebview saves to 'user_nickname'.
       // So _nickname matches extracted name.
-      
+
       _major = prefs.getString(_majorPrefsKey);
       _college = prefs.getString(_collegePrefsKey);
       _className = prefs.getString(_classPrefsKey);
@@ -80,9 +82,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } else {
-        setState(() {
-          _avatarFile = null;
-        });
+      setState(() {
+        _avatarFile = null;
+      });
     }
 
     // Load Nickname
@@ -154,11 +156,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _navigateToEditProfile() async {
     if (_studentId == null) return;
-    
+
     // Calculate default major to pass if not set
     final info = StudentInfoHelper.parseStudentId(_studentId!);
     final defaultMajor = info['major'] ?? '未知';
-    
+
     // Pass current value or '未设置'
     final currentCollege = _college ?? '未设置';
     final currentClass = _className ?? '未设置';
@@ -175,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-    
+
     // Reload data when returning
     _loadData();
   }
@@ -195,10 +197,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildUserInfoSection(context),
             const SizedBox(height: 16),
             // Only show progress if logged in
-             if (_isLoggedIn) ...[
-               _buildProgressSection(context),
-               const SizedBox(height: 16),
-             ],
+            if (_isLoggedIn) ...[
+              _buildProgressSection(context),
+              const SizedBox(height: 16),
+            ],
             _buildConnectionStatusCard(context),
             const SizedBox(height: 16),
             const _SettingsTile(),
@@ -215,10 +217,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               thickness: 20,
               blur: 8,
               lightIntensity: isDark ? 0.6 : 0.8,
-              glassColor: isDark 
+              glassColor: isDark
                   ? Colors.black.withValues(alpha: 0.3)
                   : Colors.white.withValues(alpha: 0.6),
-               lightAngle: math.pi / 4,
+              lightAngle: math.pi / 4,
             ),
             child: content,
           );
@@ -227,7 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Scaffold(
           extendBody: useLiquidGlass,
           appBar: AppBar(
-            title: const Text('我'),
+            title: const LText('我'),
             centerTitle: true,
             backgroundColor: useLiquidGlass ? Colors.transparent : null,
             elevation: useLiquidGlass ? 0 : null,
@@ -244,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Padding(
           padding: EdgeInsets.all(24.0),
           child: Center(
-            child: Text(
+            child: LText(
               '请连接教务系统同步身份信息',
               style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
@@ -265,8 +267,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                  backgroundImage: _avatarFile != null ? FileImage(_avatarFile!) : null,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).primaryColor.withValues(alpha: 0.1),
+                  backgroundImage: _avatarFile != null
+                      ? FileImage(_avatarFile!)
+                      : null,
                   child: _avatarFile == null
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -281,12 +287,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      (_nickname != null && _nickname!.isNotEmpty) ? _nickname! : (_name ?? '未知'),
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    LText(
+                      (_nickname != null && _nickname!.isNotEmpty)
+                          ? _nickname!
+                          : (_name ?? '未知'),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    LText(
                       _studentId!,
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
@@ -303,8 +314,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                 _buildCompactInfoItem('学院', _college ?? '未知'),
-                 _buildCompactInfoItem('专业', _major ?? info['major'] ?? '未知'),
+                _buildCompactInfoItem('学院', _college ?? '未知'),
+                _buildCompactInfoItem('专业', _major ?? info['major'] ?? '未知'),
               ],
             ),
             const SizedBox(height: 16),
@@ -324,23 +335,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildCompactInfoItem(String label, String value) {
     return Column(
       children: [
-        Text(
+        LText(
           value,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
+        LText(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
   }
 
   Widget _buildProgressSection(BuildContext context) {
     // Semester Progress
-    final double semesterProgress =
-        _totalWeeks > 0 ? (_currentWeek / _totalWeeks).clamp(0.0, 1.0) : 0.0;
+    final double semesterProgress = _totalWeeks > 0
+        ? (_currentWeek / _totalWeeks).clamp(0.0, 1.0)
+        : 0.0;
     final int semesterPercentage = (semesterProgress * 100).round();
 
     // University Progress Calculation
@@ -366,16 +375,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Progress = (Finished Semesters + Current Semester Fraction) / Total
         // Finished Semesters = CurrentSemester - 1
         double completedSemesters = (currentSemester - 1).toDouble();
-        
+
         // Add current semester fraction
         completedSemesters += semesterProgress;
 
         double progress = completedSemesters / 8.0;
-        
-        // Clamp to 0-1 range for sanity, or allow >100% if delayed? 
-        // Let's clamp to 0 if negative (invalid) but allow >100% 
+
+        // Clamp to 0-1 range for sanity, or allow >100% if delayed?
+        // Let's clamp to 0 if negative (invalid) but allow >100%
         if (progress < 0) progress = 0;
-        
+
         universityProgress = "${(progress * 100).round()}%";
       } catch (e) {
         universityProgress = "Err";
@@ -390,7 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  const Text(
+                  const LText(
                     '本学期进度',
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
@@ -406,7 +415,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  LText(
                     '$semesterPercentage%', // Display rounded percentage if needed or keep style simple
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
@@ -423,12 +432,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  const LText(
                     '大学进度',
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 12),
-                  Text(
+                  LText(
                     universityProgress,
                     style: const TextStyle(
                       fontSize: 32,
@@ -436,7 +445,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.blue,
                     ),
                   ),
-                  const Text(
+                  const LText(
                     '(肆年制)',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
@@ -463,25 +472,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     const Icon(Icons.sync_alt, color: Colors.blue),
                     const SizedBox(width: 8),
-                    const Text(
+                    const LText(
                       '教务连接',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: (_lastSyncTime != null) ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
+                    color: (_lastSyncTime != null)
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: (_lastSyncTime != null) ? Colors.green.withValues(alpha: 0.3) : Colors.orange.withValues(alpha: 0.3)
+                      color: (_lastSyncTime != null)
+                          ? Colors.green.withValues(alpha: 0.3)
+                          : Colors.orange.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: Text(
+                  child: LText(
                     (_lastSyncTime != null) ? '已连接' : '未连接',
                     style: TextStyle(
-                      color: (_lastSyncTime != null) ? Colors.green : Colors.orange,
+                      color: (_lastSyncTime != null)
+                          ? Colors.green
+                          : Colors.orange,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -496,15 +517,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                const LText(
                   '上次同步时间',
                   style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
-                Text(
+                LText(
                   _lastSyncTime ?? '点击同步数据',
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.grey[300] 
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[300]
                         : Colors.grey[800],
                     fontSize: 14,
                     fontFamily: Platform.isIOS ? 'Courier' : null,
@@ -531,7 +552,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 } // End of class
 
-
 class _SettingsTile extends StatelessWidget {
   const _SettingsTile();
 
@@ -539,7 +559,7 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.settings_outlined),
-      title: const Text('设置'),
+      title: const LText('设置'),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () {
         Navigator.push(
@@ -558,7 +578,7 @@ class _AboutTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.info_outline),
-      title: const Text('关于'),
+      title: const LText('关于'),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () {
         Navigator.push(
@@ -570,14 +590,13 @@ class _AboutTile extends StatelessWidget {
   }
 }
 
-
 class _Footer extends StatelessWidget {
   const _Footer();
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
+      child: LText(
         '苏伊士 by HsxMark',
         style: TextStyle(
           color: Colors.grey,
@@ -604,8 +623,8 @@ class _GlassAwareCard extends StatelessWidget {
         child: LiquidGlass(
           shape: const LiquidRoundedSuperellipse(borderRadius: 36),
           child: Container(
-             // Card/InkWell handling is abstracted. Basic container for glass contents.
-             child: child,
+            // Card/InkWell handling is abstracted. Basic container for glass contents.
+            child: child,
           ),
         ),
       );

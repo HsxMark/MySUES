@@ -4,6 +4,8 @@ import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart';
 import 'widget_service.dart';
+import '../l10n/app_localizations.dart';
+import 'locale_service.dart';
 
 class ScheduleDataService {
   static const String _tablesKey = 'schedule_tables';
@@ -168,6 +170,9 @@ class ScheduleDataService {
     // Check tables
     final tables = await loadScheduleTables();
     if (tables.isEmpty) {
+      final l10n = await AppLocalizations.delegate.load(
+        LocaleService().effectiveLocale,
+      );
       // 创建默认时间表
       // 1. TimeTable
       // final timeTable = TimeTable(id: 1, name: '默认作息');
@@ -200,7 +205,7 @@ class ScheduleDataService {
 
       // 创建默认课表
       final defaultTable = ScheduleTable(
-        tableName: '默认课表',
+        tableName: l10n.defaultSchedule,
         startDate: DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).toIso8601String().split('T')[0],
         timeTableId: 1, // Link to default time table
         nodes: 15, // Update to 15

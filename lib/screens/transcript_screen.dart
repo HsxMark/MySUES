@@ -8,6 +8,7 @@ import '../services/theme_service.dart';
 import 'import_pdf_screen.dart';
 import 'transcript_details_screen.dart';
 import 'login_webview_screen.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class TranscriptScreen extends StatefulWidget {
   const TranscriptScreen({super.key});
@@ -49,7 +50,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     final scores = await ScoreService.loadScores();
     final importInfo = await ScoreService.loadImportInfo();
     if (!mounted) return;
-    
+
     setState(() {
       _allScores.clear();
       _allScores.addAll(scores);
@@ -67,7 +68,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     if (_semesters.isNotEmpty) {
       // 保持之前的选择，如果之前选的还在列表里
       if (!_semesters.contains(_selectedSemester)) {
-         _selectedSemester = _semesters.first;
+        _selectedSemester = _semesters.first;
       }
     } else {
       _selectedSemester = '无数据';
@@ -103,9 +104,11 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('成绩单'),
+        title: const LText('成绩单'),
         centerTitle: true,
-        backgroundColor: ThemeService().liquidGlassEnabled ? Colors.transparent : null,
+        backgroundColor: ThemeService().liquidGlassEnabled
+            ? Colors.transparent
+            : null,
         elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
           ListenableBuilder(
@@ -115,23 +118,28 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 return IconButton(
                   onPressed: () => _showLiquidGlassMenu(context),
                   icon: const Icon(Icons.more_vert),
-                  tooltip: '菜单',
+                  tooltip: legacyTranslate(context, '菜单'),
                 );
               }
               return MenuAnchor(
-                builder: (BuildContext context, MenuController controller, Widget? child) {
-                  return IconButton(
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
+                builder:
+                    (
+                      BuildContext context,
+                      MenuController controller,
+                      Widget? child,
+                    ) {
+                      return IconButton(
+                        onPressed: () {
+                          if (controller.isOpen) {
+                            controller.close();
+                          } else {
+                            controller.open();
+                          }
+                        },
+                        icon: const Icon(Icons.more_vert),
+                        tooltip: legacyTranslate(context, '菜单'),
+                      );
                     },
-                    icon: const Icon(Icons.more_vert),
-                    tooltip: '菜单',
-                  );
-                },
                 menuChildren: [
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.sync_alt),
@@ -146,10 +154,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         await _loadScores();
                       }
                     },
-                    child: const Text('从教务处导入'),
+                    child: const LText('从教务处导入'),
                   ),
                   MenuItemButton(
-                    leadingIcon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                    leadingIcon: const Icon(
+                      Icons.picture_as_pdf,
+                      color: Colors.redAccent,
+                    ),
                     onPressed: () async {
                       final result = await Navigator.push(
                         context,
@@ -159,40 +170,46 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                       );
 
                       if (result != null && result is List<Score> && mounted) {
-                         final now = DateTime.now();
-                         final timeStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
-                         const methodStr = "PDF文件";
+                        final now = DateTime.now();
+                        final timeStr =
+                            "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+                        const methodStr = "PDF文件";
 
-                         setState(() {
-                           _allScores.clear();
-                           _allScores.addAll(result);
-                           _lastImportTime = timeStr;
-                           _lastImportMethod = methodStr;
-                           _updateSemesters();
-                         });
-                         await ScoreService.saveScores(_allScores);
-                         await ScoreService.saveImportInfo(timeStr, methodStr);
+                        setState(() {
+                          _allScores.clear();
+                          _allScores.addAll(result);
+                          _lastImportTime = timeStr;
+                          _lastImportMethod = methodStr;
+                          _updateSemesters();
+                        });
+                        await ScoreService.saveScores(_allScores);
+                        await ScoreService.saveImportInfo(timeStr, methodStr);
                       }
                     },
-                    child: const Text('从PDF导入'),
+                    child: const LText('从PDF导入'),
                   ),
                   MenuItemButton(
-                    leadingIcon: const Icon(Icons.delete_outline, color: Colors.grey),
+                    leadingIcon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.grey,
+                    ),
                     onPressed: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('确认清空'),
-                          content: const Text('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                          title: const LText('确认清空'),
+                          content: const LText('确定要清空所有成绩数据吗？此操作不可撤销。'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const Text('取消'),
+                              child: const LText('取消'),
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(context, true),
-                              style: TextButton.styleFrom(foregroundColor: Colors.red),
-                              child: const Text('确认清空'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                              child: const LText('确认清空'),
                             ),
                           ],
                         ),
@@ -209,17 +226,22 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         });
                       }
                     },
-                    child: const Text('清空成绩'),
+                    child: const LText('清空成绩'),
                   ),
                   MenuItemButton(
-                    leadingIcon: const Icon(Icons.info_outline, color: Colors.grey),
+                    leadingIcon: const Icon(
+                      Icons.info_outline,
+                      color: Colors.grey,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const TranscriptDetailsScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const TranscriptDetailsScreen(),
+                        ),
                       );
                     },
-                    child: const Text('详情'),
+                    child: const LText('详情'),
                   ),
                 ],
               );
@@ -227,10 +249,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           ),
         ],
       ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : _semesters.isEmpty
-          ? const Center(child: Text("暂无成绩数据，点击右上方按钮进行导入"))
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _semesters.isEmpty
+          ? const Center(child: LText("暂无成绩数据，点击右上方按钮进行导入"))
           : Column(
               children: [
                 // 顶部总览卡片
@@ -244,7 +266,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      const LText(
                         "学期详情",
                         style: TextStyle(
                           fontSize: 18,
@@ -256,7 +278,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         items: _semesters.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
-                            child: Text(value),
+                            child: LText(value),
                           );
                         }).toList(),
                         onChanged: (newValue) {
@@ -277,7 +299,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 // 成绩列表
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 16,
+                      bottom: 0,
+                    ),
                     itemCount: semesterScores.length,
                     itemBuilder: (context, index) {
                       final score = semesterScores[index];
@@ -285,17 +312,14 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                     },
                   ),
                 ),
-                
+
                 // 底部注释
                 if (_lastImportTime != null && _lastImportMethod != null)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Text(
+                    child: LText(
                       "上次导入成绩时间$_lastImportTime，导入方式$_lastImportMethod",
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -353,7 +377,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const LoginWebviewScreen(),
+                                  builder: (context) =>
+                                      const LoginWebviewScreen(),
                                 ),
                               );
                               if (mounted) {
@@ -374,9 +399,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                                   builder: (context) => const ImportPdfScreen(),
                                 ),
                               );
-                              if (result != null && result is List<Score> && mounted) {
+                              if (result != null &&
+                                  result is List<Score> &&
+                                  mounted) {
                                 final now = DateTime.now();
-                                final timeStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+                                final timeStr =
+                                    "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
                                 const methodStr = "PDF文件";
                                 setState(() {
                                   _allScores.clear();
@@ -386,11 +414,21 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                                   _updateSemesters();
                                 });
                                 await ScoreService.saveScores(_allScores);
-                                await ScoreService.saveImportInfo(timeStr, methodStr);
+                                await ScoreService.saveImportInfo(
+                                  timeStr,
+                                  methodStr,
+                                );
                               }
                             },
                           ),
-                          Divider(height: 1, indent: 16, endIndent: 16, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                          Divider(
+                            height: 1,
+                            indent: 16,
+                            endIndent: 16,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.1,
+                            ),
+                          ),
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.delete_outline,
@@ -400,17 +438,21 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const Text('确认清空'),
-                                  content: const Text('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                                  title: const LText('确认清空'),
+                                  content: const LText('确定要清空所有成绩数据吗？此操作不可撤销。'),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
-                                      child: const Text('取消'),
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const LText('取消'),
                                     ),
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, true),
-                                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                                      child: const Text('确认清空'),
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                      ),
+                                      child: const LText('确认清空'),
                                     ),
                                   ],
                                 ),
@@ -435,7 +477,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                               Navigator.pop(dialogContext);
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const TranscriptDetailsScreen()),
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const TranscriptDetailsScreen(),
+                                ),
                               );
                             },
                           ),
@@ -481,9 +526,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: iconColor ?? theme.colorScheme.onSurface),
+            Icon(
+              icon,
+              size: 20,
+              color: iconColor ?? theme.colorScheme.onSurface,
+            ),
             const SizedBox(width: 12),
-            Text(
+            LText(
               label,
               style: TextStyle(
                 fontSize: 15,
@@ -518,12 +567,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                const LText(
                   "总平均绩点 (GPA)",
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                LText(
                   totalGPA.toStringAsFixed(2),
                   style: const TextStyle(
                     color: Colors.white,
@@ -547,7 +596,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   Widget _buildSemesterSummary(double gpa, List<Score> scores) {
     double totalCredits = 0;
     int unEvaluatedCount = 0;
-    
+
     for (var s in scores) {
       if (s.isEvaluated) {
         totalCredits += s.credit;
@@ -579,25 +628,37 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: Container(
-                 width: double.infinity,
-                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                 decoration: BoxDecoration(
-                   color: Colors.orange.withValues(alpha: 0.1),
-                   borderRadius: BorderRadius.circular(8),
-                   border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-                 ),
-                 child: Row(
-                   children: [
-                     const Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                     const SizedBox(width: 8),
-                     Expanded(
-                       child: Text(
-                         "本学期有 $unEvaluatedCount 门课程未评教，不计入GPA",
-                         style: const TextStyle(color: Colors.orange, fontSize: 12),
-                       ),
-                     ),
-                   ],
-                 ),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: LText(
+                        "本学期有 $unEvaluatedCount 门课程未评教，不计入GPA",
+                        style: const TextStyle(
+                          color: Colors.orange,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -620,9 +681,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         ),
         child: Column(
           children: [
-            Text(label, style: TextStyle(color: color, fontSize: 12)),
+            LText(label, style: TextStyle(color: color, fontSize: 12)),
             const SizedBox(height: 4),
-            Text(
+            LText(
               value,
               style: TextStyle(
                 color: color,
@@ -651,7 +712,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 Row(
                   children: [
                     Flexible(
-                      child: Text(
+                      child: LText(
                         score.courseName,
                         style: const TextStyle(
                           fontSize: 16,
@@ -664,13 +725,18 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                     if (score.gradePoint == 0 && score.isEvaluated)
                       Container(
                         margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                          border: Border.all(
+                            color: Colors.red.withValues(alpha: 0.5),
+                          ),
                         ),
-                        child: const Text(
+                        child: const LText(
                           '挂科',
                           style: TextStyle(
                             color: Colors.red,
@@ -682,7 +748,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
+                LText(
                   "学分: ${score.credit}",
                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
@@ -693,7 +759,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (score.isEvaluated)
-                Text(
+                LText(
                   score.gradePoint.toStringAsFixed(1),
                   style: TextStyle(
                     fontSize: 20,
@@ -702,7 +768,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                 )
               else
-                const Text(
+                const LText(
                   "未评教",
                   style: TextStyle(
                     fontSize: 16,
@@ -733,10 +799,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             glassColor: theme.colorScheme.surface.withValues(alpha: 0.6),
           ),
           shape: const LiquidRoundedSuperellipse(borderRadius: 36),
-          child: Material(
-            color: Colors.transparent,
-            child: content,
-          ),
+          child: Material(color: Colors.transparent, child: content),
         ),
       );
     }

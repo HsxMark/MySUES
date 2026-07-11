@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/schedule_table.dart';
 import 'schedule_shift_screen.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class ScheduleSettingsScreen extends StatefulWidget {
   final ScheduleTable? table; // Null for new table
@@ -75,7 +76,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('课表设置'),
+        title: const LText('课表设置'),
         actions: [IconButton(icon: const Icon(Icons.check), onPressed: _save)],
       ),
       body: ListView(
@@ -83,15 +84,15 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
         children: [
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: '课表名称',
+            decoration: InputDecoration(
+              labelText: legacyTranslate(context, '课表名称'),
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
           ListTile(
-            title: const Text('开学日期'),
-            subtitle: Text(_startDate),
+            title: const LText('开学日期'),
+            subtitle: LText(_startDate),
             trailing: const Icon(Icons.calendar_today),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -102,8 +103,8 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _maxWeekController,
-            decoration: const InputDecoration(
-              labelText: '学期周数',
+            decoration: InputDecoration(
+              labelText: legacyTranslate(context, '学期周数'),
               border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.number,
@@ -111,8 +112,8 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _nodesController,
-            decoration: const InputDecoration(
-              labelText: '每天节数',
+            decoration: InputDecoration(
+              labelText: legacyTranslate(context, '每天节数'),
               border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.number,
@@ -120,7 +121,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
           const Divider(),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
+            child: LText(
               '课表显示设置',
               style: TextStyle(
                 fontSize: 16,
@@ -130,34 +131,34 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             ),
           ),
           SwitchListTile(
-            title: const Text('显示课程时间'),
+            title: const LText('显示课程时间'),
             value: _showTime,
             onChanged: (v) => setState(() => _showTime = v),
           ),
           SwitchListTile(
-            title: const Text('显示周六'),
+            title: const LText('显示周六'),
             value: _showSat,
             onChanged: (v) => setState(() => _showSat = v),
           ),
           SwitchListTile(
-            title: const Text('显示周日'),
+            title: const LText('显示周日'),
             value: _showSun,
             onChanged: (v) => setState(() => _showSun = v),
           ),
           SwitchListTile(
-            title: const Text('显示非本周课程'),
+            title: const LText('显示非本周课程'),
             value: _showOtherWeekCourse,
             onChanged: (v) => setState(() => _showOtherWeekCourse = v),
           ),
           SwitchListTile(
-            title: const Text('显示悬浮跳转按钮'),
-            subtitle: const Text('快速跳转周次/日期'),
+            title: const LText('显示悬浮跳转按钮'),
+            subtitle: const LText('快速跳转周次/日期'),
             value: _showFloatingButton,
             onChanged: (v) => setState(() => _showFloatingButton = v),
           ),
           SwitchListTile(
-            title: const Text('显示已隐藏免听课程'),
-            subtitle: const Text('开启后在课表视图中显示已隐藏的免听课程'),
+            title: const LText('显示已隐藏免听课程'),
+            subtitle: const LText('开启后在课表视图中显示已隐藏的免听课程'),
             value: _showHiddenCourses,
             onChanged: (v) => setState(() => _showHiddenCourses = v),
           ),
@@ -165,7 +166,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             const Divider(),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
+              child: LText(
                 '高级设置',
                 style: TextStyle(
                   fontSize: 16,
@@ -175,8 +176,8 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
               ),
             ),
             ListTile(
-              title: const Text('节假日调休'),
-              subtitle: const Text('指定日期课程调换'),
+              title: const LText('节假日调休'),
+              subtitle: const LText('指定日期课程调换'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(
@@ -215,25 +216,25 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('课表名称不能为空')));
+      ).showSnackBar(const SnackBar(content: LText('课表名称不能为空')));
       return;
     }
     if (maxWeek < 15) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('学期周数不能少于 15 周')));
+      ).showSnackBar(const SnackBar(content: LText('学期周数不能少于 15 周')));
       return;
     }
     if (nodes < 10) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('每天节数不能少于 10 节')));
+      ).showSnackBar(const SnackBar(content: LText('每天节数不能少于 10 节')));
       return;
     }
     if (widget.existingNames.contains(name)) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('课表名称已存在，请使用其他名称')));
+      ).showSnackBar(const SnackBar(content: LText('课表名称已存在，请使用其他名称')));
       return;
     }
 

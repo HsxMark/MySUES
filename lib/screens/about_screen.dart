@@ -7,6 +7,7 @@ import 'package:mysues/screens/about/acknowledgements_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
 import 'package:mysues/screens/about/egg_screen.dart';
 import 'package:mysues/screens/main_entry_screen.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -21,7 +22,8 @@ class _AboutScreenState extends State<AboutScreen> {
 
   void _onIconTap() {
     final now = DateTime.now();
-    if (_lastTapTime != null && now.difference(_lastTapTime!).inMilliseconds > 500) {
+    if (_lastTapTime != null &&
+        now.difference(_lastTapTime!).inMilliseconds > 500) {
       _tapCount = 0;
     }
     _lastTapTime = now;
@@ -39,10 +41,7 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('关于'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const LText('关于'), centerTitle: true),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -60,12 +59,12 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                const LText(
                   '苏伊士',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                LText(
                   'Version 1.1.0-build.6',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
@@ -75,12 +74,9 @@ class _AboutScreenState extends State<AboutScreen> {
                     Uri.parse('https://syntrion.dev/mysues#download'),
                     mode: LaunchMode.externalApplication,
                   ),
-                  child: Text(
+                  child: LText(
                     '检查更新',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
                   ),
                 ),
               ],
@@ -102,12 +98,20 @@ class _AboutScreenState extends State<AboutScreen> {
                 _buildOptionItem(context, '隐私政策', const PrivacyPolicyScreen()),
                 const Divider(height: 1, indent: 16),
                 ListTile(
-                  title: const Text('使用教程'),
-                  trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                  title: const LText('使用教程'),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
                   onTap: () => MainEntryScreen.showOnboarding(context),
                 ),
                 const Divider(height: 1, indent: 16),
-                _buildOptionItem(context, '开源信息', const OpenSourceLicenseScreen()),
+                _buildOptionItem(
+                  context,
+                  '开源信息',
+                  const OpenSourceLicenseScreen(),
+                ),
                 const Divider(height: 1, indent: 16),
                 _buildOptionItem(context, '作者', const SponsorScreen()),
                 const Divider(height: 1, indent: 16),
@@ -118,7 +122,7 @@ class _AboutScreenState extends State<AboutScreen> {
 
           const SizedBox(height: 48),
           const Center(
-            child: Text(
+            child: LText(
               'Copyright © 2026 HsxMark',
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
@@ -130,13 +134,10 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Widget _buildOptionItem(BuildContext context, String title, Widget page) {
     return ListTile(
-      title: Text(title),
+      title: LText(title),
       trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => page),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => page));
       },
     );
   }

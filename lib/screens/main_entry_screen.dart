@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/screen_breakpoints.dart';
 import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
+import 'package:mysues/l10n/l10n.dart';
 import 'schedule_view_container.dart';
 import 'transcript_screen.dart';
 import 'exam_info_screen.dart';
@@ -13,6 +14,7 @@ import 'profile_screen.dart';
 import 'about/user_agreement_screen.dart';
 import 'about/privacy_policy_screen.dart';
 import 'onboarding_screen.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class MainEntryScreen extends StatefulWidget {
   const MainEntryScreen({super.key});
@@ -78,12 +80,12 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         return PopScope(
           canPop: false,
           child: AlertDialog(
-            title: const Text('用户协议与隐私政策'),
+            title: LText(dialogContext.l10n.userAgreementAndPrivacy),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('欢迎使用苏伊士（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：'),
+                LText(dialogContext.l10n.welcomeAgreement),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -101,8 +103,8 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                           ),
                         );
                       },
-                      child: Text(
-                        '《用户协议》',
+                      child: LText(
+                        '《${dialogContext.l10n.userAgreement}》',
                         style: TextStyle(
                           color: Theme.of(dialogContext).colorScheme.primary,
                           decoration: TextDecoration.underline,
@@ -128,8 +130,8 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                           ),
                         );
                       },
-                      child: Text(
-                        '《隐私政策》',
+                      child: LText(
+                        '《${dialogContext.l10n.privacyPolicy}》',
                         style: TextStyle(
                           color: Theme.of(dialogContext).colorScheme.primary,
                           decoration: TextDecoration.underline,
@@ -156,8 +158,8 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          '重要提示：本产品为公益性质的完全免费产品，若您是通过付费获取本产品那您遭遇了诈骗。',
+                        child: LText(
+                          dialogContext.l10n.agreementFraudWarning,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.orange.shade900,
@@ -169,14 +171,14 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                const LText(
                   '若遇到什么问题，请添加QQ群聊：1045770691 反馈问题',
                   style: TextStyle(fontSize: 12),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  '点击「同意并继续」表示您已阅读并同意以上协议。',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                LText(
+                  dialogContext.l10n.agreementConsentHint,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
@@ -189,7 +191,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                     exit(0);
                   }
                 },
-                child: const Text('不同意'),
+                child: LText(dialogContext.l10n.disagreeAndExit),
               ),
               FilledButton(
                 onPressed: () async {
@@ -201,7 +203,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                   // Show onboarding after agreement
                   _showOnboarding(prefs);
                 },
-                child: const Text('同意并继续'),
+                child: LText(dialogContext.l10n.agreeAndContinue),
               ),
             ],
           ),
@@ -246,22 +248,22 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           },
           labelType: NavigationRailLabelType.all,
           groupAlignment: -0.85,
-          destinations: const [
+          destinations: [
             NavigationRailDestination(
               icon: Icon(Icons.calendar_month),
-              label: Text('课程表'),
+              label: LText(context.l10n.schedule),
             ),
             NavigationRailDestination(
               icon: Icon(Icons.description),
-              label: Text('成绩单'),
+              label: LText(context.l10n.transcript),
             ),
             NavigationRailDestination(
               icon: Icon(Icons.edit_calendar),
-              label: Text('考试信息'),
+              label: LText(context.l10n.exams),
             ),
             NavigationRailDestination(
               icon: Icon(Icons.person),
-              label: Text('我'),
+              label: LText(context.l10n.profile),
             ),
           ],
         ),
@@ -313,22 +315,22 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                             _currentIndex = index;
                           });
                         },
-                        tabs: const [
+                        tabs: [
                           LiquidGlassBottomBarTab(
                             icon: Icons.calendar_month,
-                            label: '课程表',
+                            label: context.l10n.schedule,
                           ),
                           LiquidGlassBottomBarTab(
                             icon: Icons.description,
-                            label: '成绩单',
+                            label: context.l10n.transcript,
                           ),
                           LiquidGlassBottomBarTab(
                             icon: Icons.edit_calendar,
-                            label: '考试信息',
+                            label: context.l10n.exams,
                           ),
                           LiquidGlassBottomBarTab(
                             icon: Icons.person,
-                            label: '我',
+                            label: context.l10n.profile,
                           ),
                         ],
                       )
@@ -344,22 +346,22 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                           context,
                         ).colorScheme.primary,
                         unselectedItemColor: Colors.grey,
-                        items: const [
+                        items: [
                           BottomNavigationBarItem(
                             icon: Icon(Icons.calendar_month),
-                            label: '课程表',
+                            label: context.l10n.schedule,
                           ),
                           BottomNavigationBarItem(
                             icon: Icon(Icons.description),
-                            label: '成绩单',
+                            label: context.l10n.transcript,
                           ),
                           BottomNavigationBarItem(
                             icon: Icon(Icons.edit_calendar),
-                            label: '考试信息',
+                            label: context.l10n.exams,
                           ),
                           BottomNavigationBarItem(
                             icon: Icon(Icons.person),
-                            label: '我',
+                            label: context.l10n.profile,
                           ),
                         ],
                       )),

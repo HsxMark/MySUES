@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/course.dart';
 import '../models/time_table.dart';
 import '../services/schedule_service.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class AddCourseScreen extends StatefulWidget {
   final Course? course; // 编辑模式传入对象
@@ -166,7 +167,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.course == null ? '添加课程' : '编辑课程'),
+        title: LText(widget.course == null ? '添加课程' : '编辑课程'),
         actions: [
           if (widget.course != null)
             IconButton(
@@ -189,7 +190,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               _buildTextField(_teacherController, '老师'),
               const SizedBox(height: 24),
 
-              const Text(
+              const LText(
                 '上课时间',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -205,12 +206,14 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                     children: [
                       DropdownButtonFormField<int>(
                         initialValue: _day,
-                        decoration: const InputDecoration(labelText: '星期'),
+                        decoration: InputDecoration(
+                          labelText: legacyTranslate(context, '星期'),
+                        ),
                         items: List.generate(
                           7,
                           (index) => DropdownMenuItem(
                             value: index + 1,
-                            child: Text(
+                            child: LText(
                               ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][index],
                             ),
                           ),
@@ -223,15 +226,15 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                           Expanded(
                             child: DropdownButtonFormField<int>(
                               initialValue: _startNode,
-                              decoration: const InputDecoration(
-                                labelText: '开始节次',
+                              decoration: InputDecoration(
+                                labelText: legacyTranslate(context, '开始节次'),
                               ),
                               isExpanded: true,
                               items: List.generate(15, (index) {
                                 final node = index + 1;
                                 return DropdownMenuItem(
                                   value: node,
-                                  child: Text(
+                                  child: LText(
                                     '第 $node 节 ${_getTimeString(node)}',
                                     style: const TextStyle(fontSize: 12),
                                     overflow: TextOverflow.ellipsis,
@@ -253,15 +256,15 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                           Expanded(
                             child: DropdownButtonFormField<int>(
                               initialValue: _endNode,
-                              decoration: const InputDecoration(
-                                labelText: '结束节次',
+                              decoration: InputDecoration(
+                                labelText: legacyTranslate(context, '结束节次'),
                               ),
                               isExpanded: true,
                               items: List.generate(15, (index) {
                                 final node = index + 1;
                                 return DropdownMenuItem(
                                   value: node,
-                                  child: Text(
+                                  child: LText(
                                     '第 $node 节 ${_getTimeString(node)}',
                                     style: const TextStyle(fontSize: 12),
                                     overflow: TextOverflow.ellipsis,
@@ -310,7 +313,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
 
               const SizedBox(height: 24),
-              const Text(
+              const LText(
                 '周次设置',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -349,11 +352,13 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       DropdownButtonFormField<int>(
                         key: ValueKey(_type),
                         initialValue: _type,
-                        decoration: const InputDecoration(labelText: '单双周'),
+                        decoration: InputDecoration(
+                          labelText: legacyTranslate(context, '单双周'),
+                        ),
                         items: const [
-                          DropdownMenuItem(value: 0, child: Text('每周')),
-                          DropdownMenuItem(value: 1, child: Text('单周')),
-                          DropdownMenuItem(value: 2, child: Text('双周')),
+                          DropdownMenuItem(value: 0, child: LText('每周')),
+                          DropdownMenuItem(value: 1, child: LText('单周')),
+                          DropdownMenuItem(value: 2, child: LText('双周')),
                         ],
                         onChanged: (v) => setState(() => _type = v!),
                       ),
@@ -363,7 +368,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
 
               const SizedBox(height: 24),
-              const Text(
+              const LText(
                 '修读状态',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -381,19 +386,21 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       DropdownButtonFormField<CourseStudyType>(
                         key: ValueKey(_studyType),
                         initialValue: _studyType,
-                        decoration: const InputDecoration(labelText: '当前状态'),
+                        decoration: InputDecoration(
+                          labelText: legacyTranslate(context, '当前状态'),
+                        ),
                         items: const [
                           DropdownMenuItem(
                             value: CourseStudyType.normal,
-                            child: Text('正常修读'),
+                            child: LText('正常修读'),
                           ),
                           DropdownMenuItem(
                             value: CourseStudyType.retake,
-                            child: Text('重修'),
+                            child: LText('重修'),
                           ),
                           DropdownMenuItem(
                             value: CourseStudyType.exempt,
-                            child: Text('免听'),
+                            child: LText('免听'),
                           ),
                         ],
                         onChanged: (v) {
@@ -408,11 +415,11 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       if (_studyType == CourseStudyType.exempt) ...[
                         const SizedBox(height: 12),
                         CheckboxListTile(
-                          title: const Text(
+                          title: const LText(
                             '是否在课表中隐藏？',
                             style: TextStyle(fontSize: 14),
                           ),
-                          subtitle: const Text(
+                          subtitle: const LText(
                             '隐藏后将不会在课表视图中显示该课程',
                             style: TextStyle(fontSize: 12),
                           ),
@@ -433,7 +440,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
 
               const SizedBox(height: 24),
-              const Text(
+              const LText(
                 '课程颜色',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -472,7 +479,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                 height: 50,
                 child: FilledButton(
                   onPressed: _saveCourse,
-                  child: const Text('保存', style: TextStyle(fontSize: 18)),
+                  child: const LText('保存', style: TextStyle(fontSize: 18)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -547,12 +554,12 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('删除课程'),
-        content: Text('确认要删除课程 "${widget.course!.courseName}" 吗？'),
+        title: const LText('删除课程'),
+        content: LText('确认要删除课程 "${widget.course!.courseName}" 吗？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: const LText('取消'),
           ),
           TextButton(
             onPressed: () async {
@@ -560,7 +567,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               await ScheduleDataService.deleteCourse(widget.course!.id);
               if (mounted) Navigator.pop(context, 'deleted'); // Return signal
             },
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
+            child: const LText('删除', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

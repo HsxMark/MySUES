@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">My SUES</string>
+    <string name="widget_update_required">Open the app to update your schedule</string>
+    <string name="widget_no_courses">No Classes Today</string>
+    <string name="widget_empty_message">Enjoy your free time!</string>
+    <string name="widget_title_preview">Schedule | Thu, Mar 5</string>
+    <string name="widget_week_preview">Week 1</string>
+    <string name="widget_course_preview">Course</string>
+    <string name="widget_location_preview">Location</string>
+    <string name="widget_display_name">Schedule Widget</string>
+    <string name="widget_description">See today’s classes at a glance and never miss a class.</string>
 </resources>

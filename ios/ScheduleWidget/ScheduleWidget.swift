@@ -1,11 +1,24 @@
 import WidgetKit
 import SwiftUI
 
+private func widgetLocalized(_ key: String, defaults: UserDefaults? = nil) -> String {
+    let language = defaults?.string(forKey: "effective_locale")
+        ?? Locale.current.languageCode
+        ?? "en"
+    let localization = language == "zh" ? "zh-Hans" : "en"
+    guard let path = Bundle.main.path(forResource: localization, ofType: "lproj"),
+          let bundle = Bundle(path: path) else {
+        return NSLocalizedString(key, comment: "")
+    }
+    return bundle.localizedString(forKey: key, value: key, table: nil)
+}
+
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(),  title: "3.12 周四", week: "第 1 周", courses: [
-            CourseEntry(name: "测试课程1", time: "08:15", endTime: "09:55", loc: "塔卫II 布拉施", colorIdx: 0, colorHex: "#2ECC71"),
-            CourseEntry(name: "测试课程2", time: "13:20", endTime: "14:40", loc: "欧绍恩 布拉施", colorIdx: 1, colorHex: "#F39C12")
+        let defaults = UserDefaults(suiteName: "group.com.hsxmark.mysues")
+        return SimpleEntry(date: Date(), title: widgetLocalized("widget.previewTitle", defaults: defaults), week: widgetLocalized("widget.previewWeek", defaults: defaults), courses: [
+            CourseEntry(name: widgetLocalized("widget.previewCourse1", defaults: defaults), time: "08:15", endTime: "09:55", loc: widgetLocalized("widget.previewLocation", defaults: defaults), colorIdx: 0, colorHex: "#2ECC71"),
+            CourseEntry(name: widgetLocalized("widget.previewCourse2", defaults: defaults), time: "13:20", endTime: "14:40", loc: widgetLocalized("widget.previewLocation", defaults: defaults), colorIdx: 1, colorHex: "#F39C12")
         ])
     }
 
@@ -21,12 +34,19 @@ struct Provider: TimelineProvider {
         let scheduleDay = loadScheduleDay(from: sharedDefaults, for: now)
 
         if hasScheduleCache(in: sharedDefaults), scheduleDay == nil {
-            let entry = SimpleEntry(date: now, title: "请打开APP更新课表", week: "", courses: [])
+            let entry = SimpleEntry(
+                date: now,
+                title: widgetLocalized("widget.updateRequired", defaults: sharedDefaults),
+                week: "",
+                courses: []
+            )
             completion(Timeline(entries: [entry], policy: .atEnd))
             return
         }
 
-        let title = scheduleDay?.title ?? sharedDefaults?.string(forKey: "title") ?? "今日无课"
+        let title = scheduleDay?.title
+            ?? sharedDefaults?.string(forKey: "title")
+            ?? widgetLocalized("widget.noCourses", defaults: sharedDefaults)
         let week = scheduleDay?.week ?? sharedDefaults?.string(forKey: "week") ?? ""
         let allCourses = scheduleDay?.courses ?? loadAllCourses(from: sharedDefaults)
 
@@ -114,7 +134,7 @@ struct Provider: TimelineProvider {
         }
 
         return ScheduleDay(
-            title: day["title"] as? String ?? "今日无课",
+            title: day["title"] as? String ?? widgetLocalized("widget.noCourses", defaults: sharedDefaults),
             week: day["week"] as? String ?? "",
             courses: courses
         )
@@ -144,7 +164,8 @@ struct Provider: TimelineProvider {
     
     func loadData() -> SimpleEntry {
         let sharedDefaults = UserDefaults(suiteName: "group.com.hsxmark.mysues")
-        let title = sharedDefaults?.string(forKey: "title") ?? "今日无课"
+        let title = sharedDefaults?.string(forKey: "title")
+            ?? widgetLocalized("widget.noCourses", defaults: sharedDefaults)
         let week = sharedDefaults?.string(forKey: "week") ?? ""
         let updateDateStr = sharedDefaults?.string(forKey: "updateDate") ?? ""
         
@@ -156,7 +177,12 @@ struct Provider: TimelineProvider {
         let todayStr = formatter.string(from: now)
         
         if !updateDateStr.isEmpty && updateDateStr != todayStr {
-            return SimpleEntry(date: now, title: "请打开APP更新课表", week: "", courses: [])
+            return SimpleEntry(
+                date: now,
+                title: widgetLocalized("widget.updateRequired", defaults: sharedDefaults),
+                week: "",
+                courses: []
+            )
         }
         
         let allCourses = loadAllCourses(from: sharedDefaults)
@@ -262,7 +288,10 @@ struct ScheduleWidgetEntryView : View {
             
             if visibleCourses.isEmpty {
                 Spacer()
-                Text("享受美好的空闲时光~")
+                Text(widgetLocalized(
+                    "widget.freeTime",
+                    defaults: UserDefaults(suiteName: "group.com.hsxmark.mysues")
+                ))
                     .foregroundColor(.gray)
                     .font(.system(size: 14))
                 Spacer()
@@ -326,8 +355,10 @@ struct ScheduleWidget: Widget {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             ScheduleWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("课表小组件")
-        .description("快速查看今日课表，让你不再错过任何一节课。")
+        .configurationDisplayName(
+            NSLocalizedString("widget.displayName", comment: "")
+        )
+        .description(NSLocalizedString("widget.description", comment: ""))
         .supportedFamilies([.systemMedium, .systemLarge])
     }
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/course.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class ImportClassPdfScreen extends StatefulWidget {
   const ImportClassPdfScreen({super.key});
@@ -28,12 +29,12 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
 
       if (result != null) {
         File file = File(result.files.single.path!);
-        
+
         if (Platform.isAndroid && !file.path.toLowerCase().endsWith('.pdf')) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('请选择 PDF 文件')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: LText('请选择 PDF 文件')));
           }
           return;
         }
@@ -43,7 +44,7 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
         });
 
         final List<int> bytes = await file.readAsBytes();
-        
+
         setState(() {
           _statusMessage = '正在解析内容...';
         });
@@ -54,20 +55,19 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
         if (!mounted) return;
 
         if (courses.isEmpty) {
-           // For now, since secondary logic is ignored, we might return success even with empty or just pop
-           // But the user said "secondary logic temporarily ignored". 
-           // I'll show a message or just pop with result if implemented.
-           // For now, I'll simulate a success with empty list or just log it.
+          // For now, since secondary logic is ignored, we might return success even with empty or just pop
+          // But the user said "secondary logic temporarily ignored".
+          // I'll show a message or just pop with result if implemented.
+          // For now, I'll simulate a success with empty list or just log it.
         }
-        
-        Navigator.pop(context, courses);
 
+        Navigator.pop(context, courses);
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导入失败: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: LText('导入失败: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -86,9 +86,7 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('导入课表 PDF'),
-      ),
+      appBar: AppBar(title: const LText('导入课表 PDF')),
       body: Center(
         child: _isLoading
             ? Column(
@@ -96,21 +94,25 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
                 children: [
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
-                  Text(_statusMessage ?? '处理中...'),
+                  LText(_statusMessage ?? '处理中...'),
                 ],
               )
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.picture_as_pdf, size: 80, color: Colors.redAccent),
+                  const Icon(
+                    Icons.picture_as_pdf,
+                    size: 80,
+                    color: Colors.redAccent,
+                  ),
                   const SizedBox(height: 20),
-                  const Text(
+                  const LText(
                     '请选择教务系统导出的课表PDF文件',
                     style: TextStyle(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  const LText(
                     '注意，当前功能极不稳定，可能无法正确解析 PDF 文件。', // Updated text
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                     textAlign: TextAlign.center,
@@ -119,7 +121,7 @@ class _ImportClassPdfScreenState extends State<ImportClassPdfScreen> {
                   FilledButton.icon(
                     onPressed: _pickAndProcessPdf,
                     icon: const Icon(Icons.upload_file),
-                    label: const Text('选择文件'),
+                    label: const LText('选择文件'),
                   ),
                 ],
               ),

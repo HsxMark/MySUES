@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:mysues/l10n/app_localizations.dart';
+import 'package:mysues/services/locale_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/notification_service.dart';
 import 'package:workmanager/workmanager.dart';
@@ -10,6 +12,7 @@ import 'screens/main_entry_screen.dart';
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
+    await LocaleService().loadSettings();
     await WidgetService.updateWidget();
     return Future.value(true);
   });
@@ -17,23 +20,23 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  Workmanager().initialize(
-    callbackDispatcher,
-    isInDebugMode: false,
-  );
+
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   Workmanager().registerPeriodicTask(
     "widgetUpdateTask",
     "updateWidget",
     frequency: const Duration(minutes: 15),
   );
-  
+
   // Also update widget on app launch
   WidgetService.updateWidget();
 
   // Initialize theme service
   final themeService = ThemeService();
   await themeService.loadSettings();
+
+  final localeService = LocaleService();
+  await localeService.loadSettings();
 
   // Initialize notification service
   final notificationService = NotificationService();
@@ -53,10 +56,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: ThemeService(),
+      animation: Listenable.merge([ThemeService(), LocaleService()]),
       builder: (context, child) {
         return MaterialApp(
-          title: '我的课表',
+          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
           themeMode: ThemeService().themeMode,
           theme: ThemeData(
             fontFamily: ThemeService().fontFamily,
@@ -77,12 +80,15 @@ class MyApp extends StatelessWidget {
             appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
           ),
           localizationsDelegates: const [
+            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
-          locale: const Locale('zh', 'CN'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: LocaleService().localeOverride,
+          localeResolutionCallback: (locale, supportedLocales) =>
+              LocaleService.resolveLocale(locale ?? const Locale('en')),
           // 切换到带底部导航的主界面
           home: ThemeService().splashAnimationEnabled
               ? const SplashScreen()

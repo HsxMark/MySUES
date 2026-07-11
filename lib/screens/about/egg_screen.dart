@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 class EggScreen extends StatelessWidget {
   const EggScreen({super.key});
@@ -19,11 +20,14 @@ class EggScreen extends StatelessWidget {
           children: [
             SvgPicture.asset(
               'assets/images/sanxuanyi.svg',
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
               width: 120,
             ),
             const SizedBox(height: 24),
-            const Text(
+            const LText(
               '工程  管理  设计',
               style: TextStyle(
                 color: Colors.white,

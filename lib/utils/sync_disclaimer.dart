@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mysues/l10n/legacy_text.dart';
 
 /// Shows the sync disclaimer dialog if the user hasn't opted to hide it.
 /// Returns `true` if the user confirmed (or previously opted out), `false` otherwise.
@@ -19,15 +20,18 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
       bool dontShowAgain = false;
       return StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('免责声明'),
+          title: const LText('免责声明'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('本功能仅提供便捷的信息同步服务，导入的数据可能存在偏差。请仔细核对同步后的信息，一切以教务处网站显示为准。'),
+              const LText(
+                '本功能仅提供便捷的信息同步服务，导入的数据可能存在偏差。请仔细核对同步后的信息，一切以教务处网站显示为准。',
+              ),
               const SizedBox(height: 12),
               GestureDetector(
-                onTap: () => setDialogState(() => dontShowAgain = !dontShowAgain),
+                onTap: () =>
+                    setDialogState(() => dontShowAgain = !dontShowAgain),
                 child: Row(
                   children: [
                     SizedBox(
@@ -35,11 +39,12 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
                       height: 24,
                       child: Checkbox(
                         value: dontShowAgain,
-                        onChanged: (v) => setDialogState(() => dontShowAgain = v ?? false),
+                        onChanged: (v) =>
+                            setDialogState(() => dontShowAgain = v ?? false),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text('不再显示', style: TextStyle(fontSize: 14)),
+                    const LText('不再显示', style: TextStyle(fontSize: 14)),
                   ],
                 ),
               ),
@@ -48,7 +53,7 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('取消'),
+              child: const LText('取消'),
             ),
             TextButton(
               onPressed: () {
@@ -57,7 +62,7 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
                 }
                 Navigator.pop(ctx, true);
               },
-              child: const Text('我已知悉'),
+              child: const LText('我已知悉'),
             ),
           ],
         ),

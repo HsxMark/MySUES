@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
-            android:text="测试课表标题 | 3.5 周四" />
+            android:text="@string/widget_title_preview" />
         <TextView
             android:id="@+id/widget_week"
             android:layout_width="wrap_content"
@@ -25,7 +25,7 @@
             android:layout_alignParentRight="true"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
-            android:text="第 1 周" />
+            android:text="@string/widget_week_preview" />
     </RelativeLayout>
 
     <TextView
@@ -37,7 +37,7 @@
         android:gravity="center"
         android:layout_marginTop="16dp"
         android:visibility="gone"
-        android:text="今天已经没有课啦" />
+        android:text="@string/widget_empty_message" />
 
     <!-- Course 1 -->
     <LinearLayout
@@ -67,7 +67,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_1_time"
                     android:layout_width="wrap_content"
@@ -87,7 +87,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_1_endtime"
                     android:layout_width="wrap_content"
@@ -128,7 +128,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_2_time"
                     android:layout_width="wrap_content"
@@ -148,7 +148,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_2_endtime"
                     android:layout_width="wrap_content"
@@ -189,7 +189,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_3_time"
                     android:layout_width="wrap_content"
@@ -209,7 +209,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_3_endtime"
                     android:layout_width="wrap_content"
@@ -250,7 +250,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_4_time"
                     android:layout_width="wrap_content"
@@ -270,7 +270,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_4_endtime"
                     android:layout_width="wrap_content"
@@ -311,7 +311,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_5_time"
                     android:layout_width="wrap_content"
@@ -331,7 +331,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_5_endtime"
                     android:layout_width="wrap_content"
@@ -372,7 +372,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_6_time"
                     android:layout_width="wrap_content"
@@ -392,7 +392,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_6_endtime"
                     android:layout_width="wrap_content"
@@ -433,7 +433,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_7_time"
                     android:layout_width="wrap_content"
@@ -453,7 +453,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_7_endtime"
                     android:layout_width="wrap_content"
@@ -494,7 +494,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="课程名" />
+                    android:text="@string/widget_course_preview" />
                 <TextView
                     android:id="@+id/course_8_time"
                     android:layout_width="wrap_content"
@@ -514,7 +514,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:text="地点" />
+                    android:text="@string/widget_location_preview" />
                 <TextView
                     android:id="@+id/course_8_endtime"
                     android:layout_width="wrap_content"

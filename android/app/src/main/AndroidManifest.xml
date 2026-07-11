@@ -11,6 +11,10 @@
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
+        <!-- liquid_glass_renderer only supports the Impeller renderer. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -39,7 +43,10 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <!-- Widget Receiver -->
-        <receiver android:name=".ScheduleWidgetProvider" android:exported="true">
+        <receiver
+            android:name=".ScheduleWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_display_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
