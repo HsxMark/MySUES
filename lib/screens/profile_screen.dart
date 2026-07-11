@@ -473,7 +473,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const Icon(Icons.sync_alt, color: Colors.blue),
                     const SizedBox(width: 8),
                     const LText(
-                      '教务连接',
+                      '教务同步',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -498,7 +498,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   child: LText(
-                    (_lastSyncTime != null) ? '已连接' : '未连接',
+                    (_lastSyncTime != null) ? '已同步' : '未同步',
                     style: TextStyle(
                       color: (_lastSyncTime != null)
                           ? Colors.green
@@ -522,7 +522,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
                 LText(
-                  _lastSyncTime ?? '点击同步数据',
+                  _lastSyncTime ?? '点击开始同步',
                   style: TextStyle(
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.grey[300]
