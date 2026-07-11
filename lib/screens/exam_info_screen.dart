@@ -143,14 +143,14 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.sync_alt),
                     onPressed: _importFromAcademic,
-                    child: const LText('从教务处导入'),
+                    child: const LText('同步考试'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.add, color: Colors.grey),
                     onPressed: () {
                       _navigateToAddExam();
                     },
-                    child: const LText('添加自定义考试'),
+                    child: const LText('添加考试'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(
@@ -275,7 +275,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
-                            label: '从教务处导入',
+                            label: '同步考试',
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               await _importFromAcademic();
@@ -292,7 +292,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.add,
-                            label: '添加自定义考试',
+                            label: '添加考试',
                             onTap: () {
                               Navigator.pop(dialogContext);
                               _navigateToAddExam();

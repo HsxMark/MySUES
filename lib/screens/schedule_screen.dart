@@ -1040,7 +1040,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         _initData();
                       }
                     },
-                    child: const LText('从教务导入'),
+                    child: const LText('同步课表'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.ios_share),
@@ -1187,7 +1187,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
-                            label: '从教务导入',
+                            label: '同步课表',
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (!await showSyncDisclaimer(context)) return;

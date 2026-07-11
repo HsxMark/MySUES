@@ -424,8 +424,8 @@ const Map<String, String> _english = {
   '删除课表': 'Delete Schedule',
   '长按删除课表': 'Press and hold to delete a schedule',
   '没有课表数据，请先创建课表': 'No schedule found. Create one first.',
-  '从教务处导入': 'Import from Academic System',
-  '从教务导入': 'Import from Academic System',
+  '同步考试': 'Sync Exam',
+  '同步课表': 'Sync Schedule',
   '同步成绩': 'Sync Grades',
   '取消导入': 'Cancel Import',
   '已取消导入': 'Import cancelled',
@@ -490,7 +490,6 @@ const Map<String, String> _english = {
   '考试提醒': 'Exam Reminders',
   '考试安排导入成功': 'Exam schedule imported',
   '添加考试': 'Add Exam',
-  '添加自定义考试': 'Add Custom Exam',
   '编辑考试': 'Edit Exam',
   '保存考试信息': 'Save Exam',
   '考试信息非即时获取，仅供参考，请以教务处系统提示为准！':

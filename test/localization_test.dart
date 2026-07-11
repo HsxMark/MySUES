@@ -40,6 +40,8 @@ void main() {
             children: [
               _GeneratedText(),
               LText('课程表'),
+              LText('同步考试'),
+              LText('同步课表'),
               LText('第 3 周'),
               LText('周一 第1 - 2节 08:15-09:55'),
               LText('考试前 2 天 09:00 提醒'),
@@ -55,6 +57,8 @@ void main() {
 
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Schedule'), findsOneWidget);
+    expect(find.text('Sync Exam'), findsOneWidget);
+    expect(find.text('Sync Schedule'), findsOneWidget);
     expect(find.text('Week 3'), findsOneWidget);
     expect(find.text('Monday · Periods 1–2 08:15-09:55'), findsOneWidget);
     expect(find.text('2 days before the exam at 09:00'), findsOneWidget);
