@@ -154,7 +154,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         await _loadScores();
                       }
                     },
-                    child: const LText('从教务处导入'),
+                    child: const LText('同步成绩'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(
@@ -186,7 +186,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         await ScoreService.saveImportInfo(timeStr, methodStr);
                       }
                     },
-                    child: const LText('从PDF导入'),
+                    child: const LText('导入成绩 PDF'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(
@@ -371,7 +371,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
-                            label: '从教务处导入',
+                            label: '同步成绩',
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               await Navigator.push(
@@ -390,7 +390,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                             context: dialogContext,
                             icon: Icons.picture_as_pdf,
                             iconColor: Colors.redAccent,
-                            label: '从PDF导入',
+                            label: '导入成绩 PDF',
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               final result = await Navigator.push(
@@ -561,32 +561,36 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           ),
         ],
       ),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const LText(
-                  "总平均绩点 (GPA)",
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const LText(
+                "总平均绩点 (GPA)",
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              LText(
+                totalGPA.toStringAsFixed(2),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 4),
-                LText(
-                  totalGPA.toStringAsFixed(2),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          Icon(
-            Icons.school_rounded,
-            size: 48,
-            color: Colors.white.withValues(alpha: 0.3),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Icon(
+              Icons.school_rounded,
+              size: 48,
+              color: Colors.white.withValues(alpha: 0.22),
+            ),
           ),
         ],
       ),
@@ -681,7 +685,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         ),
         child: Column(
           children: [
-            LText(label, style: TextStyle(color: color, fontSize: 12)),
+            LText(
+              label,
+              style: TextStyle(color: color, fontSize: 12),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 4),
             LText(
               value,

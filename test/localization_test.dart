@@ -43,6 +43,10 @@ void main() {
               LText('第 3 周'),
               LText('周一 第1 - 2节 08:15-09:55'),
               LText('考试前 2 天 09:00 提醒'),
+              LText('总平均绩点 (GPA)'),
+              LText('修读学分'),
+              LText('本学期有 2 门课程未评教，不计入GPA'),
+              LText('上次导入成绩时间2026-07-12 10:30，导入方式PDF文件'),
             ],
           ),
         ),
@@ -54,6 +58,10 @@ void main() {
     expect(find.text('Week 3'), findsOneWidget);
     expect(find.text('Monday · Periods 1–2 08:15-09:55'), findsOneWidget);
     expect(find.text('2 days before the exam at 09:00'), findsOneWidget);
+    expect(find.text('Overall GPA'), findsOneWidget);
+    expect(find.text('Credits'), findsOneWidget);
+    expect(find.text('2 pending · excluded from GPA'), findsOneWidget);
+    expect(find.text('Imported 2026-07-12 10:30 · PDF File'), findsOneWidget);
   });
 
   testWidgets('English schedule dates contain no Chinese month suffix', (

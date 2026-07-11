@@ -123,6 +123,19 @@ String legacyTranslate(BuildContext context, String source) {
     (match) => 'Enter ${legacyTranslate(context, match.group(1)!)}',
   );
   result = result.replaceAllMapped(
+    RegExp(r'^学分:\s*(.+)$'),
+    (match) => 'Credits: ${match.group(1)}',
+  );
+  result = result.replaceAllMapped(
+    RegExp(r'^本学期有\s*(\d+)\s*门课程未评教，不计入GPA$'),
+    (match) => '${match.group(1)} pending · excluded from GPA',
+  );
+  result = result.replaceAllMapped(
+    RegExp(r'^上次导入成绩时间(.+)，导入方式(.+)$'),
+    (match) =>
+        'Imported ${match.group(1)} · ${legacyTranslate(context, match.group(2)!)}',
+  );
+  result = result.replaceAllMapped(
     RegExp(r'^正在提取考试安排\.\.\.(?:\s*\(第(\d+)次尝试\))?$'),
     (match) => match.group(1) == null
         ? 'Retrieving exams…'
@@ -418,6 +431,8 @@ const Map<String, String> _english = {
   '从教务处导入': 'Import from Academic System',
   '从教务导入': 'Import from Academic System',
   '从PDF导入': 'Import from PDF',
+  '同步成绩': 'Sync Grades',
+  '导入成绩 PDF': 'Import PDF',
   '选择文件': 'Choose File',
   '请选择 PDF 文件': 'Choose a PDF file',
   '正在选择文件...': 'Selecting file…',
@@ -469,14 +484,13 @@ const Map<String, String> _english = {
   '成绩单': 'Grades',
   '绩点': 'GPA',
   '学分': 'Credits',
-  '修读学分': 'Credits Earned',
+  '修读学分': 'Credits',
   '学期 GPA': 'Semester GPA',
-  '学期详情': 'Semester Details',
-  '总平均绩点 (GPA)': 'Cumulative GPA',
+  '学期详情': 'Semester',
+  '总平均绩点 (GPA)': 'Overall GPA',
   '课程 学分...': 'Course  Credits…',
-  '未评教': 'Evaluation Required',
-  '暂无成绩数据，点击右上方按钮进行导入':
-      'No grade data. Use the button in the upper-right corner to import it.',
+  '未评教': 'Pending',
+  '暂无成绩数据，点击右上方按钮进行导入': 'No grades yet. Import them from the menu.',
   '导入成绩单': 'Import Transcript',
   '成绩说明': 'Grade Information',
   '清空成绩': 'Clear Grades',
