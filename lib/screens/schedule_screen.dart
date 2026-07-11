@@ -12,7 +12,6 @@ import '../services/theme_service.dart';
 import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
 import 'schedule_view_container.dart';
-import 'import_classpdf_screen.dart'; // Import
 import 'login_webview_screen.dart'; // Import
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
@@ -1026,46 +1025,22 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       );
                     },
                 menuChildren: [
-                  SubmenuButton(
-                    leadingIcon: const Icon(Icons.download),
-                    menuChildren: [
-                      MenuItemButton(
-                        leadingIcon: const Icon(Icons.sync_alt),
-                        onPressed: () async {
-                          if (!await showSyncDisclaimer(context)) return;
-                          if (!mounted) return;
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (c) => const LoginWebviewScreen(),
-                            ),
-                          );
-                          if (result == true) {
-                            _initData();
-                          }
-                        },
-                        child: const LText('从教务导入'),
-                      ),
-                      MenuItemButton(
-                        leadingIcon: const Icon(
-                          Icons.picture_as_pdf,
-                          color: Colors.redAccent,
+                  MenuItemButton(
+                    leadingIcon: const Icon(Icons.sync_alt),
+                    onPressed: () async {
+                      if (!await showSyncDisclaimer(context)) return;
+                      if (!mounted) return;
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (c) => const LoginWebviewScreen(),
                         ),
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (c) => const ImportClassPdfScreen(),
-                            ),
-                          );
-                          if (result != null) {
-                            _initData();
-                          }
-                        },
-                        child: const LText('从PDF导入'),
-                      ),
-                    ],
-                    child: const LText('导入课表'),
+                      );
+                      if (result == true) {
+                        _initData();
+                      }
+                    },
+                    child: const LText('从教务导入'),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.ios_share),
@@ -1209,23 +1184,6 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 16,
-                              top: 12,
-                              bottom: 4,
-                            ),
-                            child: LText(
-                              '导入课表',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.5,
-                                ),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
@@ -1241,22 +1199,6 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                 ),
                               );
                               if (result == true) _initData();
-                            },
-                          ),
-                          _buildLiquidGlassMenuItem(
-                            context: dialogContext,
-                            icon: Icons.picture_as_pdf,
-                            iconColor: Colors.redAccent,
-                            label: '从PDF导入',
-                            onTap: () async {
-                              Navigator.pop(dialogContext);
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (c) => const ImportClassPdfScreen(),
-                                ),
-                              );
-                              if (result != null) _initData();
                             },
                           ),
                           Divider(

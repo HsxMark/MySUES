@@ -549,7 +549,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       final now = DateTime.now();
       final timeStr =
           "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
-      await ScoreService.saveImportInfo(timeStr, "教务系统");
+      await ScoreService.saveLastImportTime(timeStr);
 
       _showSnack("成功导入 ${scores.length} 条成绩记录！");
       _isDataChanged = true;

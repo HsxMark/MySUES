@@ -131,9 +131,8 @@ String legacyTranslate(BuildContext context, String source) {
     (match) => '${match.group(1)} pending · excluded from GPA',
   );
   result = result.replaceAllMapped(
-    RegExp(r'^上次导入成绩时间(.+)，导入方式(.+)$'),
-    (match) =>
-        'Imported ${match.group(1)} · ${legacyTranslate(context, match.group(2)!)}',
+    RegExp(r'^上次导入成绩时间(.+)$'),
+    (match) => 'Imported ${match.group(1)}',
   );
   result = result.replaceAllMapped(
     RegExp(r'^正在提取考试安排\.\.\.(?:\s*\(第(\d+)次尝试\))?$'),
@@ -322,7 +321,6 @@ const Map<String, String> _english = {
   '未选择': 'Not selected',
   '未知': 'Unknown',
   '未知学期': 'Unknown Semester',
-  'PDF文件': 'PDF File',
   '登录': 'Sign In',
   '教务系统': 'Academic System',
   '请登录您的账号': 'Sign in to your account',
@@ -426,18 +424,9 @@ const Map<String, String> _english = {
   '删除课表': 'Delete Schedule',
   '长按删除课表': 'Press and hold to delete a schedule',
   '没有课表数据，请先创建课表': 'No schedule found. Create one first.',
-  '导入课表': 'Import Schedule',
-  '导入课表 PDF': 'Import Schedule PDF',
   '从教务处导入': 'Import from Academic System',
   '从教务导入': 'Import from Academic System',
-  '从PDF导入': 'Import from PDF',
   '同步成绩': 'Sync Grades',
-  '导入成绩 PDF': 'Import PDF',
-  '选择文件': 'Choose File',
-  '请选择 PDF 文件': 'Choose a PDF file',
-  '正在选择文件...': 'Selecting file…',
-  '正在读取文件...': 'Reading file…',
-  '正在解析内容...': 'Parsing content…',
   '取消导入': 'Cancel Import',
   '已取消导入': 'Import cancelled',
   '导出 ICS': 'Export ICS',
@@ -497,7 +486,6 @@ const Map<String, String> _english = {
   '确认清空': 'Clear',
   '挂科': 'Failed',
   '缓考': 'Deferred',
-  '未能在PDF中找到有效的成绩数据': 'No valid grade data was found in the PDF',
   '考试信息': 'Exam Information',
   '考试提醒': 'Exam Reminders',
   '考试安排导入成功': 'Exam schedule imported',
@@ -617,12 +605,7 @@ const Map<String, String> _english = {
   '请选择开始时间': 'Choose a start time',
   '请选择结束时间': 'Choose an end time',
   '请完善开始和结束时间': 'Enter both a start and end time',
-  '请选择教务系统导出的课表PDF文件': 'Choose a schedule PDF exported by the academic system',
   '确定要清空所有成绩数据吗？此操作不可撤销。': 'Clear all grade data? This cannot be undone.',
-  '注意，当前功能极不稳定，可能无法正确解析 PDF 文件。':
-      'Warning: this experimental feature may not parse PDF files correctly.',
-  '注意：导入会覆盖当前的所有内容且无法回退':
-      'Warning: importing replaces all current content and cannot be undone',
   '以下内容可长按复制': 'Press and hold to copy the content below',
   '筛选: ': 'Filter: ',
   '上课时间': 'Class Time',
@@ -632,15 +615,10 @@ const Map<String, String> _english = {
   '工程  管理  设计': 'Engineering  Management  Design',
   '免费商用': 'Free for Commercial Use',
   '留学生专用': 'For International Students',
-  '为何推荐 PDF 导入？': 'Why is PDF import recommended?',
   '遵循 HarmonyOS Sans 字体授权协议': 'Licensed under the HarmonyOS Sans Font License',
   '遵循 MiSans 字体知识产权许可协议': 'Licensed under the MiSans Font License',
-  '请登录教务系统，选择综合服务-自助打印-中文留学成绩，将下载好的 PDF 导入':
-      'Sign in to the academic system, open Comprehensive Services → Self-service Printing → Chinese International Transcript, then import the downloaded PDF.',
   '节假日调休处理说明：\n该功能会将"日期A"的课程移动到"日期B"。移动逻辑为：\n1. 将日期A的课程剪切到日期B。\n2. 日期B该天的原有课程会被清空。\n3. 注意：仅对指定日期的单日课程生效，不影响整个学期的其他同安排课程。':
       'Holiday adjustment instructions:\nThis moves classes from Date A to Date B.\n1. Classes on Date A are moved to Date B.\n2. Existing classes on Date B are cleared.\n3. Only the selected dates are affected; recurring semester arrangements are unchanged.',
   '本应用提供的成绩计算及绩点统计功能仅供参考。\n\n由于学校教务系统可能会调整计算规则，或者存在特殊课程（如未评教、重修、免修、缓考等）的处理差异，本应用的计算结果可能与官方教务系统存在细微偏差。\n\n请最终以教务系统发布的正式成绩单为准，开发者不对因使用本数据造成的任何问题承担责任。':
       'Grade and GPA calculations in this app are for reference only.\n\nUniversity rules and special cases such as unevaluated, repeated, exempted, or deferred courses may differ from these calculations.\n\nAlways rely on the official transcript.',
-  '我们强烈推荐使用“从PDF导入”功能，原因如下：\n\n1. 无需评教即可查看：\n通常情况下，教务系统要求先完成评教才能查看成绩，但通过生成的 PDF 成绩单往往可以直接包含已出的成绩，绕过评教限制。\n\n2. 数据准确性高：\nPDF 文件为学校系统生成的正式文档，权威保证。\n\n但是，PDF 文件并不包含挂科、重修、缓考等情况，仅能显示所有已通过的成绩。且由于排版问题，某些课程可能无法正确解析。将在未来修复':
-      'PDF import can show released grades without requiring course evaluations and uses an official university document.\n\nHowever, it may omit failed, repeated, or deferred courses, and some layouts may not parse correctly.',
 };

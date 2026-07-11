@@ -5,7 +5,6 @@ import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../models/score.dart';
 import '../services/score_service.dart';
 import '../services/theme_service.dart';
-import 'import_pdf_screen.dart';
 import 'transcript_details_screen.dart';
 import 'login_webview_screen.dart';
 import 'package:mysues/l10n/legacy_text.dart';
@@ -24,7 +23,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   late List<String> _semesters;
   bool _isLoading = true;
   String? _lastImportTime;
-  String? _lastImportMethod;
 
   @override
   void initState() {
@@ -48,14 +46,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   Future<void> _loadScores() async {
     final scores = await ScoreService.loadScores();
-    final importInfo = await ScoreService.loadImportInfo();
+    final lastImportTime = await ScoreService.loadLastImportTime();
     if (!mounted) return;
 
     setState(() {
       _allScores.clear();
       _allScores.addAll(scores);
-      _lastImportTime = importInfo['time'];
-      _lastImportMethod = importInfo['method'];
+      _lastImportTime = lastImportTime;
       _updateSemesters();
       _isLoading = false;
     });
@@ -158,38 +155,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(
-                      Icons.picture_as_pdf,
-                      color: Colors.redAccent,
-                    ),
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ImportPdfScreen(),
-                        ),
-                      );
-
-                      if (result != null && result is List<Score> && mounted) {
-                        final now = DateTime.now();
-                        final timeStr =
-                            "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
-                        const methodStr = "PDF文件";
-
-                        setState(() {
-                          _allScores.clear();
-                          _allScores.addAll(result);
-                          _lastImportTime = timeStr;
-                          _lastImportMethod = methodStr;
-                          _updateSemesters();
-                        });
-                        await ScoreService.saveScores(_allScores);
-                        await ScoreService.saveImportInfo(timeStr, methodStr);
-                      }
-                    },
-                    child: const LText('导入成绩 PDF'),
-                  ),
-                  MenuItemButton(
-                    leadingIcon: const Icon(
                       Icons.delete_outline,
                       color: Colors.grey,
                     ),
@@ -221,7 +186,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         setState(() {
                           _allScores.clear();
                           _lastImportTime = null;
-                          _lastImportMethod = null;
                           _updateSemesters();
                         });
                       }
@@ -314,11 +278,11 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 ),
 
                 // 底部注释
-                if (_lastImportTime != null && _lastImportMethod != null)
+                if (_lastImportTime != null)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: LText(
-                      "上次导入成绩时间$_lastImportTime，导入方式$_lastImportMethod",
+                      "上次导入成绩时间$_lastImportTime",
                       style: TextStyle(color: Colors.grey[400], fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
@@ -386,41 +350,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                               }
                             },
                           ),
-                          _buildLiquidGlassMenuItem(
-                            context: dialogContext,
-                            icon: Icons.picture_as_pdf,
-                            iconColor: Colors.redAccent,
-                            label: '导入成绩 PDF',
-                            onTap: () async {
-                              Navigator.pop(dialogContext);
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ImportPdfScreen(),
-                                ),
-                              );
-                              if (result != null &&
-                                  result is List<Score> &&
-                                  mounted) {
-                                final now = DateTime.now();
-                                final timeStr =
-                                    "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
-                                const methodStr = "PDF文件";
-                                setState(() {
-                                  _allScores.clear();
-                                  _allScores.addAll(result);
-                                  _lastImportTime = timeStr;
-                                  _lastImportMethod = methodStr;
-                                  _updateSemesters();
-                                });
-                                await ScoreService.saveScores(_allScores);
-                                await ScoreService.saveImportInfo(
-                                  timeStr,
-                                  methodStr,
-                                );
-                              }
-                            },
-                          ),
                           Divider(
                             height: 1,
                             indent: 16,
@@ -463,7 +392,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                                 setState(() {
                                   _allScores.clear();
                                   _lastImportTime = null;
-                                  _lastImportMethod = null;
                                   _updateSemesters();
                                 });
                               }

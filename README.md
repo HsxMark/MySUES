@@ -13,7 +13,6 @@ My SUES is a campus life assistant app created by student developers from Shangh
 - **📅 Schedule Query**: Check course schedules anytime, anywhere. Supports not only online educational administration system data synchronization but also provides an intuitive weekly view.
 - **📊 Grade Query**: Quickly query grades and GPA for each semester to keep track of learning progress.
 - **📝 Exam Information**: Check exam times and location arrangements, never miss an exam again.
-- **📄 PDF Import**: Supports importing PDF schedules issued by the school for offline viewing.
 - **🎨 Personalization**: Supports Dark Mode, customizable fonts, creating an exclusive app experience.
 - **🔒 Secure Login**: Built-in WebView for logging into the educational administration system, maintaining sessions via Cookie management, safe and convenient.
 
@@ -23,7 +22,6 @@ This project is developed using the Google [Flutter](https://flutter.dev) framew
 
 ### Key Dependencies
 - **Networking**: [dio](https://pub.dev/packages/dio), [cookie_jar](https://pub.dev/packages/cookie_jar)
-- **PDF Processing**: [syncfusion_flutter_pdf](https://pub.dev/packages/syncfusion_flutter_pdf)
 - **WebView**: [webview_flutter](https://pub.dev/packages/webview_flutter)
 - **Local Storage**: [shared_preferences](https://pub.dev/packages/shared_preferences)
 - **File Picker**: [file_picker](https://pub.dev/packages/file_picker)

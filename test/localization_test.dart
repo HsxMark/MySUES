@@ -46,7 +46,7 @@ void main() {
               LText('总平均绩点 (GPA)'),
               LText('修读学分'),
               LText('本学期有 2 门课程未评教，不计入GPA'),
-              LText('上次导入成绩时间2026-07-12 10:30，导入方式PDF文件'),
+              LText('上次导入成绩时间2026-07-12 10:30'),
             ],
           ),
         ),
@@ -61,7 +61,7 @@ void main() {
     expect(find.text('Overall GPA'), findsOneWidget);
     expect(find.text('Credits'), findsOneWidget);
     expect(find.text('2 pending · excluded from GPA'), findsOneWidget);
-    expect(find.text('Imported 2026-07-12 10:30 · PDF File'), findsOneWidget);
+    expect(find.text('Imported 2026-07-12 10:30'), findsOneWidget);
   });
 
   testWidgets('English schedule dates contain no Chinese month suffix', (
