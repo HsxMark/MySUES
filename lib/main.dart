@@ -4,6 +4,7 @@ import 'package:mysues/l10n/app_localizations.dart';
 import 'package:mysues/services/locale_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/notification_service.dart';
+import 'package:mysues/theme/app_theme.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:mysues/services/widget_service.dart';
 import 'screens/splash_screen.dart';
@@ -61,24 +62,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
           themeMode: ThemeService().themeMode,
-          theme: ThemeData(
-            fontFamily: ThemeService().fontFamily,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue,
-              brightness: Brightness.light,
-            ),
-            useMaterial3: true,
-            appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
-          ),
-          darkTheme: ThemeData(
-            fontFamily: ThemeService().fontFamily,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue,
-              brightness: Brightness.dark,
-            ),
-            useMaterial3: true,
-            appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
-          ),
+          theme: AppTheme.light(ThemeService().fontFamily),
+          darkTheme: AppTheme.dark(ThemeService().fontFamily),
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

@@ -286,6 +286,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       builder: (context) {
         final isLiquidGlass = ThemeService().liquidGlassEnabled;
@@ -977,6 +978,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: false,
       backgroundColor: isLiquidGlass ? Colors.transparent : null,
       builder: (context) {
         final theme = Theme.of(context);

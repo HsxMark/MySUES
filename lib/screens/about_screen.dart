@@ -65,7 +65,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
                 const SizedBox(height: 8),
                 LText(
-                  'Version 1.1.0-build.6',
+                  'Version Alpha 1.2.0',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),

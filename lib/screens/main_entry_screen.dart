@@ -222,19 +222,10 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
 
   Widget _buildLeftNavigationRail(BuildContext context, bool useLiquidGlass) {
     final theme = Theme.of(context);
-    return Container(
-      width: 96,
-      decoration: BoxDecoration(
-        color: useLiquidGlass
-            ? theme.colorScheme.surface.withValues(alpha: 0.55)
-            : theme.colorScheme.surface,
-        border: Border(
-          right: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-      ),
+    return ColoredBox(
+      color: useLiquidGlass
+          ? theme.colorScheme.surface.withValues(alpha: 0.55)
+          : theme.colorScheme.surfaceContainer,
       child: SafeArea(
         right: false,
         left: false,
@@ -250,19 +241,23 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           groupAlignment: -0.85,
           destinations: [
             NavigationRailDestination(
-              icon: Icon(Icons.calendar_month),
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
               label: LText(context.l10n.schedule),
             ),
             NavigationRailDestination(
-              icon: Icon(Icons.description),
+              icon: Icon(Icons.description_outlined),
+              selectedIcon: Icon(Icons.description),
               label: LText(context.l10n.transcript),
             ),
             NavigationRailDestination(
-              icon: Icon(Icons.edit_calendar),
+              icon: Icon(Icons.edit_calendar_outlined),
+              selectedIcon: Icon(Icons.edit_calendar),
               label: LText(context.l10n.exams),
             ),
             NavigationRailDestination(
-              icon: Icon(Icons.person),
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
               label: LText(context.l10n.profile),
             ),
           ],
@@ -334,33 +329,32 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                           ),
                         ],
                       )
-                    : BottomNavigationBar(
-                        currentIndex: _currentIndex,
-                        onTap: (index) {
+                    : NavigationBar(
+                        selectedIndex: _currentIndex,
+                        onDestinationSelected: (index) {
                           setState(() {
                             _currentIndex = index;
                           });
                         },
-                        type: BottomNavigationBarType.fixed,
-                        selectedItemColor: Theme.of(
-                          context,
-                        ).colorScheme.primary,
-                        unselectedItemColor: Colors.grey,
-                        items: [
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.calendar_month),
+                        destinations: [
+                          NavigationDestination(
+                            icon: Icon(Icons.calendar_month_outlined),
+                            selectedIcon: Icon(Icons.calendar_month),
                             label: context.l10n.schedule,
                           ),
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.description),
+                          NavigationDestination(
+                            icon: Icon(Icons.description_outlined),
+                            selectedIcon: Icon(Icons.description),
                             label: context.l10n.transcript,
                           ),
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.edit_calendar),
+                          NavigationDestination(
+                            icon: Icon(Icons.edit_calendar_outlined),
+                            selectedIcon: Icon(Icons.edit_calendar),
                             label: context.l10n.exams,
                           ),
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.person),
+                          NavigationDestination(
+                            icon: Icon(Icons.person_outline),
+                            selectedIcon: Icon(Icons.person),
                             label: context.l10n.profile,
                           ),
                         ],

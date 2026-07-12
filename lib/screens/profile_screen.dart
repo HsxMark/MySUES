@@ -14,6 +14,7 @@ import 'package:mysues/utils/sync_disclaimer.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'dart:math' as math;
 import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/widgets/material_you.dart';
 // Ensure Course is imported
 
 class ProfileScreen extends StatefulWidget {
@@ -470,7 +471,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.sync_alt, color: Colors.blue),
+                    Icon(
+                      Icons.sync_alt,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     const LText(
                       '教务同步',
@@ -481,32 +485,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: (_lastSyncTime != null)
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: (_lastSyncTime != null)
-                          ? Colors.green.withValues(alpha: 0.3)
-                          : Colors.orange.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: LText(
-                    (_lastSyncTime != null) ? '已同步' : '未同步',
-                    style: TextStyle(
-                      color: (_lastSyncTime != null)
-                          ? Colors.green
-                          : Colors.orange,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
+                AppStatusBadge(
+                  label: (_lastSyncTime != null) ? '已同步' : '未同步',
+                  kind: (_lastSyncTime != null)
+                      ? AppStatusKind.success
+                      : AppStatusKind.warning,
                 ),
               ],
             ),
@@ -517,16 +500,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const LText(
+                LText(
                   '上次同步时间',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 LText(
                   _lastSyncTime ?? '点击开始同步',
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[300]
-                        : Colors.grey[800],
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 14,
                     fontFamily: Platform.isIOS ? 'Courier' : null,
                   ),
@@ -630,12 +613,10 @@ class _GlassAwareCard extends StatelessWidget {
       );
     }
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: onTap != null
           ? InkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(20),
               child: child,
             )
           : child,

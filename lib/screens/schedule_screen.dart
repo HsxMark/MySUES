@@ -322,6 +322,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         final isLiquidGlass = ThemeService().liquidGlassEnabled;
@@ -748,6 +749,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: false,
       backgroundColor: isLiquidGlass ? Colors.transparent : null,
       builder: (context) {
         final theme = Theme.of(context);
@@ -1071,6 +1073,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     },
                     child: const LText('导出课表 (.ics)'),
                   ),
+                  const Divider(indent: 12, endIndent: 12),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.add),
                     onPressed: () async {

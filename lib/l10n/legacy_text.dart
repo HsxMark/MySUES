@@ -487,6 +487,7 @@ const Map<String, String> _english = {
   '挂科': 'Failed',
   '缓考': 'Deferred',
   '考试信息': 'Exam Information',
+  '考试': 'Exam',
   '考试提醒': 'Exam Reminders',
   '考试安排导入成功': 'Exam schedule imported',
   '添加考试': 'Add Exam',
