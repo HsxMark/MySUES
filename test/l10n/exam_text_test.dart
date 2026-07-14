@@ -6,6 +6,8 @@ void main() {
   test('recognizes finished exam status independent of source language', () {
     expect(isFinishedExamStatus('已结束'), isTrue);
     expect(isFinishedExamStatus('Finished'), isTrue);
+    expect(isFinishedExamStatus(' Ended '), isTrue);
+    expect(isFinishedExamStatus('COMPLETED'), isTrue);
     expect(isFinishedExamStatus('未开始'), isFalse);
   });
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart'; // Add this for ValueNotifier
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exam.dart';
+import '../utils/exam_status.dart';
 
 class ExamService {
   static const String _examsKey = 'exam_info_list';
@@ -23,7 +24,7 @@ class ExamService {
       final now = DateTime.now();
       
       exams = exams.map((exam) {
-        if (exam.status == '已结束') return exam; // Already finished
+        if (isFinishedExamStatus(exam.status)) return exam; // Already finished
 
         final endTime = _parseEndTime(exam.timeString);
         if (endTime != null && endTime.isBefore(now)) {
@@ -123,7 +124,7 @@ class ExamService {
 
   static Future<void> clearFinishedExams() async {
     final exams = await loadExams();
-    exams.removeWhere((e) => e.status == '已结束');
+    exams.removeWhere((e) => isFinishedExamStatus(e.status));
     await saveExams(exams);
   }
 }

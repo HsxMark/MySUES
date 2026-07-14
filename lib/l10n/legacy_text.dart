@@ -380,6 +380,9 @@ const Map<String, String> _english = {
   '开屏动画': 'Splash Animation',
   '启动应用时显示开屏动画': 'Show the splash animation when the app starts',
   '实验性功能': 'Experimental Features',
+  '实验性外观': 'Experimental Appearance',
+  '实验性外观可能降低部分页面的对比度或性能，默认 Material You 外观不受影响。':
+      'Experimental appearance may reduce contrast or performance on some screens. The default Material You appearance is unaffected.',
   '液态玻璃效果 (BETA)': 'Liquid Glass Effect (BETA)',
   '开启后界面将呈现磨砂玻璃质感': 'Adds a frosted-glass appearance to the interface',
   '个人资料': 'Profile',

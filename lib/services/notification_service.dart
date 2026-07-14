@@ -8,6 +8,7 @@ import '../models/time_table.dart';
 import '../services/schedule_service.dart';
 import '../services/exam_service.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/exam_status.dart';
 import 'locale_service.dart';
 
 class NotificationService {
@@ -311,7 +312,7 @@ class NotificationService {
     final scheduledIds = <String>[];
 
     for (final exam in exams) {
-      if (exam.status == '已结束') continue;
+      if (isFinishedExamStatus(exam.status)) continue;
       if (notificationId > _examIdMax) break;
 
       // Parse exam date from timeString

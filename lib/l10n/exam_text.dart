@@ -1,14 +1,9 @@
 import 'package:flutter/widgets.dart';
 
+import '../utils/exam_status.dart';
 import 'legacy_text.dart';
 
-bool isFinishedExamStatus(String status) {
-  final normalized = status.trim().toLowerCase();
-  return normalized == '已结束' ||
-      normalized == 'finished' ||
-      normalized == 'ended' ||
-      normalized == 'completed';
-}
+export '../utils/exam_status.dart';
 
 String localizedExamStatus(BuildContext context, String status) {
   final normalized = status.trim().toLowerCase();

@@ -46,4 +46,34 @@ void main() {
     expect(find.byType(Card), findsOneWidget);
     expect(find.byType(Divider), findsOneWidget);
   });
+
+  testWidgets('experimental appearance copy is translated to English', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        theme: AppTheme.light(null),
+        home: const Scaffold(
+          body: Column(
+            children: [
+              AppSectionHeader('实验性外观'),
+              AppNoticeBanner(
+                message:
+                    '实验性外观可能降低部分页面的对比度或性能，默认 Material You 外观不受影响。',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Experimental Appearance'), findsOneWidget);
+    expect(
+      find.text(
+        'Experimental appearance may reduce contrast or performance on some screens. The default Material You appearance is unaffected.',
+      ),
+      findsOneWidget,
+    );
+  });
 }

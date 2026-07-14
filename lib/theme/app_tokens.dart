@@ -39,7 +39,7 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
   final Color warningContainer;
   final Color onWarningContainer;
 
-  static AppStatusColors light = const AppStatusColors(
+  static const AppStatusColors light = AppStatusColors(
     success: Color(0xFF236C2E),
     onSuccess: Colors.white,
     successContainer: Color(0xFFA8F5A9),
@@ -50,7 +50,7 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
     onWarningContainer: Color(0xFF261A00),
   );
 
-  static AppStatusColors dark = const AppStatusColors(
+  static const AppStatusColors dark = AppStatusColors(
     success: Color(0xFF8CD88F),
     onSuccess: Color(0xFF00390D),
     successContainer: Color(0xFF07521A),
