@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import '../utils/exam_status.dart';
 import 'legacy_text.dart';
 
 export '../utils/exam_status.dart';
