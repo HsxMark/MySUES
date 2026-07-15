@@ -6,7 +6,6 @@ import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/services/locale_service.dart';
 import 'package:mysues/services/notification_service.dart';
 import 'package:mysues/services/widget_service.dart';
-import 'package:mysues/l10n/legacy_text.dart';
 import 'package:mysues/widgets/material_you.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -15,7 +14,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: LText(context.l10n.settings), centerTitle: true),
+      appBar: AppBar(title: Text(context.l10n.settings), centerTitle: true),
       body: ListView(
         children: [
           AppSectionHeader(context.l10n.general),
@@ -23,7 +22,7 @@ class SettingsScreen extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.notifications_outlined),
-                title: LText(context.l10n.notifications),
+                title: Text(context.l10n.notifications),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.push(
@@ -36,7 +35,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.palette_outlined),
-                title: LText(context.l10n.appearanceAndDisplay),
+                title: Text(context.l10n.appearanceAndDisplay),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.push(
@@ -49,8 +48,8 @@ class SettingsScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.language_outlined),
-                title: LText(context.l10n.language),
-                subtitle: LText(
+                title: Text(context.l10n.language),
+                subtitle: Text(
                   _languageName(context, LocaleService().language),
                 ),
                 trailing: const Icon(Icons.chevron_right),
@@ -63,11 +62,11 @@ class SettingsScreen extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.delete_forever_outlined),
-                title: LText(
+                title: Text(
                   context.l10n.clearAllData,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
-                subtitle: LText(context.l10n.clearAllDataSubtitle),
+                subtitle: Text(context.l10n.clearAllDataSubtitle),
                 onTap: () => _showClearDataDialog(context),
               ),
             ],
@@ -94,7 +93,7 @@ class SettingsScreen extends StatelessWidget {
           children: AppLanguage.values.map((language) {
             return ListTile(
               leading: const Icon(Icons.language_outlined),
-              title: LText(_languageName(sheetContext, language)),
+              title: Text(_languageName(sheetContext, language)),
               trailing: LocaleService().language == language
                   ? Icon(
                       Icons.check,
@@ -118,19 +117,19 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: LText(context.l10n.clearAllDataQuestion),
-        content: LText(context.l10n.clearAllDataWarning),
+        title: Text(context.l10n.clearAllDataQuestion),
+        content: Text(context.l10n.clearAllDataWarning),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: LText(context.l10n.cancel),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _showFinalClearDataDialog(context);
             },
-            child: LText(context.l10n.confirmClear),
+            child: Text(context.l10n.confirmClear),
           ),
         ],
       ),
@@ -141,8 +140,8 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: LText(context.l10n.confirmAgain),
-        content: LText(context.l10n.confirmClearFinal),
+        title: Text(context.l10n.confirmAgain),
+        content: Text(context.l10n.confirmClearFinal),
         actions: [
           // Swapped order: Confirm button first on the left, Cancel on the right
           FilledButton(
@@ -154,11 +153,11 @@ class SettingsScreen extends StatelessWidget {
               Navigator.pop(context);
               _performClearData(context);
             },
-            child: LText(context.l10n.confirmClear),
+            child: Text(context.l10n.confirmClear),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: LText(context.l10n.cancel),
+            child: Text(context.l10n.cancel),
           ),
         ],
       ),
@@ -174,13 +173,13 @@ class SettingsScreen extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: LText(context.l10n.dataClearedRestart)),
+          SnackBar(content: Text(context.l10n.dataClearedRestart)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: LText(context.l10n.clearFailed(e.toString()))),
+          SnackBar(content: Text(context.l10n.clearFailed(e.toString()))),
         );
       }
     }

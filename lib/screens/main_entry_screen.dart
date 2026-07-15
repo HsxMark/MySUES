@@ -14,7 +14,6 @@ import 'profile_screen.dart';
 import 'about/user_agreement_screen.dart';
 import 'about/privacy_policy_screen.dart';
 import 'onboarding_screen.dart';
-import 'package:mysues/l10n/legacy_text.dart';
 
 class MainEntryScreen extends StatefulWidget {
   const MainEntryScreen({super.key});
@@ -80,12 +79,12 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         return PopScope(
           canPop: false,
           child: AlertDialog(
-            title: LText(dialogContext.l10n.userAgreementAndPrivacy),
+            title: Text(dialogContext.l10n.userAgreementAndPrivacy),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                LText(dialogContext.l10n.welcomeAgreement),
+                Text(dialogContext.l10n.welcomeAgreement),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -103,7 +102,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                           ),
                         );
                       },
-                      child: LText(
+                      child: Text(
                         '《${dialogContext.l10n.userAgreement}》',
                         style: TextStyle(
                           color: Theme.of(dialogContext).colorScheme.primary,
@@ -130,7 +129,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                           ),
                         );
                       },
-                      child: LText(
+                      child: Text(
                         '《${dialogContext.l10n.privacyPolicy}》',
                         style: TextStyle(
                           color: Theme.of(dialogContext).colorScheme.primary,
@@ -158,7 +157,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: LText(
+                        child: Text(
                           dialogContext.l10n.agreementFraudWarning,
                           style: TextStyle(
                             fontSize: 12,
@@ -171,12 +170,12 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const LText(
-                  '若遇到什么问题，请添加QQ群聊：1045770691 反馈问题',
+                Text(
+                  context.l10n.forSupportJoinQQGroup1045770691,
                   style: TextStyle(fontSize: 12),
                 ),
                 const SizedBox(height: 12),
-                LText(
+                Text(
                   dialogContext.l10n.agreementConsentHint,
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
@@ -191,7 +190,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                     exit(0);
                   }
                 },
-                child: LText(dialogContext.l10n.disagreeAndExit),
+                child: Text(dialogContext.l10n.disagreeAndExit),
               ),
               FilledButton(
                 onPressed: () async {
@@ -203,7 +202,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                   // Show onboarding after agreement
                   _showOnboarding(prefs);
                 },
-                child: LText(dialogContext.l10n.agreeAndContinue),
+                child: Text(dialogContext.l10n.agreeAndContinue),
               ),
             ],
           ),
@@ -243,22 +242,22 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
             NavigationRailDestination(
               icon: Icon(Icons.calendar_month_outlined),
               selectedIcon: Icon(Icons.calendar_month),
-              label: LText(context.l10n.schedule),
+              label: Text(context.l10n.schedule),
             ),
             NavigationRailDestination(
               icon: Icon(Icons.description_outlined),
               selectedIcon: Icon(Icons.description),
-              label: LText(context.l10n.transcript),
+              label: Text(context.l10n.transcript),
             ),
             NavigationRailDestination(
               icon: Icon(Icons.edit_calendar_outlined),
               selectedIcon: Icon(Icons.edit_calendar),
-              label: LText(context.l10n.exams),
+              label: Text(context.l10n.exams),
             ),
             NavigationRailDestination(
               icon: Icon(Icons.person_outline),
               selectedIcon: Icon(Icons.person),
-              label: LText(context.l10n.profile),
+              label: Text(context.l10n.profile),
             ),
           ],
         ),

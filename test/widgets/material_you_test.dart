@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mysues/l10n/app_localizations.dart';
+import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/theme/app_theme.dart';
 import 'package:mysues/widgets/material_you.dart';
 
@@ -53,16 +55,21 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.light(null),
-        home: const Scaffold(
-          body: Column(
-            children: [
-              AppSectionHeader('实验性外观'),
-              AppNoticeBanner(
-                message:
-                    '实验性外观可能降低部分页面的对比度或性能，默认 Material You 外观不受影响。',
-              ),
-            ],
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Column(
+              children: [
+                AppSectionHeader(context.l10n.experimentalAppearance),
+                AppNoticeBanner(
+                  message: context
+                      .l10n
+                      .experimentalAppearanceMayReduceContrastOrPerformanceOnSome,
+                ),
+              ],
+            ),
           ),
         ),
       ),

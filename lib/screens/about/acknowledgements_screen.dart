@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class AcknowledgementsScreen extends StatelessWidget {
   const AcknowledgementsScreen({super.key});
@@ -17,19 +17,19 @@ class AcknowledgementsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const LText('鸣谢')),
+      appBar: AppBar(title: Text(context.l10n.acknowledgements)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const LText(
-              '赞助者',
+            Text(
+              context.l10n.sponsors,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            LText(
-              '衷心感谢以下用户对本项目的赞助（排名不分先后）',
+            Text(
+              context.l10n.sincereThanksToTheFollowingSponsorsListedInNo,
               style: TextStyle(fontSize: 13, color: Colors.grey[500]),
             ),
             const SizedBox(height: 16),
@@ -52,7 +52,7 @@ class AcknowledgementsScreen extends StatelessWidget {
                     }
                     final sponsor = _sponsors[index ~/ 2];
                     return Center(
-                      child: LText(
+                      child: Text(
                         sponsor,
                         style: const TextStyle(fontSize: 15),
                       ),

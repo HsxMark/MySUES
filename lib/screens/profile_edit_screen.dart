@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   final String name;
@@ -125,9 +125,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: LText('头像上传失败: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.avatarUploadFailedWithError('$e')),
+          ),
+        );
       }
     }
   }
@@ -140,22 +142,20 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const LText('修改昵称'),
+          title: Text(context.l10n.changeNickname),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
-              hintText: legacyTranslate(context, '请输入昵称'),
-            ),
+            decoration: InputDecoration(hintText: context.l10n.enterANickname),
             autofocus: true,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const LText('取消'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const LText('保存'),
+              child: Text(context.l10n.save),
             ),
           ],
         );
@@ -179,22 +179,20 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const LText('修改专业'),
+          title: Text(context.l10n.changeMajor),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
-              hintText: legacyTranslate(context, '请输入专业名称'),
-            ),
+            decoration: InputDecoration(hintText: context.l10n.enterAMajor),
             autofocus: true,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const LText('取消'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const LText('保存'),
+              child: Text(context.l10n.save),
             ),
           ],
         );
@@ -218,22 +216,20 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const LText('修改学院'),
+          title: Text(context.l10n.changeCollege),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
-              hintText: legacyTranslate(context, '请输入学院名称'),
-            ),
+            decoration: InputDecoration(hintText: context.l10n.enterACollege),
             autofocus: true,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const LText('取消'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const LText('保存'),
+              child: Text(context.l10n.save),
             ),
           ],
         );
@@ -257,22 +253,20 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const LText('修改班级'),
+          title: Text(context.l10n.changeClass),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
-              hintText: legacyTranslate(context, '请输入班级名称'),
-            ),
+            decoration: InputDecoration(hintText: context.l10n.enterAClassName),
             autofocus: true,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const LText('取消'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const LText('保存'),
+              child: Text(context.l10n.save),
             ),
           ],
         );
@@ -291,46 +285,50 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const LText('个人资料'), centerTitle: true),
+      appBar: AppBar(title: Text(context.l10n.profile3), centerTitle: true),
       body: ListView(
         children: [
           const SizedBox(height: 16),
           _buildAvatarItem(),
           const Divider(),
-          _buildInfoItem(label: '姓名', value: widget.name, isEditable: false),
+          _buildInfoItem(
+            label: context.l10n.name,
+            value: widget.name,
+            isEditable: false,
+          ),
           const Divider(),
           _buildInfoItem(
-            label: '学号',
+            label: context.l10n.studentID,
             value: widget.studentId,
             isEditable: false,
           ),
           const Divider(),
           _buildInfoItem(
-            label: '昵称',
+            label: context.l10n.nickname,
             value: (_nickname == null || _nickname!.isEmpty)
-                ? '未设置'
+                ? context.l10n.notSet
                 : _nickname!,
             isEditable: true,
             onTap: _updateNickname,
           ),
           const Divider(),
           _buildInfoItem(
-            label: '学院',
-            value: (_college.isEmpty) ? '未设置' : _college,
+            label: context.l10n.college,
+            value: (_college.isEmpty) ? context.l10n.notSet : _college,
             isEditable: true,
             onTap: _updateCollege,
           ),
           const Divider(),
           _buildInfoItem(
-            label: '专业',
+            label: context.l10n.major,
             value: _major,
             isEditable: true,
             onTap: _updateMajor,
           ),
           const Divider(),
           _buildInfoItem(
-            label: '班级',
-            value: (_className.isEmpty) ? '未设置' : _className,
+            label: context.l10n.classLabel,
+            value: (_className.isEmpty) ? context.l10n.notSet : _className,
             isEditable: true,
             onTap: _updateClass,
           ),
@@ -347,7 +345,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const LText('头像', style: TextStyle(fontSize: 16)),
+            Text(context.l10n.avatar, style: TextStyle(fontSize: 16)),
             Row(
               children: [
                 CircleAvatar(
@@ -391,10 +389,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            LText(label, style: const TextStyle(fontSize: 16)),
+            Text(label, style: const TextStyle(fontSize: 16)),
             Row(
               children: [
-                LText(
+                Text(
                   value,
                   style: TextStyle(
                     fontSize: 16,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/notification_service.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -45,9 +45,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final granted = await _notificationService.requestPermissions();
       if (!granted) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: LText('需要通知权限才能设置课程提醒')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.notificationPermissionIsRequiredForClassReminders,
+              ),
+            ),
+          );
         }
         return;
       }
@@ -59,7 +63,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: LText(value ? '已开启课程提醒' : '已关闭课程提醒'),
+          content: Text(
+            value
+                ? context.l10n.classRemindersEnabled
+                : context.l10n.classRemindersDisabled,
+          ),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -71,9 +79,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final granted = await _notificationService.requestPermissions();
       if (!granted) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: LText('需要通知权限才能设置考试提醒')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.notificationPermissionIsRequiredForExamReminders,
+              ),
+            ),
+          );
         }
         return;
       }
@@ -85,7 +97,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: LText(value ? '已开启考试提醒' : '已关闭考试提醒'),
+          content: Text(
+            value
+                ? context.l10n.examRemindersEnabled
+                : context.l10n.examRemindersDisabled,
+          ),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -96,7 +112,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final result = await showDialog<int>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const LText('提前几天提醒'),
+        title: Text(context.l10n.daysBefore),
         children: List.generate(7, (index) {
           final days = index + 1;
           return SimpleDialogOption(
@@ -114,7 +130,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   else
                     const SizedBox(width: 20),
                   const SizedBox(width: 12),
-                  LText('提前 $days 天', style: const TextStyle(fontSize: 16)),
+                  Text(
+                    context.l10n.daysInAdvanceValue(days),
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ],
               ),
             ),
@@ -133,7 +152,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final result = await showTimePicker(
       context: context,
       initialTime: _examTime,
-      helpText: '选择提醒时间',
+      helpText: context.l10n.chooseReminderTime,
     );
 
     if (result != null && result != _examTime) {
@@ -151,25 +170,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const LText('通知')),
+      appBar: AppBar(title: Text(context.l10n.notifications)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
                 SwitchListTile(
-                  title: const LText('课程提醒'),
-                  subtitle: const LText('上课前15分钟提醒'),
+                  title: Text(context.l10n.courseReminder),
+                  subtitle: Text(context.l10n.remindMe15MinutesBeforeClass),
                   secondary: const Icon(Icons.school_outlined),
                   value: _courseReminder,
                   onChanged: _toggleCourseReminder,
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const LText('考试提醒'),
-                  subtitle: LText(
+                  title: Text(context.l10n.examReminder),
+                  subtitle: Text(
                     _examReminder
-                        ? '考试前 $_examDaysBefore 天 ${_formatTime(_examTime)} 提醒'
-                        : '开启后可自定义提醒时间',
+                        ? context.l10n.examReminderAt(
+                            _examDaysBefore,
+                            _formatTime(_examTime),
+                          )
+                        : context.l10n.enableToChooseACustomReminderTime,
                   ),
                   secondary: const Icon(Icons.event_note_outlined),
                   value: _examReminder,
@@ -177,15 +199,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
                 if (_examReminder) ...[
                   ListTile(
-                    title: const LText('提前天数'),
-                    subtitle: LText('考试前 $_examDaysBefore 天'),
+                    title: Text(context.l10n.daysInAdvance),
+                    subtitle: Text(
+                      context.l10n.examDaysBefore(_examDaysBefore),
+                    ),
                     leading: const SizedBox(width: 24),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _selectExamDays,
                   ),
                   ListTile(
-                    title: const LText('提醒时间'),
-                    subtitle: LText(_formatTime(_examTime)),
+                    title: Text(context.l10n.reminderTime),
+                    subtitle: Text(_formatTime(_examTime)),
                     leading: const SizedBox(width: 24),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _selectExamTime,

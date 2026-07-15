@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class OnboardingScreen extends StatefulWidget {
   /// When true, completing the tutorial will NOT write to SharedPreferences.
@@ -15,41 +15,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  static const List<_PageData> _pages = [
+  List<_PageData> _pages(BuildContext context) => [
     _PageData(
       image: 'assets/images/example/MySUES-1024x1024@1x.png',
       isLogo: true,
-      title: '欢迎使用苏伊士 My SUES',
-      description: '一站式校园信息助手，让你的校园生活更便捷。',
+      title: context.l10n.welcomeToMySues,
+      description: context.l10n.yourAllInOneCampusAssistantForASimpler,
     ),
     _PageData(
       image: 'assets/images/example/scheduledaily.png',
       secondaryImage: 'assets/images/example/scheduleinfo.PNG',
       isLogo: false,
-      title: '查看课表',
-      description: '快速查看每周或每日课程安排，支持导入教务系统课表。',
+      title: context.l10n.viewSchedule,
+      description: context.l10n.viewWeeklyOrDailyClassesAndImportSchedulesFrom,
     ),
     _PageData(
       image: 'assets/images/example/scoreinfo.PNG',
       isLogo: false,
-      title: '查看个人成绩',
-      description: '随时查看各科成绩与绩点，掌握学业情况。',
+      title: context.l10n.viewGrades,
+      description: context.l10n.reviewGradesAndGpaWheneverYouNeedThem,
     ),
     _PageData(
       image: 'assets/images/example/testinfo.PNG',
       isLogo: false,
-      title: '查看考试信息',
-      description: '及时获取考试时间与地点，不错过每场考试。',
+      title: context.l10n.viewExams,
+      description: context.l10n.keepTrackOfExamTimesAndLocations,
     ),
     _PageData(
       image: 'assets/images/example/widget.PNG',
       isLogo: false,
-      title: '桌面小组件',
-      description: '将课表添加到桌面，无需打开应用即可查看。',
+      title: context.l10n.homeScreenWidget,
+      description: context.l10n.addYourScheduleToTheHomeScreenForQuick,
     ),
   ];
 
-  bool get _isLastPage => _currentPage == _pages.length - 1;
+  static const _pageCount = 5;
+
+  bool get _isLastPage => _currentPage == _pageCount - 1;
 
   void _nextPage() {
     if (!_isLastPage) {
@@ -71,6 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final pages = _pages(context);
 
     return PopScope(
       canPop: widget.isReview,
@@ -85,7 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   padding: const EdgeInsets.only(top: 12, right: 16),
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const LText('跳过'),
+                    child: Text(context.l10n.skip),
                   ),
                 ),
               ),
@@ -93,14 +96,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
-                  itemCount: _pages.length,
+                  itemCount: pages.length,
                   onPageChanged: (index) {
                     setState(() {
                       _currentPage = index;
                     });
                   },
                   itemBuilder: (context, index) {
-                    final page = _pages[index];
+                    final page = pages[index];
                     if (page.isLogo) {
                       return _buildWelcomePage(context, page);
                     }
@@ -113,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.only(bottom: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_pages.length, (index) {
+                  children: List.generate(pages.length, (index) {
                     final isActive = index == _currentPage;
                     return AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -139,11 +142,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: _isLastPage
                       ? FilledButton(
                           onPressed: _nextPage,
-                          child: const LText('进入 苏伊士'),
+                          child: Text(context.l10n.enterMySues),
                         )
                       : OutlinedButton(
                           onPressed: _nextPage,
-                          child: const LText('下一步'),
+                          child: Text(context.l10n.next),
                         ),
                 ),
               ),
@@ -163,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           Image.asset(page.image, width: 120, height: 120, fit: BoxFit.contain),
           const SizedBox(height: 32),
-          LText(
+          Text(
             page.title,
             style: Theme.of(
               context,
@@ -171,7 +174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          LText(
+          Text(
             page.description,
             style: Theme.of(
               context,
@@ -190,7 +193,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          LText(
+          Text(
             page.title,
             style: Theme.of(
               context,
@@ -198,7 +201,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          LText(
+          Text(
             page.description,
             style: Theme.of(
               context,

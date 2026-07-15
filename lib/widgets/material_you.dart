@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../l10n/legacy_text.dart';
 import '../theme/app_tokens.dart';
 
 export '../theme/app_tokens.dart';
@@ -18,7 +17,7 @@ class AppSectionHeader extends StatelessWidget {
       AppSpacing.page,
       AppSpacing.sm,
     ),
-    child: LText(
+    child: Text(
       title,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
         color: Theme.of(context).colorScheme.primary,
@@ -103,7 +102,7 @@ class AppNoticeBanner extends StatelessWidget {
             Icon(icon ?? defaultIcon, size: 20, color: foreground),
             const SizedBox(width: AppSpacing.md),
             Expanded(
-              child: LText(
+              child: Text(
                 message,
                 style: Theme.of(
                   context,
@@ -158,7 +157,7 @@ class AppStatusBadge extends StatelessWidget {
         color: background,
         borderRadius: BorderRadius.circular(AppRadii.small),
       ),
-      child: LText(
+      child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
           color: foreground,

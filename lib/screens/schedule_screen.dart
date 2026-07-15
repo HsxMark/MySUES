@@ -16,7 +16,8 @@ import 'login_webview_screen.dart'; // Import
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
 import '../utils/screen_breakpoints.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/localized_formatters.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final VoidCallback? onSwitchToDaily;
@@ -472,8 +473,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 onPressed: () {
                   _deleteCourse(context, course);
                 },
-                child: const LText(
-                  '删除',
+                child: Text(
+                  context.l10n.delete,
                   style: TextStyle(color: Colors.red, fontSize: 16),
                 ),
               ),
@@ -491,14 +492,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         );
                       } catch (e) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: LText('导出失败: $e')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                context.l10n.exportFailedWithError('$e'),
+                              ),
+                            ),
+                          );
                         }
                       }
                     },
-                    child: LText(
-                      '导出 ICS',
+                    child: Text(
+                      context.l10n.exportIcs,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 16,
@@ -510,14 +515,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       Navigator.pop(context);
                       _editCourse(context, course);
                     },
-                    child: const LText(
-                      '编辑',
+                    child: Text(
+                      context.l10n.edit,
                       style: TextStyle(color: Colors.red, fontSize: 16),
                     ),
                   ),
                   if (showCloseButton)
                     IconButton(
-                      tooltip: legacyTranslate(context, '关闭'),
+                      tooltip: context.l10n.close,
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close),
                     ),
@@ -528,7 +533,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
-          child: LText(
+          child: Text(
             course.courseName,
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
@@ -537,17 +542,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              LText(
-                '详情',
+            children: [
+              Text(
+                context.l10n.details,
                 style: TextStyle(
                   color: Colors.grey,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              LText(
-                '以下内容可长按复制',
+              Text(
+                context.l10n.pressAndHoldToCopyTheContentBelow,
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
@@ -567,14 +572,23 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     children: [
                       _buildDetailRow(
                         icon: Icons.calendar_today_outlined,
-                        content: '第 ${course.startWeek} - ${course.endWeek} 周',
+                        content: context.l10n.weekRange(
+                          course.startWeek,
+                          course.endWeek,
+                        ),
                         color: Colors.redAccent,
                       ),
                       const Divider(height: 1, indent: 56),
                       _buildDetailRow(
                         icon: Icons.access_time,
-                        content:
-                            '周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}',
+                        content: context.l10n.courseScheduleLine(
+                          localizedWeekdayLabel(context.l10n, course.day),
+                          context.l10n.periodRange(
+                            course.startNode,
+                            course.startNode + course.step - 1,
+                          ),
+                          _getTimeRange(course),
+                        ),
                         color: Colors.redAccent,
                       ),
                       if (course.teacher.isNotEmpty) ...[
@@ -607,28 +621,40 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     children: [
                       _buildActionRow(
                         icon: Icons.copy,
-                        text: '复制课程名称',
+                        text: context.l10n.copyCourseName,
                         color: Colors.redAccent,
                         onTap: () {
                           Clipboard.setData(
                             ClipboardData(text: course.courseName),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: LText('已复制课程名称')),
+                            SnackBar(
+                              content: Text(context.l10n.courseNameCopied),
+                            ),
                           );
                         },
                       ),
                       const Divider(height: 1, indent: 56),
                       _buildActionRow(
                         icon: Icons.copy,
-                        text: '复制课程信息为文本',
+                        text: context.l10n.copyCourseDetailsAsText,
                         color: Colors.redAccent,
                         onTap: () {
+                          final schedule = context.l10n.courseScheduleLine(
+                            localizedWeekdayLabel(context.l10n, course.day),
+                            context.l10n.periodRange(
+                              course.startNode,
+                              course.startNode + course.step - 1,
+                            ),
+                            _getTimeRange(course),
+                          );
                           final info =
-                              '${course.courseName}\n周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}\n${course.teacher} ${course.room}';
+                              '${course.courseName}\n$schedule\n${course.teacher} ${course.room}';
                           Clipboard.setData(ClipboardData(text: info));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: LText('已复制课程信息')),
+                            SnackBar(
+                              content: Text(context.l10n.courseDetailsCopied),
+                            ),
                           );
                         },
                       ),
@@ -653,13 +679,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       color: Colors.transparent,
       child: ListTile(
         leading: Icon(icon, color: color),
-        title: LText(content, style: const TextStyle(fontSize: 16)),
+        title: Text(content, style: const TextStyle(fontSize: 16)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         onLongPress: () {
           Clipboard.setData(ClipboardData(text: content));
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: LText('已复制')));
+          ).showSnackBar(SnackBar(content: Text(context.l10n.copied)));
         },
       ),
     );
@@ -675,7 +701,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       color: Colors.transparent,
       child: ListTile(
         leading: Icon(icon, color: color),
-        title: LText(
+        title: Text(
           text,
           style: const TextStyle(fontSize: 16, color: Colors.redAccent),
         ),
@@ -689,12 +715,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const LText('删除课程'),
-        content: LText('确认要删除 "${course.courseName}" 吗？'),
+        title: Text(context.l10n.deleteCourse),
+        content: Text(context.l10n.deleteItemQuestion(course.courseName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const LText('取消'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -703,7 +729,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               await ScheduleDataService.deleteCourse(course.id);
               _initData();
             },
-            child: const LText('删除', style: TextStyle(color: Colors.red)),
+            child: Text(
+              context.l10n.delete,
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -786,8 +815,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const LText(
-                      "切换课表",
+                    Text(
+                      context.l10n.switchSchedule,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -820,10 +849,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                   ],
                 ),
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: LText(
-                  "长按删除课表",
+                child: Text(
+                  context.l10n.pressAndHoldToDeleteASchedule,
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ),
@@ -834,8 +863,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     final table = tables[index];
                     final isCurrent = _currentTable?.id == table.id;
                     return ListTile(
-                      title: LText(table.tableName),
-                      subtitle: LText("开学: ${table.startDate}"),
+                      title: Text(
+                        localizedScheduleName(context, table.tableName),
+                      ),
+                      subtitle: Text(
+                        context.l10n.startsOnDate(table.startDate),
+                      ),
                       trailing: isCurrent
                           ? const Icon(Icons.check, color: Colors.blue)
                           : null,
@@ -849,14 +882,16 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const LText('删除课表'),
-                            content: LText(
-                              '确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。',
+                            title: Text(context.l10n.deleteSchedule),
+                            content: Text(
+                              context.l10n.deleteScheduleQuestion(
+                                localizedScheduleName(context, table.tableName),
+                              ),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const LText('取消'),
+                                child: Text(context.l10n.cancel),
                               ),
                               TextButton(
                                 onPressed: () async {
@@ -871,8 +906,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                     _initData(); // Refresh, _initData handles fallback if current is deleted
                                   }
                                 },
-                                child: const LText(
-                                  '删除',
+                                child: Text(
+                                  context.l10n.delete,
                                   style: TextStyle(color: Colors.red),
                                 ),
                               ),
@@ -919,12 +954,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
     if (_currentTable == null) {
       return Scaffold(
-        appBar: AppBar(title: const LText('我的课表')),
+        appBar: AppBar(title: Text(context.l10n.mySchedule)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const LText('没有课表数据，请先创建课表'),
+              Text(context.l10n.noScheduleFoundCreateOneFirst),
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () async {
@@ -947,7 +982,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     _initData();
                   }
                 },
-                child: const LText("新建课表"),
+                child: Text(context.l10n.newSchedule2),
               ),
             ],
           ),
@@ -966,15 +1001,15 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  LText(
-                    _currentTable!.tableName,
+                  Text(
+                    localizedScheduleName(context, _currentTable!.tableName),
                     style: const TextStyle(fontSize: 14),
                   ),
                   const Icon(Icons.arrow_drop_down, size: 18),
                 ],
               ),
-              LText(
-                '第 $_currentWeek 周',
+              Text(
+                context.l10n.weekNumber(_currentWeek),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
@@ -991,7 +1026,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         actions: [
           if (widget.showSwitchAction)
             Tooltip(
-              message: legacyTranslate(context, '切换到日视图'),
+              message: context.l10n.switchToDayView,
               child: IconButton(
                 onPressed: widget.onSwitchToDaily,
                 icon: const Icon(Icons.view_day_outlined, size: 22),
@@ -1004,7 +1039,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 return IconButton(
                   onPressed: () => _showLiquidGlassMenu(context),
                   icon: const Icon(Icons.more_vert),
-                  tooltip: legacyTranslate(context, '菜单'),
+                  tooltip: context.l10n.menu,
                 );
               }
               return MenuAnchor(
@@ -1023,7 +1058,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           }
                         },
                         icon: const Icon(Icons.more_vert),
-                        tooltip: legacyTranslate(context, '菜单'),
+                        tooltip: context.l10n.menu,
                       );
                     },
                 menuChildren: [
@@ -1042,7 +1077,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         _initData();
                       }
                     },
-                    child: const LText('同步课表'),
+                    child: Text(context.l10n.syncSchedule),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.ios_share),
@@ -1059,19 +1094,27 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         } catch (e) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: LText('导出失败: $e')),
+                              SnackBar(
+                                content: Text(
+                                  context.l10n.exportFailedWithError('$e'),
+                                ),
+                              ),
                             );
                           }
                         }
                       } else {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: LText('当前没有课程可以导出')),
+                            SnackBar(
+                              content: Text(
+                                context.l10n.thereAreNoCoursesToExport,
+                              ),
+                            ),
                           );
                         }
                       }
                     },
-                    child: const LText('导出课表 (.ics)'),
+                    child: Text(context.l10n.exportScheduleIcs),
                   ),
                   const Divider(indent: 12, endIndent: 12),
                   MenuItemButton(
@@ -1091,7 +1134,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         }
                       }
                     },
-                    child: const LText('添加课程'),
+                    child: Text(context.l10n.addCourse),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.settings),
@@ -1121,7 +1164,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         }
                       }
                     },
-                    child: const LText('课表设置'),
+                    child: Text(context.l10n.scheduleSettings),
                   ),
                 ],
               );
@@ -1190,7 +1233,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
-                            label: '同步课表',
+                            label: context.l10n.syncSchedule,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (!await showSyncDisclaimer(context)) return;
@@ -1215,7 +1258,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.ios_share,
-                            label: '导出课表(.ics)',
+                            label: context.l10n.exportScheduleIcs,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (_currentTable != null &&
@@ -1232,15 +1275,23 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                 } catch (e) {
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: LText('导出失败: $e')),
+                                      SnackBar(
+                                        content: Text(
+                                          context.l10n.exportFailedWithError(
+                                            '$e',
+                                          ),
+                                        ),
+                                      ),
                                     );
                                   }
                                 }
                               } else {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: LText('当前没有课程可以导出'),
+                                    SnackBar(
+                                      content: Text(
+                                        context.l10n.thereAreNoCoursesToExport,
+                                      ),
                                     ),
                                   );
                                 }
@@ -1250,7 +1301,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.add,
-                            label: '添加课程',
+                            label: context.l10n.addCourse,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (_currentTable != null) {
@@ -1272,7 +1323,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.settings,
-                            label: '课表设置',
+                            label: context.l10n.scheduleSettings,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (_currentTable != null) {
@@ -1350,7 +1401,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               color: iconColor ?? theme.colorScheme.onSurface,
             ),
             const SizedBox(width: 12),
-            LText(
+            Text(
               label,
               style: TextStyle(
                 fontSize: 15,
@@ -1392,7 +1443,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                   SizedBox(
                     width: _timeColWidth,
                     child: Center(
-                      child: LText(
+                      child: Text(
                         localizedCompactMonth(context, weekStart),
                         textAlign: TextAlign.center,
                       ),
@@ -1412,8 +1463,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          LText(['一', '二', '三', '四', '五', '六', '日'][index]),
-                          LText(
+                          Text(localizedWeekdayShort(context.l10n, index + 1)),
+                          Text(
                             "${date.day}",
                             style: const TextStyle(fontSize: 12),
                           ),
@@ -1460,7 +1511,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                LText(
+                                Text(
                                   "${index + 1}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -1468,14 +1519,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                   ),
                                 ),
                                 if (detail.startTime.isNotEmpty) ...[
-                                  LText(
+                                  Text(
                                     detail.startTime,
                                     style: const TextStyle(
                                       fontSize: 9,
                                       color: Colors.grey,
                                     ),
                                   ),
-                                  LText(
+                                  Text(
                                     detail.endTime,
                                     style: const TextStyle(
                                       fontSize: 9,
@@ -1771,7 +1822,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     if (_currentTable!.showTime &&
                         startTimeStr != null &&
                         startTimeStr.isNotEmpty)
-                      LText(
+                      Text(
                         startTimeStr,
                         style: TextStyle(
                           color: textColor.withValues(alpha: 0.9),
@@ -1785,8 +1836,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           if (isNonCurrentWeek)
-                            LText(
-                              "[非本周]",
+                            Text(
+                              context.l10n.outsideThisWeek,
                               style: TextStyle(
                                 color: textColor,
                                 fontSize: 9,
@@ -1795,8 +1846,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               textAlign: TextAlign.center,
                             ),
                           if (course.studyType == CourseStudyType.retake)
-                            LText(
-                              "[重修]",
+                            Text(
+                              context.l10n.retake,
                               style: TextStyle(
                                 color: Colors.red.withValues(alpha: 0.8),
                                 fontSize: 9,
@@ -1805,8 +1856,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               textAlign: TextAlign.center,
                             ),
                           if (course.studyType == CourseStudyType.exempt)
-                            LText(
-                              "[免听]",
+                            Text(
+                              context.l10n.attendanceExempt,
                               style: TextStyle(
                                 color: Colors.green.withValues(alpha: 0.8),
                                 fontSize: 9,
@@ -1814,7 +1865,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               ),
                               textAlign: TextAlign.center,
                             ),
-                          LText(
+                          Text(
                             course.courseName,
                             style: TextStyle(
                               color: textColor,
@@ -1826,7 +1877,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (course.room.isNotEmpty)
-                            LText(
+                            Text(
                               course.room,
                               style: TextStyle(color: textColor, fontSize: 9),
                               textAlign: TextAlign.center,

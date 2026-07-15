@@ -7,8 +7,8 @@ import '../services/score_service.dart';
 import '../services/theme_service.dart';
 import 'transcript_details_screen.dart';
 import 'login_webview_screen.dart';
-import 'package:mysues/l10n/legacy_text.dart';
 import 'package:mysues/widgets/material_you.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class TranscriptScreen extends StatefulWidget {
   const TranscriptScreen({super.key});
@@ -30,7 +30,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     super.initState();
     // 初始化默认值
     _semesters = [];
-    _selectedSemester = '无数据';
+    _selectedSemester = '';
     _loadScores();
     ScoreService.updateNotifier.addListener(_onScoresUpdated);
   }
@@ -69,7 +69,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         _selectedSemester = _semesters.first;
       }
     } else {
-      _selectedSemester = '无数据';
+      _selectedSemester = '';
     }
   }
 
@@ -102,7 +102,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const LText('成绩单'),
+        title: Text(context.l10n.grades),
         centerTitle: true,
         backgroundColor: ThemeService().liquidGlassEnabled
             ? Colors.transparent
@@ -116,7 +116,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 return IconButton(
                   onPressed: () => _showLiquidGlassMenu(context),
                   icon: const Icon(Icons.more_vert),
-                  tooltip: legacyTranslate(context, '菜单'),
+                  tooltip: context.l10n.menu,
                 );
               }
               return MenuAnchor(
@@ -135,7 +135,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           }
                         },
                         icon: const Icon(Icons.more_vert),
-                        tooltip: legacyTranslate(context, '菜单'),
+                        tooltip: context.l10n.menu,
                       );
                     },
                 menuChildren: [
@@ -152,7 +152,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         await _loadScores();
                       }
                     },
-                    child: const LText('同步成绩'),
+                    child: Text(context.l10n.syncGrades),
                   ),
                   MenuItemButton(
                     leadingIcon: const Icon(Icons.info_outline),
@@ -164,7 +164,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         ),
                       );
                     },
-                    child: const LText('详情'),
+                    child: Text(context.l10n.details),
                   ),
                   const Divider(indent: 12, endIndent: 12),
                   MenuItemButton(
@@ -176,12 +176,14 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const LText('确认清空'),
-                          content: const LText('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                          title: Text(context.l10n.clear),
+                          content: Text(
+                            context.l10n.clearAllGradeDataThisCannotBeUndone,
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const LText('取消'),
+                              child: Text(context.l10n.cancel),
                             ),
                             FilledButton(
                               onPressed: () => Navigator.pop(context, true),
@@ -193,7 +195,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                                   context,
                                 ).colorScheme.onError,
                               ),
-                              child: const LText('确认清空'),
+                              child: Text(context.l10n.clear),
                             ),
                           ],
                         ),
@@ -209,8 +211,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         });
                       }
                     },
-                    child: LText(
-                      '清空成绩',
+                    child: Text(
+                      context.l10n.clearGrades,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -225,7 +227,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _semesters.isEmpty
-          ? const Center(child: LText("暂无成绩数据，点击右上方按钮进行导入"))
+          ? Center(child: Text(context.l10n.noGradesYetImportThemFromTheMenu))
           : Column(
               children: [
                 // 顶部总览卡片
@@ -239,8 +241,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const LText(
-                        "学期详情",
+                      Text(
+                        context.l10n.semester,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -251,7 +253,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         items: _semesters.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
-                            child: LText(value),
+                            child: Text(value),
                           );
                         }).toList(),
                         onChanged: (newValue) {
@@ -290,8 +292,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 if (_lastImportTime != null)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: LText(
-                      "上次导入成绩时间$_lastImportTime",
+                    child: Text(
+                      context.l10n.lastImportedAt(_lastImportTime!),
                       style: TextStyle(color: Colors.grey[400], fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
@@ -344,7 +346,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
-                            label: '同步成绩',
+                            label: context.l10n.syncGrades,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               await Navigator.push(
@@ -370,19 +372,23 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.delete_outline,
-                            label: '清空成绩',
+                            label: context.l10n.clearGrades,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const LText('确认清空'),
-                                  content: const LText('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                                  title: Text(context.l10n.clear),
+                                  content: Text(
+                                    context
+                                        .l10n
+                                        .clearAllGradeDataThisCannotBeUndone,
+                                  ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.pop(context, false),
-                                      child: const LText('取消'),
+                                      child: Text(context.l10n.cancel),
                                     ),
                                     TextButton(
                                       onPressed: () =>
@@ -390,7 +396,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.red,
                                       ),
-                                      child: const LText('确认清空'),
+                                      child: Text(context.l10n.clear),
                                     ),
                                   ],
                                 ),
@@ -409,7 +415,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.info_outline,
-                            label: '详情',
+                            label: context.l10n.details,
                             onTap: () {
                               Navigator.pop(dialogContext);
                               Navigator.push(
@@ -469,7 +475,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               color: iconColor ?? theme.colorScheme.onSurface,
             ),
             const SizedBox(width: 12),
-            LText(
+            Text(
               label,
               style: TextStyle(
                 fontSize: 15,
@@ -507,15 +513,15 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              LText(
-                "总平均绩点 (GPA)",
+              Text(
+                context.l10n.overallGpa,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: scheme.onPrimaryContainer,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
-              LText(
+              Text(
                 totalGPA.toStringAsFixed(2),
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                   color: scheme.onPrimaryContainer,
@@ -550,13 +556,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           Row(
             children: [
               _buildInfoChip(
-                label: "学期 GPA",
+                label: context.l10n.semesterGpa,
                 value: gpa.toStringAsFixed(2),
                 color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 10),
               _buildInfoChip(
-                label: "修读学分",
+                label: context.l10n.credits,
                 value: totalCredits.toStringAsFixed(1),
                 color: context.statusColors.warning,
               ),
@@ -566,7 +572,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: AppNoticeBanner(
-                message: "本学期有 $unEvaluatedCount 门课程未评教，不计入GPA",
+                message: context.l10n.unevaluatedCoursesExcludedFromGpa(
+                  unEvaluatedCount,
+                ),
                 kind: AppNoticeKind.warning,
               ),
             ),
@@ -589,7 +597,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         ),
         child: Column(
           children: [
-            LText(
+            Text(
               label,
               style: TextStyle(color: color, fontSize: 12),
               textAlign: TextAlign.center,
@@ -597,7 +605,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
-            LText(
+            Text(
               value,
               style: TextStyle(
                 color: color,
@@ -626,7 +634,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 Row(
                   children: [
                     Flexible(
-                      child: LText(
+                      child: Text(
                         score.courseName,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
@@ -635,18 +643,18 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                       ),
                     ),
                     if (score.gradePoint == 0 && score.isEvaluated)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(left: 8),
                         child: AppStatusBadge(
-                          label: '挂科',
+                          label: context.l10n.failed,
                           kind: AppStatusKind.error,
                         ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                LText(
-                  "学分: ${score.credit}",
+                Text(
+                  context.l10n.creditsValue(score.credit.toString()),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -658,7 +666,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (score.isEvaluated)
-                LText(
+                Text(
                   score.gradePoint.toStringAsFixed(1),
                   style: TextStyle(
                     fontSize: 20,
@@ -669,8 +677,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                 )
               else
-                LText(
-                  "未评教",
+                Text(
+                  context.l10n.pending,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

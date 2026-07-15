@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class EggScreen extends StatelessWidget {
   const EggScreen({super.key});
@@ -27,8 +27,8 @@ class EggScreen extends StatelessWidget {
               width: 120,
             ),
             const SizedBox(height: 24),
-            const LText(
-              '工程  管理  设计',
+            Text(
+              context.l10n.engineeringManagementDesign,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

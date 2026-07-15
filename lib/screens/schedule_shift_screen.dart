@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/schedule_table.dart';
 import '../models/course.dart';
 import '../services/schedule_service.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class ScheduleShiftScreen extends StatefulWidget {
   final ScheduleTable table;
@@ -50,9 +50,9 @@ class _ScheduleShiftScreenState extends State<ScheduleShiftScreen> {
 
   Future<void> _processShift() async {
     if (_dateA == null || _dateB == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: LText('请先选择需要调整的日期')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.chooseBothDatesFirst)),
+      );
       return;
     }
 
@@ -61,9 +61,9 @@ class _ScheduleShiftScreenState extends State<ScheduleShiftScreen> {
     final dateB = DateTime(_dateB!.year, _dateB!.month, _dateB!.day);
 
     if (dateA.isAtSameMomentAs(dateB)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: LText('两个日期不能是同一天')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.theDatesMustBeDifferent)),
+      );
       return;
     }
 
@@ -159,16 +159,16 @@ class _ScheduleShiftScreenState extends State<ScheduleShiftScreen> {
       await ScheduleDataService.saveCourses(globalCourses);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: LText('调休处理完成')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.scheduleAdjustmentCompleted)),
+        );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: LText('处理失败: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.processingFailedWithError('$e'))),
+        );
       }
     } finally {
       if (mounted) {
@@ -206,20 +206,20 @@ class _ScheduleShiftScreenState extends State<ScheduleShiftScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const LText('调休设置')),
+      appBar: AppBar(title: Text(context.l10n.scheduleAdjustment)),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          const LText(
-            '节假日调休处理说明：\n该功能会将"日期A"的课程移动到"日期B"。移动逻辑为：\n1. 将日期A的课程剪切到日期B。\n2. 日期B该天的原有课程会被清空。\n3. 注意：仅对指定日期的单日课程生效，不影响整个学期的其他同安排课程。',
+          Text(
+            context.l10n.holidayAdjustmentInstructionsThisMovesClassesFromDateA,
             style: TextStyle(color: Colors.grey, height: 1.5),
           ),
           const SizedBox(height: 24),
           ListTile(
-            title: const LText('选择被调课程日期'),
-            subtitle: LText(
+            title: Text(context.l10n.chooseSourceDate),
+            subtitle: Text(
               _dateA == null
-                  ? '未选择'
+                  ? context.l10n.notSelected
                   : '${_dateA!.year}-${_dateA!.month.toString().padLeft(2, '0')}-${_dateA!.day.toString().padLeft(2, '0')}',
             ),
             trailing: const Icon(Icons.calendar_today),
@@ -233,10 +233,10 @@ class _ScheduleShiftScreenState extends State<ScheduleShiftScreen> {
           const Center(child: Icon(Icons.arrow_downward, color: Colors.grey)),
           const SizedBox(height: 16),
           ListTile(
-            title: const LText('选择目标上课日期'),
-            subtitle: LText(
+            title: Text(context.l10n.chooseTargetDate),
+            subtitle: Text(
               _dateB == null
-                  ? '未选择'
+                  ? context.l10n.notSelected
                   : '${_dateB!.year}-${_dateB!.month.toString().padLeft(2, '0')}-${_dateB!.day.toString().padLeft(2, '0')}',
             ),
             trailing: const Icon(Icons.calendar_today),
@@ -257,7 +257,10 @@ class _ScheduleShiftScreenState extends State<ScheduleShiftScreen> {
             ),
             child: _isProcessing
                 ? const CircularProgressIndicator()
-                : const LText('确认调休', style: TextStyle(fontSize: 16)),
+                : Text(
+                    context.l10n.confirmAdjustment,
+                    style: TextStyle(fontSize: 16),
+                  ),
           ),
         ],
       ),

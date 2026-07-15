@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class TranscriptDetailsScreen extends StatelessWidget {
   const TranscriptDetailsScreen({super.key});
@@ -7,7 +7,10 @@ class TranscriptDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const LText('成绩说明'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(context.l10n.gradeInformation),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -16,14 +19,13 @@ class TranscriptDetailsScreen extends StatelessWidget {
             _buildSection(
               context,
               icon: Icons.gavel_rounded,
-              title: '免责声明',
-              content:
-                  '本应用提供的成绩计算及绩点统计功能仅供参考。\n\n由于学校教务系统可能会调整计算规则，或者存在特殊课程（如未评教、重修、免修、缓考等）的处理差异，本应用的计算结果可能与官方教务系统存在细微偏差。\n\n请最终以教务系统发布的正式成绩单为准，开发者不对因使用本数据造成的任何问题承担责任。',
+              title: context.l10n.disclaimer,
+              content: context.l10n.gradeAndGpaCalculationsInThisAppAreFor,
               color: Colors.orange,
             ),
             const SizedBox(height: 40),
             Center(
-              child: LText(
+              child: Text(
                 'MySUES',
                 style: TextStyle(color: Colors.grey[400], fontSize: 12),
               ),
@@ -62,7 +64,7 @@ class TranscriptDetailsScreen extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 28),
               const SizedBox(width: 12),
-              LText(
+              Text(
                 title,
                 style: const TextStyle(
                   fontSize: 18,
@@ -72,7 +74,7 @@ class TranscriptDetailsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          LText(
+          Text(
             content,
             style: TextStyle(
               fontSize: 15,
