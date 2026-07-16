@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In zh, this message translates to:
-  /// **'苏伊士'**
+  /// **'三旋翼课程表'**
   String get appTitle;
 
   /// No description provided for @schedule.
@@ -251,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeAgreement.
   ///
   /// In zh, this message translates to:
-  /// **'欢迎使用苏伊士（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：'**
+  /// **'欢迎使用三旋翼课程表（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：'**
   String get welcomeAgreement;
 
   /// No description provided for @userAgreement.
@@ -508,7 +508,7 @@ abstract class AppLocalizations {
   /// No description provided for @mySuesByHsxMark.
   ///
   /// In zh, this message translates to:
-  /// **'苏伊士 by HsxMark'**
+  /// **'三旋翼课程表 by HsxMark'**
   String get mySuesByHsxMark;
 
   /// No description provided for @mySchedule.
@@ -1120,13 +1120,13 @@ abstract class AppLocalizations {
   /// No description provided for @enterMySues.
   ///
   /// In zh, this message translates to:
-  /// **'进入 苏伊士'**
+  /// **'进入 三旋翼课程表'**
   String get enterMySues;
 
   /// No description provided for @welcomeToMySues.
   ///
   /// In zh, this message translates to:
-  /// **'欢迎使用苏伊士 My SUES'**
+  /// **'欢迎使用三旋翼课程表 My SUES'**
   String get welcomeToMySues;
 
   /// No description provided for @yourAllInOneCampusAssistantForASimpler.

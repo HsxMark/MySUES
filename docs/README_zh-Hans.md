@@ -2,7 +2,7 @@
   <img src="../assets/images/example/MySUES-1024x1024@1x.png" width="150" alt="MySUES Logo">
 </p>
 
-# MySUES (苏伊士)
+# MySUES (三旋翼课程表)
 
 **简体中文** | [English](../README.md)
 

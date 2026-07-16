@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => '苏伊士';
+  String get appTitle => '三旋翼课程表';
 
   @override
   String get schedule => '课表';
@@ -87,7 +87,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get userAgreementAndPrivacy => '用户协议与隐私政策';
 
   @override
-  String get welcomeAgreement => '欢迎使用苏伊士（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：';
+  String get welcomeAgreement =>
+      '欢迎使用三旋翼课程表（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：';
 
   @override
   String get userAgreement => '用户协议';
@@ -231,7 +232,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sun => '周日';
 
   @override
-  String get mySuesByHsxMark => '苏伊士 by HsxMark';
+  String get mySuesByHsxMark => '三旋翼课程表 by HsxMark';
 
   @override
   String get mySchedule => '我的课表';
@@ -538,10 +539,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signInToTheAcademicSystem => '请登录 教务系统';
 
   @override
-  String get enterMySues => '进入 苏伊士';
+  String get enterMySues => '进入 三旋翼课程表';
 
   @override
-  String get welcomeToMySues => '欢迎使用苏伊士 My SUES';
+  String get welcomeToMySues => '欢迎使用三旋翼课程表 My SUES';
 
   @override
   String get yourAllInOneCampusAssistantForASimpler => '一站式校园信息助手，让你的校园生活更便捷。';

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">苏伊士</string>
+    <string name="app_name">三旋翼课程表</string>
     <string name="widget_update_required">请打开 App 更新课表</string>
     <string name="widget_no_courses">今日无课</string>
     <string name="widget_empty_message">享受美好的空闲时光～</string>
