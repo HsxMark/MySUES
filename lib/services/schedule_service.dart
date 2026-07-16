@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course.dart';
+import '../models/course_detail.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart';
 import 'widget_service.dart';
@@ -10,6 +11,7 @@ import 'locale_service.dart';
 class ScheduleDataService {
   static const String _tablesKey = 'schedule_tables';
   static const String _coursesKey = 'schedule_courses'; // 新的课程存储Key
+  static const String _courseCatalogsKey = 'semester_course_catalogs';
   static const String _timeDetailsKey = 'time_details';
   static const String _currentTableIdKey = 'current_table_id';
 
@@ -65,6 +67,10 @@ class ScheduleDataService {
     final allCourses = await loadCourses();
     allCourses.removeWhere((c) => c.tableId == id);
     await saveCourses(allCourses);
+
+    final catalogs = await loadCourseCatalogs();
+    catalogs.removeWhere((catalog) => catalog.tableId == id);
+    await saveCourseCatalogs(catalogs);
   }
   
   static Future<int> getCurrentTableId() async {
@@ -124,6 +130,56 @@ class ScheduleDataService {
     final allCourses = await loadCourses();
     allCourses.removeWhere((c) => c.id == courseId);
     await saveCourses(allCourses);
+  }
+
+  // --- Semester Course Catalog Operations ---
+
+  static Future<List<SemesterCourseCatalog>> loadCourseCatalogs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_courseCatalogsKey);
+    if (jsonString == null) return [];
+
+    final jsonList = jsonDecode(jsonString) as List;
+    return jsonList
+        .whereType<Map>()
+        .map(
+          (item) =>
+              SemesterCourseCatalog.fromJson(Map<String, dynamic>.from(item)),
+        )
+        .toList();
+  }
+
+  static Future<SemesterCourseCatalog?> loadCourseCatalog({
+    required int tableId,
+  }) async {
+    final catalogs = await loadCourseCatalogs();
+    for (final catalog in catalogs) {
+      if (catalog.tableId == tableId) return catalog;
+    }
+    return null;
+  }
+
+  static Future<void> saveCourseCatalogs(
+    List<SemesterCourseCatalog> catalogs,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = jsonEncode(
+      catalogs.map((catalog) => catalog.toJson()).toList(),
+    );
+    await prefs.setString(_courseCatalogsKey, jsonString);
+  }
+
+  static Future<void> saveCourseCatalog(SemesterCourseCatalog catalog) async {
+    final catalogs = await loadCourseCatalogs();
+    final index = catalogs.indexWhere(
+      (item) => item.tableId == catalog.tableId,
+    );
+    if (index == -1) {
+      catalogs.add(catalog);
+    } else {
+      catalogs[index] = catalog;
+    }
+    await saveCourseCatalogs(catalogs);
   }
 
   // --- TimeTable Operations ---

@@ -1433,6 +1433,71 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get courseDetails => 'Course Details';
+
+  @override
+  String get semesterCourseCount => 'Semester Courses';
+
+  @override
+  String get semesterTotalCredits => 'Semester Credits';
+
+  @override
+  String get courseCode => 'Course Code';
+
+  @override
+  String get courseType => 'Course Type';
+
+  @override
+  String get assessmentMethod => 'Assessment Method';
+
+  @override
+  String get offeringDepartment => 'Offering Department';
+
+  @override
+  String get teachingFormat => 'Teaching Format';
+
+  @override
+  String get totalClassHours => 'Total Class Hours';
+
+  @override
+  String get teachingWeeks => 'Teaching Weeks';
+
+  @override
+  String get classHourBreakdown => 'Class Hour Breakdown';
+
+  @override
+  String get theoryHours => 'Theory';
+
+  @override
+  String get practiceHours => 'Practice';
+
+  @override
+  String get focusedPracticeHours => 'Focused Practice';
+
+  @override
+  String get dispersedPracticeHours => 'Dispersed Practice';
+
+  @override
+  String get assessmentHours => 'Assessment';
+
+  @override
+  String get experimentHours => 'Experiment';
+
+  @override
+  String get computerHours => 'Computer Lab';
+
+  @override
+  String get designHours => 'Design';
+
+  @override
+  String get extracurricularHours => 'Extracurricular';
+
+  @override
+  String courseCreditValue(String value) {
+    return '$value credits';
+  }
+
+  @override
   String requiredField(String field) {
     return 'Enter $field';
   }

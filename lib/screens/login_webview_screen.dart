@@ -353,7 +353,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         return;
       }
 
-      // 5. Create Schedule Table
+      // 5. Prepare the schedule table and both kinds of course data. The table
+      // is not persisted until the user accepts any conflict warning.
       final startDateStr = info['startDate'] as String? ?? "2024-09-01";
       final table = ScheduleTable(
         tableName: semesterName,
@@ -361,34 +362,19 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         startDate: startDateStr,
       );
 
-      // Save Table
-      await ScheduleDataService.addScheduleTable(table);
-      // Note: addScheduleTable modifies table.id in place
-
-      // 6. Parse and Save Courses
       setState(() => _currentStep = context.l10n.savingCourseData);
-      final courses = FetchCourseService.parseCourseData(courseData, table.id);
+      final courses = FetchCourseService.parseCourseData(courseData, 0);
+      var courseCatalog = FetchCourseService.parseCourseCatalog(
+        courseData,
+        0,
+        semesterName,
+      );
 
-      if (courses.isEmpty) {
+      if (courses.isEmpty && courseCatalog.courses.isEmpty) {
         _showSnack(context.l10n.noCoursesCouldBeParsed);
+        setState(() => _hasStartedAutoFetch = false);
+        return;
       } else {
-        // Batch save (using existing addCourse loop or load/save all)
-        // Since ScheduleDataService doesn't have batch add, we loop.
-        // Optimizing: Load once, add all, save once.
-        var allCourses = await ScheduleDataService.loadCourses();
-
-        // Find max ID
-        int maxId = 0;
-        if (allCourses.isNotEmpty) {
-          maxId = allCourses.map((e) => e.id).reduce((a, b) => a > b ? a : b);
-        }
-
-        for (var c in courses) {
-          maxId++;
-          c.id = maxId;
-          allCourses.add(c);
-        }
-
         // Detect conflicts
         bool saveAgreed = true;
         var conflictGroups = CourseConflictUtil.getConflictGroups(courses);
@@ -458,7 +444,24 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         }
 
         if (saveAgreed) {
+          await ScheduleDataService.addScheduleTable(table);
+          for (final course in courses) {
+            course.tableId = table.id;
+          }
+          courseCatalog = courseCatalog.copyWith(tableId: table.id);
+
+          final allCourses = await ScheduleDataService.loadCourses();
+          int maxId = 0;
+          if (allCourses.isNotEmpty) {
+            maxId = allCourses.map((e) => e.id).reduce((a, b) => a > b ? a : b);
+          }
+          for (final course in courses) {
+            course.id = ++maxId;
+            allCourses.add(course);
+          }
+
           await ScheduleDataService.saveCourses(allCourses);
+          await ScheduleDataService.saveCourseCatalog(courseCatalog);
         } else {
           // If canceled, we might need to rollback the table creation (not implemented strictly here, but just return)
           if (mounted) {
@@ -473,7 +476,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         await ScheduleDataService.setCurrentTableId(table.id);
 
         // 统计实际课程门数（去重）
-        final uniqueCount = courses.map((c) => c.courseName).toSet().length;
+        final uniqueCount = courseCatalog.courses.isNotEmpty
+            ? courseCatalog.courses.length
+            : courses.map((course) => course.courseName).toSet().length;
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

@@ -87,8 +87,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get userAgreementAndPrivacy => '用户协议与隐私政策';
 
   @override
-  String get welcomeAgreement =>
-      '欢迎使用三旋翼课程表（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：';
+  String get welcomeAgreement => '欢迎使用三旋翼课程表（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：';
 
   @override
   String get userAgreement => '用户协议';
@@ -1342,6 +1341,71 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String examCopyText(String course, String time, String location) {
     return '$course\n时间：$time\n地点：$location';
+  }
+
+  @override
+  String get courseDetails => '课程详情';
+
+  @override
+  String get semesterCourseCount => '本学期课程数量';
+
+  @override
+  String get semesterTotalCredits => '本学期总学分';
+
+  @override
+  String get courseCode => '课程代码';
+
+  @override
+  String get courseType => '课程类型';
+
+  @override
+  String get assessmentMethod => '考核方式';
+
+  @override
+  String get offeringDepartment => '开课部门';
+
+  @override
+  String get teachingFormat => '教学形式';
+
+  @override
+  String get totalClassHours => '总学时';
+
+  @override
+  String get teachingWeeks => '教学周数';
+
+  @override
+  String get classHourBreakdown => '学时组成';
+
+  @override
+  String get theoryHours => '理论';
+
+  @override
+  String get practiceHours => '实践';
+
+  @override
+  String get focusedPracticeHours => '集中实践';
+
+  @override
+  String get dispersedPracticeHours => '分散实践';
+
+  @override
+  String get assessmentHours => '考核';
+
+  @override
+  String get experimentHours => '实验';
+
+  @override
+  String get computerHours => '上机';
+
+  @override
+  String get designHours => '设计';
+
+  @override
+  String get extracurricularHours => '课外';
+
+  @override
+  String courseCreditValue(String value) {
+    return '$value 学分';
   }
 
   @override

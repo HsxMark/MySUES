@@ -13,6 +13,7 @@ import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
 import 'schedule_view_container.dart';
 import 'login_webview_screen.dart'; // Import
+import 'course_catalog_screen.dart';
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
 import '../utils/screen_breakpoints.dart';
@@ -1032,6 +1033,22 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 icon: const Icon(Icons.view_day_outlined, size: 22),
               ),
             ),
+          Tooltip(
+            message: context.l10n.courseDetails,
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => CourseCatalogScreen(
+                      tableId: _currentTable!.id,
+                      fallbackSemesterName: _currentTable!.tableName,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.menu_book_outlined, size: 22),
+            ),
+          ),
           ListenableBuilder(
             listenable: ThemeService(),
             builder: (context, _) {

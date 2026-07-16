@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../models/course.dart';
+import '../../models/course_detail.dart';
 
 class FetchCourseService {
   static const String _vpnSuffix = "vpn-12-o2-jxfw.sues.edu.cn";
@@ -148,6 +149,123 @@ class FetchCourseService {
       debugPrint("Error parsing course data: $e");
       return null;
     }
+  }
+
+  /// Parses the semester-level course catalog that accompanies timetable data.
+  /// This intentionally does not use `activities`, because courses without a
+  /// concrete time arrangement still belong in the semester catalog.
+  static SemesterCourseCatalog parseCourseCatalog(
+    Map<String, dynamic> json,
+    int tableId,
+    String semesterName,
+  ) {
+    final rawVms = json['studentTableVms'];
+    if (rawVms is! List || rawVms.isEmpty || rawVms.first is! Map) {
+      return SemesterCourseCatalog(
+        tableId: tableId,
+        semesterName: semesterName,
+        totalCredits: 0,
+        courses: const [],
+      );
+    }
+
+    final vm = Map<String, dynamic>.from(rawVms.first as Map);
+    final detailsByKey = <String, CourseDetail>{};
+
+    // Arranged records are the primary source. lessonSearchVms can contain
+    // both duplicates and courses with no concrete timetable activity.
+    for (final listName in const [
+      'arrangedLessonSearchVms',
+      'lessonSearchVms',
+    ]) {
+      final rows = vm[listName];
+      if (rows is! List) continue;
+
+      for (final rawRow in rows) {
+        if (rawRow is! Map) continue;
+        final row = Map<String, dynamic>.from(rawRow);
+        final detail = _parseCourseDetail(row);
+        final existing = detailsByKey[detail.sourceKey];
+        detailsByKey[detail.sourceKey] = existing == null
+            ? detail
+            : existing.mergeMissing(detail);
+      }
+    }
+
+    final courses = detailsByKey.values.toList();
+    final sourceCredits = _asDouble(vm['credits']);
+    final totalCredits =
+        sourceCredits ??
+        courses.fold<double>(0, (sum, course) => sum + course.credits);
+
+    return SemesterCourseCatalog(
+      tableId: tableId,
+      semesterName: semesterName,
+      totalCredits: totalCredits,
+      courses: courses,
+    );
+  }
+
+  static CourseDetail _parseCourseDetail(Map<String, dynamic> row) {
+    final course = row['course'] is Map
+        ? Map<String, dynamic>.from(row['course'] as Map)
+        : <String, dynamic>{};
+    final lessonId = _asInt(row['id']);
+    final courseCode = course['code']?.toString().trim() ?? '';
+    final courseName = course['nameZh']?.toString().trim() ?? '';
+    final lessonCode = row['code']?.toString().trim() ?? '';
+    final sourceKey = lessonId != null
+        ? 'lesson:$lessonId'
+        : courseCode.isNotEmpty
+        ? 'course:$courseCode'
+        : lessonCode.isNotEmpty
+        ? 'lessonCode:$lessonCode'
+        : 'name:$courseName';
+
+    final periodSource = course['periodInfo'] ?? row['requiredPeriodInfo'];
+    final periodInfo = periodSource is Map
+        ? CoursePeriodInfo.fromJson(Map<String, dynamic>.from(periodSource))
+        : const CoursePeriodInfo();
+
+    return CourseDetail(
+      sourceKey: sourceKey,
+      lessonId: lessonId,
+      courseName: courseName,
+      courseCode: courseCode,
+      courseType: _namedValue(course['courseType']),
+      examMode: _namedValue(course['defaultExamMode']),
+      openDepartment: _namedValue(course['defaultOpenDepart']),
+      teachingFormat: _normalizeTeachingFormat(course['lessonType']),
+      credits: _asDouble(course['credits']) ?? 0,
+      periodInfo: periodInfo,
+    );
+  }
+
+  static String _namedValue(dynamic value) {
+    if (value is! Map) return '';
+    final map = Map<String, dynamic>.from(value);
+    return (map['nameZh'] ?? map['name'] ?? '').toString().trim();
+  }
+
+  static String _normalizeTeachingFormat(dynamic value) {
+    return value
+            ?.toString()
+            .trim()
+            .split(RegExp(r'\s+'))
+            .where((part) => part.isNotEmpty)
+            .join('、') ??
+        '';
+  }
+
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '');
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
   }
 
   /// 4. Parses raw JSON into `Course` objects

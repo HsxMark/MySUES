@@ -2557,6 +2557,132 @@ abstract class AppLocalizations {
   /// **'{course}\n时间：{time}\n地点：{location}'**
   String examCopyText(String course, String time, String location);
 
+  /// No description provided for @courseDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'课程详情'**
+  String get courseDetails;
+
+  /// No description provided for @semesterCourseCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'本学期课程数量'**
+  String get semesterCourseCount;
+
+  /// No description provided for @semesterTotalCredits.
+  ///
+  /// In zh, this message translates to:
+  /// **'本学期总学分'**
+  String get semesterTotalCredits;
+
+  /// No description provided for @courseCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'课程代码'**
+  String get courseCode;
+
+  /// No description provided for @courseType.
+  ///
+  /// In zh, this message translates to:
+  /// **'课程类型'**
+  String get courseType;
+
+  /// No description provided for @assessmentMethod.
+  ///
+  /// In zh, this message translates to:
+  /// **'考核方式'**
+  String get assessmentMethod;
+
+  /// No description provided for @offeringDepartment.
+  ///
+  /// In zh, this message translates to:
+  /// **'开课部门'**
+  String get offeringDepartment;
+
+  /// No description provided for @teachingFormat.
+  ///
+  /// In zh, this message translates to:
+  /// **'教学形式'**
+  String get teachingFormat;
+
+  /// No description provided for @totalClassHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'总学时'**
+  String get totalClassHours;
+
+  /// No description provided for @teachingWeeks.
+  ///
+  /// In zh, this message translates to:
+  /// **'教学周数'**
+  String get teachingWeeks;
+
+  /// No description provided for @classHourBreakdown.
+  ///
+  /// In zh, this message translates to:
+  /// **'学时组成'**
+  String get classHourBreakdown;
+
+  /// No description provided for @theoryHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'理论'**
+  String get theoryHours;
+
+  /// No description provided for @practiceHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'实践'**
+  String get practiceHours;
+
+  /// No description provided for @focusedPracticeHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'集中实践'**
+  String get focusedPracticeHours;
+
+  /// No description provided for @dispersedPracticeHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'分散实践'**
+  String get dispersedPracticeHours;
+
+  /// No description provided for @assessmentHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'考核'**
+  String get assessmentHours;
+
+  /// No description provided for @experimentHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'实验'**
+  String get experimentHours;
+
+  /// No description provided for @computerHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'上机'**
+  String get computerHours;
+
+  /// No description provided for @designHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'设计'**
+  String get designHours;
+
+  /// No description provided for @extracurricularHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'课外'**
+  String get extracurricularHours;
+
+  /// No description provided for @courseCreditValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{value} 学分'**
+  String courseCreditValue(String value);
+
   /// No description provided for @requiredField.
   ///
   /// In zh, this message translates to:
