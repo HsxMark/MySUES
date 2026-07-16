@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/exam.dart';
 import '../services/exam_service.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class AddExamScreen extends StatefulWidget {
   final Exam? existingExam;
@@ -32,7 +32,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
   @override
   void initState() {
     super.initState();
-    _typeController = TextEditingController(text: '期末');
+    _typeController = TextEditingController();
 
     if (widget.existingExam != null) {
       _courseName = widget.existingExam!.courseName;
@@ -40,6 +40,14 @@ class _AddExamScreenState extends State<AddExamScreen> {
       _typeController.text = widget.existingExam!.type;
 
       _parseExistingTime(widget.existingExam!.timeString);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.existingExam == null && _typeController.text.isEmpty) {
+      _typeController.text = context.l10n.finalExam;
     }
   }
 
@@ -168,23 +176,27 @@ class _AddExamScreenState extends State<AddExamScreen> {
       _formKey.currentState!.save();
 
       if (_startDateTime == null || _endDateTime == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: LText('请完善开始和结束时间')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.enterBothAStartAndEndTime)),
+        );
         return;
       }
 
       if (_endDateTime!.isBefore(_startDateTime!)) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: LText('结束时间不能早于开始时间')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.theEndTimeCannotBeEarlierThanTheStart),
+          ),
+        );
         return;
       }
 
       if (_endDateTime!.difference(_startDateTime!).inHours >= 24) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: LText('单场考试时长不能超过24小时')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.anExamCannotLastLongerThan24Hours),
+          ),
+        );
         return;
       }
 
@@ -238,7 +250,11 @@ class _AddExamScreenState extends State<AddExamScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: LText(widget.existingExam == null ? '添加考试' : '编辑考试'),
+        title: Text(
+          widget.existingExam == null
+              ? context.l10n.addExam
+              : context.l10n.editExam,
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -251,12 +267,13 @@ class _AddExamScreenState extends State<AddExamScreen> {
               TextFormField(
                 initialValue: _courseName,
                 decoration: InputDecoration(
-                  labelText: legacyTranslate(context, '课程名称'),
+                  labelText: context.l10n.courseName,
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.book_outlined),
                 ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? '请输入课程名称' : null,
+                validator: (val) => val == null || val.isEmpty
+                    ? context.l10n.enterACourseName
+                    : null,
                 onSaved: (val) => _courseName = val!,
               ),
               const SizedBox(height: 16),
@@ -267,13 +284,14 @@ class _AddExamScreenState extends State<AddExamScreen> {
                 readOnly: true,
                 onTap: _pickStartDateTime,
                 decoration: InputDecoration(
-                  labelText: legacyTranslate(context, '开始时间'),
+                  labelText: context.l10n.startTime,
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.access_time),
                   suffixIcon: const Icon(Icons.arrow_forward_ios, size: 16),
                 ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? '请选择开始时间' : null,
+                validator: (val) => val == null || val.isEmpty
+                    ? context.l10n.chooseAStartTime
+                    : null,
               ),
               const SizedBox(height: 16),
 
@@ -283,13 +301,14 @@ class _AddExamScreenState extends State<AddExamScreen> {
                 readOnly: true,
                 onTap: _pickEndDateTime,
                 decoration: InputDecoration(
-                  labelText: legacyTranslate(context, '结束时间'),
+                  labelText: context.l10n.endTime,
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.access_time_filled),
                   suffixIcon: const Icon(Icons.arrow_forward_ios, size: 16),
                 ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? '请选择结束时间' : null,
+                validator: (val) => val == null || val.isEmpty
+                    ? context.l10n.chooseAnEndTime
+                    : null,
               ),
 
               const SizedBox(height: 16),
@@ -297,7 +316,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
               TextFormField(
                 initialValue: widget.existingExam?.location ?? '',
                 decoration: InputDecoration(
-                  labelText: legacyTranslate(context, '地点'),
+                  labelText: context.l10n.locationLabel,
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.location_on_outlined),
                 ),
@@ -309,24 +328,32 @@ class _AddExamScreenState extends State<AddExamScreen> {
               TextFormField(
                 controller: _typeController,
                 decoration: InputDecoration(
-                  labelText: legacyTranslate(context, '类型'),
+                  labelText: context.l10n.typeLabel,
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.category_outlined),
                 ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? '请输入或选择类型' : null,
+                validator: (val) => val == null || val.isEmpty
+                    ? context.l10n.enterOrChooseAType
+                    : null,
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8.0,
-                children: ['期末', '补考', '期中', '缓考', '重修'].map((type) {
-                  return ActionChip(
-                    label: LText(type),
-                    onPressed: () {
-                      _typeController.text = type;
-                    },
-                  );
-                }).toList(),
+                children:
+                    [
+                      context.l10n.finalExam,
+                      context.l10n.makeUpExam,
+                      context.l10n.midterm,
+                      context.l10n.deferredExam,
+                      context.l10n.retake2,
+                    ].map((type) {
+                      return ActionChip(
+                        label: Text(type),
+                        onPressed: () {
+                          _typeController.text = type;
+                        },
+                      );
+                    }).toList(),
               ),
 
               const SizedBox(height: 32),
@@ -337,7 +364,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   textStyle: const TextStyle(fontSize: 16),
                 ),
-                child: const LText('保存考试信息'),
+                child: Text(context.l10n.saveExam),
               ),
             ],
           ),

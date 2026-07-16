@@ -14,7 +14,8 @@ import '../services/score_service.dart';
 import '../services/exam_service.dart';
 import '../utils/course_conflict_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/l10n/localized_formatters.dart';
 
 class LoginWebviewScreen extends StatefulWidget {
   const LoginWebviewScreen({super.key});
@@ -33,7 +34,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   // 区分当前是“抓取课表”还是“抓取个人信息”
   bool _isFetchingInfo = false;
 
-  String _currentStep = '请登录 教务系统';
+  String _currentStep = '';
 
   // URLs
   static const String initialUrl = 'https://webvpn.sues.edu.cn/login';
@@ -50,6 +51,14 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   void initState() {
     super.initState();
     _initWebView();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_currentStep.isEmpty) {
+      _currentStep = context.l10n.signInToTheAcademicSystem;
+    }
   }
 
   Future<void> _initWebView() async {
@@ -131,12 +140,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         (url.contains("/student/home") ||
             url.contains("/student/for-std/course-table"))) {
       // Only update UI text, do NOT auto start fetch
-      setState(() => _currentStep = "登录成功，请点击下方按钮提取数据");
+      setState(
+        () => _currentStep =
+            context.l10n.signedInUseTheButtonsBelowToRetrieveYour,
+      );
     } else {
       final String? title = await _controller.getTitle();
       if (title != null) {
         if (title.contains("登录") || title.contains("Login")) {
-          setState(() => _currentStep = "请登录您的账号");
+          setState(() => _currentStep = context.l10n.signInToYourAccount);
         }
       }
     }
@@ -169,7 +181,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       final currentUrl = await _controller.currentUrl();
       if (currentUrl == null ||
           !currentUrl.contains("student/for-std/course-table")) {
-        setState(() => _currentStep = "正在跳转到课表页面...");
+        setState(() => _currentStep = context.l10n.openingTheSchedulePage);
         final courseUrl = "$targetBase/student/for-std/course-table";
         await _controller.loadRequest(Uri.parse(courseUrl));
 
@@ -183,7 +195,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         }
       }
 
-      setState(() => _currentStep = "正在获取学期列表...");
+      setState(() => _currentStep = context.l10n.retrievingSemesters);
 
       // 2. Wait for semester selector (handled by repeated fetch attempts)
       List<String> semesterIds = [];
@@ -196,9 +208,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       }
 
       if (semesterIds.isEmpty) {
-        _showSnack("未找到学期列表，请重试");
+        _showSnack(context.l10n.noSemesterListWasFoundTryAgain);
         setState(() {
-          _currentStep = "抓取失败，请重试";
+          _currentStep = context.l10n.requestFailedTryAgain;
           _hasStartedAutoFetch = false; // Allow retry
         });
         return;
@@ -208,7 +220,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       // Fetch Info OR Fetch Schedule
       if (_isFetchingInfo) {
         // --- Auto Fetch Info Logic ---
-        setState(() => _currentStep = "正在提取个人信息...");
+        setState(() => _currentStep = context.l10n.retrievingProfile);
         final info = await FetchInfoService.fetchStudentInfo(
           _controller,
           targetBase,
@@ -217,17 +229,24 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         if (info != null && info.isNotEmpty) {
           await FetchInfoService.saveStudentInfo(info);
           if (!mounted) return;
-          String msg = "已更新: ${info['name']}";
-          if (info['code'] != null) msg += " (${info['code']})";
+          final code = info['code'] == null ? '' : ' (${info['code']})';
+          final msg = context.l10n.updatedProfile(
+            info['name']?.toString() ?? '',
+            code,
+          );
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: LText(msg)));
+          ).showSnackBar(SnackBar(content: Text(msg)));
           _recordSyncTime();
         } else {
           if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: LText("未能提取到有效的个人信息")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.noValidProfileInformationCouldBeExtracted,
+              ),
+            ),
+          );
         }
 
         // Cleanup & Exit
@@ -246,7 +265,11 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       // Fetch details for display (nameZh) - Optional, mimicking python
       // Python: build_semester_list -> fetches info for EACH id.
       // This might be slow if many IDs. Python does it. I will do it.
-      setState(() => _currentStep = "正在解析学期信息 (${semesterIds.length}个)...");
+      setState(
+        () => _currentStep = context.l10n.parsingSemesterInformation(
+          semesterIds.length,
+        ),
+      );
 
       List<Map<String, dynamic>> semesterOptions = [];
       for (var id in semesterIds) {
@@ -258,11 +281,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         if (info != null) {
           semesterOptions.add({
             'id': id,
-            'name': info['nameZh'] ?? '未知学期',
+            'name': info['nameZh'] ?? context.l10n.unknownSemester,
             'info': info,
           });
         } else {
-          semesterOptions.add({'id': id, 'name': '学期 $id', 'info': {}});
+          semesterOptions.add({
+            'id': id,
+            'name': context.l10n.semesterFallbackName(id),
+            'info': {},
+          });
         }
       }
 
@@ -272,7 +299,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: const LText("请选择导入学期"),
+          title: Text(context.l10n.chooseASemesterToImport),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -281,8 +308,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
               itemBuilder: (ctx, index) {
                 final item = semesterOptions[index];
                 return ListTile(
-                  title: LText(item['name']),
-                  subtitle: LText("ID: ${item['id']}"),
+                  title: Text(item['name']),
+                  subtitle: Text("ID: ${item['id']}"),
                   onTap: () => Navigator.pop(ctx, item),
                 );
               },
@@ -291,7 +318,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, null),
-              child: const LText("取消"),
+              child: Text(context.l10n.cancel),
             ),
           ],
         ),
@@ -299,7 +326,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
       if (selectedMap == null) {
         setState(() {
-          _currentStep = "用户取消操作";
+          _currentStep = context.l10n.operationCancelled;
           _hasStartedAutoFetch = false;
         });
         return;
@@ -309,7 +336,10 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       final info = selectedMap['info'] as Map<String, dynamic>;
       final semesterName = selectedMap['name'] as String;
 
-      setState(() => _currentStep = "正在抓取 $semesterName 课表...");
+      setState(
+        () =>
+            _currentStep = context.l10n.fetchingSemesterSchedule(semesterName),
+      );
 
       // 4. Fetch Course Data
       final courseData = await FetchCourseService.fetchCourseData(
@@ -318,7 +348,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         semesterId,
       );
       if (courseData == null) {
-        _showSnack("抓取课表数据失败");
+        _showSnack(context.l10n.failedToRetrieveScheduleData);
         setState(() => _hasStartedAutoFetch = false);
         return;
       }
@@ -336,11 +366,11 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       // Note: addScheduleTable modifies table.id in place
 
       // 6. Parse and Save Courses
-      setState(() => _currentStep = "正在保存课程数据...");
+      setState(() => _currentStep = context.l10n.savingCourseData);
       final courses = FetchCourseService.parseCourseData(courseData, table.id);
 
       if (courses.isEmpty) {
-        _showSnack("未能解析出任何课程");
+        _showSnack(context.l10n.noCoursesCouldBeParsed);
       } else {
         // Batch save (using existing addCourse loop or load/save all)
         // Since ScheduleDataService doesn't have batch add, we loop.
@@ -368,24 +398,35 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                 context: context,
                 builder: (ctx) {
                   return AlertDialog(
-                    title: const LText('注意：存在课程冲突'),
+                    title: Text(context.l10n.warningCourseConflict),
                     content: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const LText('您有以下课程在同一时间段产生冲突：'),
+                          Text(context.l10n.theFollowingCoursesOverlap),
                           const SizedBox(height: 8),
                           ...conflictGroups.values.map((group) {
-                            String names = group
-                                .map(
-                                  (e) =>
-                                      '• ${e.courseName} (星期${e.day} 第${e.startNode}-${e.startNode + e.step - 1}节)',
-                                )
+                            final names = group
+                                .map((course) {
+                                  final schedule = context.l10n
+                                      .courseScheduleLine(
+                                        localizedWeekdayLabel(
+                                          context.l10n,
+                                          course.day,
+                                        ),
+                                        context.l10n.periodRange(
+                                          course.startNode,
+                                          course.startNode + course.step - 1,
+                                        ),
+                                        '',
+                                      );
+                                  return '• ${course.courseName} ($schedule)';
+                                })
                                 .join('\n');
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
-                              child: LText(
+                              child: Text(
                                 names,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -394,18 +435,20 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                             );
                           }),
                           const SizedBox(height: 8),
-                          const LText('是否继续保存？您可以在课表中正常查看它们，或后续修改免听/重修状态。'),
+                          Text(
+                            context.l10n.saveAnywayYouCanViewThemInTheSchedule,
+                          ),
                         ],
                       ),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(false),
-                        child: const LText('取消导入'),
+                        child: Text(context.l10n.cancelImport),
                       ),
                       FilledButton(
                         onPressed: () => Navigator.of(ctx).pop(true),
-                        child: const LText('继续保存'),
+                        child: Text(context.l10n.saveAnyway),
                       ),
                     ],
                   );
@@ -419,9 +462,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         } else {
           // If canceled, we might need to rollback the table creation (not implemented strictly here, but just return)
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: LText('已取消导入')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(context.l10n.importCancelled)),
+            );
           }
           return;
         }
@@ -435,7 +478,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: LText("成功导入 $uniqueCount 门课程 (共 ${courses.length} 条记录)"),
+            content: Text(
+              context.l10n.importedCourses(uniqueCount, courses.length),
+            ),
           ),
         );
         _recordSyncTime();
@@ -450,7 +495,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       }
     } catch (e) {
       debugPrint("Auto fetch error: $e");
-      if (mounted) _showSnack("发生错误: $e");
+      if (mounted) _showSnack(context.l10n.genericErrorWithDetail('$e'));
       setState(() => _hasStartedAutoFetch = false);
     }
   }
@@ -460,13 +505,13 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       String targetBase =
           _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
 
-      _showSnack("正在获取基础数据...");
+      _showSnack(context.l10n.retrievingBasicData);
 
       // 1. Ensure we are on the course table page to get semester IDs
       final currentUrl = await _controller.currentUrl();
       if (currentUrl == null ||
           !currentUrl.contains("student/for-std/course-table")) {
-        _showSnack("跳转到课表页面以获取数据...");
+        _showSnack(context.l10n.openingTheSchedulePageToRetrieveData);
         String courseUrl = "$targetBase/student/for-std/course-table";
         await _controller.loadRequest(Uri.parse(courseUrl));
 
@@ -490,11 +535,13 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         retryCount++;
       }
 
-      if (semesterIds.isEmpty) throw "无法获取学期列表，请重试";
+      if (semesterIds.isEmpty) {
+        throw StateError(context.l10n.unableToRetrieveSemestersTryAgain);
+      }
 
       // 3. Always parse Student ID from course data (ignoring local cache)
       String? studentId;
-      _showSnack("正在解析...");
+      _showSnack(context.l10n.parsing);
 
       // Use the first (usually latest) semester to fetch course table data which contains the ID
       final latestSemester = semesterIds.first;
@@ -525,9 +572,11 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         }
       }
 
-      if (studentId == null) throw "无法从课表数据中解析...";
+      if (studentId == null) {
+        throw StateError(context.l10n.unableToParseTheScheduleData);
+      }
 
-      _showSnack("正在提取成绩 (共${semesterIds.length}个学期)...");
+      _showSnack(context.l10n.retrievingScoresForSemesters(semesterIds.length));
 
       // 4. Fetch Scores
       final scores = await FetchScoreService.fetchAllScores(
@@ -538,7 +587,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       );
 
       if (scores.isEmpty) {
-        final msg = "未检测到成绩数据 (学期数:${semesterIds.length})";
+        final msg = context.l10n.noScoresForSemesters(semesterIds.length);
         debugPrint(msg);
         _showSnack(msg);
         return;
@@ -551,14 +600,14 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
       await ScoreService.saveLastImportTime(timeStr);
 
-      _showSnack("成功导入 ${scores.length} 条成绩记录！");
+      _showSnack(context.l10n.importedScoreRecords(scores.length));
       _isDataChanged = true;
       _recordSyncTime();
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       debugPrint("Extract score error: $e");
-      _showSnack("提取失败: $e");
+      _showSnack(context.l10n.extractionFailedWithError('$e'));
     }
   }
 
@@ -577,7 +626,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       if (!mounted) return;
       if (currentUrl == null ||
           !currentUrl.contains("student/for-std/course-table")) {
-        _updateStep("正在跳转到教务系统...");
+        _updateStep(context.l10n.openingTheAcademicSystem);
         String courseUrl = "$targetBase/student/for-std/course-table";
         await _controller.loadRequest(Uri.parse(courseUrl));
         if (!mounted) return;
@@ -594,7 +643,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       }
 
       // 2. 等待学期列表加载完成（确认页面会话已就绪，最多30秒）
-      _updateStep("正在等待页面加载...");
+      _updateStep(context.l10n.waitingForThePageToLoad);
       List<String> semesterIds = [];
       int retryCount = 0;
       while (retryCount < 30) {
@@ -607,13 +656,13 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       }
 
       if (semesterIds.isEmpty) {
-        _showSnack("页面未就绪，请重试");
-        _updateStep("页面加载超时，请重试");
+        _showSnack(context.l10n.thePageIsNotReadyTryAgain);
+        _updateStep(context.l10n.pageLoadingTimedOutTryAgain);
         return;
       }
 
       // 3. 从课表数据中提取 studentId（与成绩提取相同的可靠方式）
-      _updateStep("正在解析学生信息...");
+      _updateStep(context.l10n.parsingStudentInformation);
       String? studentId;
       final prefs = await SharedPreferences.getInstance();
       if (!mounted) return;
@@ -650,15 +699,19 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       }
 
       if (studentId == null || studentId.isEmpty) {
-        _showSnack("无法获取学生信息，请重试");
-        _updateStep("获取学生信息失败");
+        _showSnack(context.l10n.unableToRetrieveStudentInformationTryAgain);
+        _updateStep(context.l10n.failedToRetrieveStudentInformation);
         return;
       }
 
       // 4. 提取考试数据（带重试，iOS WKWebView 首次 XHR 可能因 session cookie 延迟而失败）
       List<Exam> exams = [];
       for (int attempt = 1; attempt <= 3; attempt++) {
-        _updateStep("正在提取考试安排...${attempt > 1 ? ' (第$attempt次尝试)' : ''}");
+        _updateStep(
+          attempt == 1
+              ? context.l10n.retrievingExams
+              : context.l10n.retrievingExamsAttempt(attempt),
+        );
         exams = await FetchExamService.fetchExams(
           _controller,
           targetBase,
@@ -667,15 +720,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         if (!mounted) return;
         if (exams.isNotEmpty) break;
         if (attempt < 3) {
-          _updateStep("未获取到数据，等待重试...");
+          _updateStep(context.l10n.noDataReceivedWaitingToRetry);
           await Future.delayed(const Duration(seconds: 2));
           if (!mounted) return;
         }
       }
 
       if (exams.isEmpty) {
-        _showSnack("未检测到考试数据");
-        _updateStep("未找到考试数据");
+        _showSnack(context.l10n.noExamDataWasFound);
+        _updateStep(context.l10n.noExamDataWasFound2);
         return;
       }
 
@@ -688,8 +741,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       debugPrint("Extract Exam Error: $e");
-      _showSnack("提取失败: $e");
-      _updateStep("提取失败，请重试");
+      _showSnack(context.l10n.extractionFailedWithError('$e'));
+      _updateStep(context.l10n.extractionFailedTryAgain);
     }
   }
 
@@ -715,7 +768,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       final info = parser.parse(html);
 
       if (info.isEmpty || info['name'] == null) {
-        _showSnack("未检测到个人信息");
+        _showSnack(context.l10n.noProfileInformationWasFound);
         return;
       }
 
@@ -733,12 +786,17 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         await prefs.setString('user_college', info['college']!);
       }
 
-      String msg = "已更新信息: ${info['name']}";
-      if (info['studentId'] != null) msg += " (${info['studentId']})";
+      final studentId = info['studentId'] == null
+          ? ''
+          : ' (${info['studentId']})';
+      final msg = context.l10n.updatedProfileInformation(
+        info['name'] ?? '',
+        studentId,
+      );
       _showSnack(msg);
       _recordSyncTime();
     } catch (e) {
-      _showSnack("提取失败: $e");
+      _showSnack(context.l10n.extractionFailedWithError('$e'));
     }
   }
 
@@ -769,7 +827,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: LText(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -781,15 +839,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const LText("WebVPN 网页提取"),
+          title: Text(context.l10n.webVpnDataImport),
           actions: [
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: legacyTranslate(context, "清理缓存"),
+              tooltip: context.l10n.clearCache,
               onPressed: () async {
                 await _controller.clearCache();
                 await _controller.clearLocalStorage();
-                if (mounted) _showSnack("缓存已清理");
+                if (mounted) _showSnack(context.l10n.cacheCleared);
                 _controller.reload();
               },
             ),
@@ -808,7 +866,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
               color: Colors.blue.shade50,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: LText(
+              child: Text(
                 _currentStep,
                 style: TextStyle(color: Colors.blue.shade900, fontSize: 12),
                 textAlign: TextAlign.center,
@@ -841,8 +899,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(height: 12),
-                          const LText(
-                            "请选择要提取的内容",
+                          Text(
+                            context.l10n.chooseTheDataToRetrieve,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -851,7 +909,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           const SizedBox(height: 12),
                           ListTile(
                             leading: const Icon(Icons.person),
-                            title: const LText("提取个人信息"),
+                            title: Text(context.l10n.retrieveProfile),
                             onTap: () {
                               Navigator.pop(context);
                               _isFetchingInfo = true;
@@ -860,7 +918,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           ),
                           ListTile(
                             leading: const Icon(Icons.calendar_month),
-                            title: const LText("提取课表"),
+                            title: Text(context.l10n.retrieveSchedule),
                             onTap: () {
                               Navigator.pop(context);
                               _isFetchingInfo = false;
@@ -869,7 +927,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           ),
                           ListTile(
                             leading: const Icon(Icons.score),
-                            title: const LText("提取成绩"),
+                            title: Text(context.l10n.retrieveGrades),
                             onTap: () {
                               Navigator.pop(context);
                               _extractScore();
@@ -877,7 +935,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                           ),
                           ListTile(
                             leading: const Icon(Icons.assignment),
-                            title: const LText("提取考试安排"),
+                            title: Text(context.l10n.retrieveExams),
                             onTap: () {
                               Navigator.pop(context);
                               _extractExam();
@@ -897,7 +955,10 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                   ),
                 ),
                 icon: const Icon(Icons.menu_open),
-                label: const LText("提取菜单", style: TextStyle(fontSize: 16)),
+                label: Text(
+                  context.l10n.importMenu,
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ),
           ),

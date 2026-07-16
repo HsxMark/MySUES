@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 /// Shows the sync disclaimer dialog if the user hasn't opted to hide it.
 /// Returns `true` if the user confirmed (or previously opted out), `false` otherwise.
@@ -20,13 +20,13 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
       bool dontShowAgain = false;
       return StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const LText('免责声明'),
+          title: Text(context.l10n.disclaimer),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const LText(
-                '本功能仅提供便捷的信息同步服务，导入的数据可能存在偏差。请仔细核对同步后的信息，一切以教务处网站显示为准。',
+              Text(
+                context.l10n.thisFeatureProvidesAConvenientWayToSyncInformation,
               ),
               const SizedBox(height: 12),
               GestureDetector(
@@ -44,7 +44,10 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const LText('不再显示', style: TextStyle(fontSize: 14)),
+                    Text(
+                      context.l10n.doNotShowAgain,
+                      style: TextStyle(fontSize: 14),
+                    ),
                   ],
                 ),
               ),
@@ -53,7 +56,7 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const LText('取消'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -62,7 +65,7 @@ Future<bool> showSyncDisclaimer(BuildContext context) async {
                 }
                 Navigator.pop(ctx, true);
               },
-              child: const LText('我已知悉'),
+              child: Text(context.l10n.iUnderstand),
             ),
           ],
         ),

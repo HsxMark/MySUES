@@ -6,7 +6,7 @@ import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/services/locale_service.dart';
 import 'package:mysues/services/notification_service.dart';
 import 'package:mysues/services/widget_service.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/widgets/material_you.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -14,57 +14,64 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: LText(context.l10n.settings), centerTitle: true),
+      appBar: AppBar(title: Text(context.l10n.settings), centerTitle: true),
       body: ListView(
         children: [
-          _buildGroupTitle(context, context.l10n.general),
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: LText(context.l10n.notifications),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsScreen(),
+          AppSectionHeader(context.l10n.general),
+          AppCardSection(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.notifications_outlined),
+                title: Text(context.l10n.notifications),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsScreen(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.palette_outlined),
+                title: Text(context.l10n.appearanceAndDisplay),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DisplaySettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.language_outlined),
+                title: Text(context.l10n.language),
+                subtitle: Text(
+                  _languageName(context, LocaleService().language),
                 ),
-              );
-            },
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showLanguagePicker(context),
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.palette_outlined),
-            title: LText(context.l10n.appearanceAndDisplay),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DisplaySettingsScreen(),
+          AppSectionHeader(context.l10n.dataAndPrivacy),
+          AppCardSection(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_forever_outlined),
+                title: Text(
+                  context.l10n.clearAllData,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
-              );
-            },
+                subtitle: Text(context.l10n.clearAllDataSubtitle),
+                onTap: () => _showClearDataDialog(context),
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.language_outlined),
-            title: LText(context.l10n.language),
-            subtitle: LText(_languageName(context, LocaleService().language)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showLanguagePicker(context),
-          ),
-          const Divider(),
-          _buildGroupTitle(context, context.l10n.dataAndPrivacy),
-          ListTile(
-            leading: const Icon(
-              Icons.delete_forever_outlined,
-              color: Colors.red,
-            ),
-            title: LText(
-              context.l10n.clearAllData,
-              style: const TextStyle(color: Colors.red),
-            ),
-            subtitle: LText(context.l10n.clearAllDataSubtitle),
-            onTap: () => _showClearDataDialog(context),
-          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -84,13 +91,17 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: AppLanguage.values.map((language) {
-            return RadioListTile<AppLanguage>(
-              value: language,
-              groupValue: LocaleService().language,
-              title: LText(_languageName(sheetContext, language)),
-              onChanged: (value) async {
-                if (value == null) return;
-                await LocaleService().setLanguage(value);
+            return ListTile(
+              leading: const Icon(Icons.language_outlined),
+              title: Text(_languageName(sheetContext, language)),
+              trailing: LocaleService().language == language
+                  ? Icon(
+                      Icons.check,
+                      color: Theme.of(sheetContext).colorScheme.primary,
+                    )
+                  : null,
+              onTap: () async {
+                await LocaleService().setLanguage(language);
                 await WidgetService.updateWidget();
                 await NotificationService().rescheduleAll();
                 if (sheetContext.mounted) Navigator.pop(sheetContext);
@@ -102,40 +113,23 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: LText(
-        title,
-        style: TextStyle(
-          color: Theme.of(context).primaryColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-
   void _showClearDataDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: LText(context.l10n.clearAllDataQuestion),
-        content: LText(context.l10n.clearAllDataWarning),
+        title: Text(context.l10n.clearAllDataQuestion),
+        content: Text(context.l10n.clearAllDataWarning),
         actions: [
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: LText(context.l10n.cancel),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _showFinalClearDataDialog(context);
             },
-            child: LText(
-              context.l10n.confirmClear,
-              style: const TextStyle(color: Colors.red),
-            ),
+            child: Text(context.l10n.confirmClear),
           ),
         ],
       ),
@@ -146,26 +140,24 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: LText(context.l10n.confirmAgain),
-        content: LText(context.l10n.confirmClearFinal),
+        title: Text(context.l10n.confirmAgain),
+        content: Text(context.l10n.confirmClearFinal),
         actions: [
           // Swapped order: Confirm button first on the left, Cancel on the right
-          TextButton(
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             onPressed: () {
               Navigator.pop(context);
               _performClearData(context);
             },
-            child: LText(
-              context.l10n.confirmClear,
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text(context.l10n.confirmClear),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: LText(context.l10n.cancel),
+            child: Text(context.l10n.cancel),
           ),
         ],
       ),
@@ -181,13 +173,13 @@ class SettingsScreen extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: LText(context.l10n.dataClearedRestart)),
+          SnackBar(content: Text(context.l10n.dataClearedRestart)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: LText(context.l10n.clearFailed(e.toString()))),
+          SnackBar(content: Text(context.l10n.clearFailed(e.toString()))),
         );
       }
     }

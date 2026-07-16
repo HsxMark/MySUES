@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class OpenSourceLicenseScreen extends StatelessWidget {
   const OpenSourceLicenseScreen({super.key});
@@ -8,14 +8,14 @@ class OpenSourceLicenseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const LText('开源信息')),
+      appBar: AppBar(title: Text(context.l10n.openSource)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const LText(
-              '项目信息',
+            Text(
+              context.l10n.projectInformation,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -33,11 +33,11 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              LText(
+                              const Text(
                                 'MySUES',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -45,8 +45,10 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(height: 4),
-                              LText(
-                                '欢迎参与贡献或进行 bug 反馈',
+                              Text(
+                                context
+                                    .l10n
+                                    .contributionsAndBugReportsAreWelcome,
                                 style: TextStyle(fontSize: 13),
                               ),
                             ],
@@ -61,7 +63,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                             color: Colors.green.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const LText(
+                          child: const Text(
                             'GPL-3.0',
                             style: TextStyle(
                               fontSize: 12,
@@ -85,7 +87,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                             color: Theme.of(context).primaryColor,
                           ),
                           const SizedBox(width: 4),
-                          LText(
+                          Text(
                             'github.com/HsxMark/MySUES',
                             style: TextStyle(
                               fontSize: 13,
@@ -102,8 +104,8 @@ class OpenSourceLicenseScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            const LText(
-              '字体资源',
+            Text(
+              context.l10n.fontResources,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -122,8 +124,8 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                     _buildFontInfo(
                       context,
                       'HarmonyOS Sans',
-                      '华为软件技术有限公司',
-                      '遵循 HarmonyOS Sans 字体授权协议',
+                      context.l10n.huaweiSoftwareTechnologies,
+                      context.l10n.licensedUnderTheHarmonyOSSansFontLicense,
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12.0),
@@ -132,8 +134,8 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                     _buildFontInfo(
                       context,
                       'MiSans',
-                      '小米科技有限责任公司',
-                      '遵循 MiSans 字体知识产权许可协议',
+                      context.l10n.xiaomiTechnology,
+                      context.l10n.licensedUnderTheMiSansFontLicense,
                     ),
                   ],
                 ),
@@ -156,7 +158,7 @@ class OpenSourceLicenseScreen extends StatelessWidget {
       children: [
         Row(
           children: [
-            LText(
+            Text(
               name,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
@@ -167,17 +169,20 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                 color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const LText(
-                '免费商用',
+              child: Text(
+                context.l10n.freeForCommercialUse,
                 style: TextStyle(fontSize: 10, color: Colors.blue),
               ),
             ),
           ],
         ),
         const SizedBox(height: 4),
-        LText('由 $provider 提供', style: const TextStyle(fontSize: 13)),
+        Text(
+          context.l10n.providedBy(provider),
+          style: const TextStyle(fontSize: 13),
+        ),
         const SizedBox(height: 2),
-        LText(
+        Text(
           license,
           style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
         ),

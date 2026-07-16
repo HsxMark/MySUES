@@ -7,7 +7,7 @@ import 'package:mysues/screens/about/acknowledgements_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
 import 'package:mysues/screens/about/egg_screen.dart';
 import 'package:mysues/screens/main_entry_screen.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -41,7 +41,7 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const LText('关于'), centerTitle: true),
+      appBar: AppBar(title: Text(context.l10n.about), centerTitle: true),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -59,13 +59,13 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const LText(
-                  '苏伊士',
+                Text(
+                  context.l10n.appTitle,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                LText(
-                  'Version 1.1.0-build.6',
+                Text(
+                  'Version Alpha 1.2.0',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
@@ -74,8 +74,8 @@ class _AboutScreenState extends State<AboutScreen> {
                     Uri.parse('https://syntrion.dev/mysues#download'),
                     mode: LaunchMode.externalApplication,
                   ),
-                  child: LText(
-                    '检查更新',
+                  child: Text(
+                    context.l10n.checkForUpdates,
                     style: TextStyle(color: Colors.grey[500], fontSize: 13),
                   ),
                 ),
@@ -93,12 +93,20 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
             child: Column(
               children: [
-                _buildOptionItem(context, '用户协议', const UserAgreementScreen()),
+                _buildOptionItem(
+                  context,
+                  context.l10n.userAgreement,
+                  const UserAgreementScreen(),
+                ),
                 const Divider(height: 1, indent: 16),
-                _buildOptionItem(context, '隐私政策', const PrivacyPolicyScreen()),
+                _buildOptionItem(
+                  context,
+                  context.l10n.privacyPolicy,
+                  const PrivacyPolicyScreen(),
+                ),
                 const Divider(height: 1, indent: 16),
                 ListTile(
-                  title: const LText('使用教程'),
+                  title: Text(context.l10n.tutorial),
                   trailing: const Icon(
                     Icons.chevron_right,
                     size: 20,
@@ -109,20 +117,28 @@ class _AboutScreenState extends State<AboutScreen> {
                 const Divider(height: 1, indent: 16),
                 _buildOptionItem(
                   context,
-                  '开源信息',
+                  context.l10n.openSource,
                   const OpenSourceLicenseScreen(),
                 ),
                 const Divider(height: 1, indent: 16),
-                _buildOptionItem(context, '作者', const SponsorScreen()),
+                _buildOptionItem(
+                  context,
+                  context.l10n.author,
+                  const SponsorScreen(),
+                ),
                 const Divider(height: 1, indent: 16),
-                _buildOptionItem(context, '鸣谢', const AcknowledgementsScreen()),
+                _buildOptionItem(
+                  context,
+                  context.l10n.acknowledgements,
+                  const AcknowledgementsScreen(),
+                ),
               ],
             ),
           ),
 
           const SizedBox(height: 48),
           const Center(
-            child: LText(
+            child: Text(
               'Copyright © 2026 HsxMark',
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
@@ -134,7 +150,7 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Widget _buildOptionItem(BuildContext context, String title, Widget page) {
     return ListTile(
-      title: LText(title),
+      title: Text(title),
       trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => page));

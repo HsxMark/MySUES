@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/course.dart';
 import '../models/time_table.dart';
 import '../services/schedule_service.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/l10n/localized_formatters.dart';
 
 class AddCourseScreen extends StatefulWidget {
   final Course? course; // 编辑模式传入对象
@@ -167,7 +168,11 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: LText(widget.course == null ? '添加课程' : '编辑课程'),
+        title: Text(
+          widget.course == null
+              ? context.l10n.addCourse
+              : context.l10n.editCourse,
+        ),
         actions: [
           if (widget.course != null)
             IconButton(
@@ -183,15 +188,19 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTextField(_nameController, '课程名称', required: true),
+              _buildTextField(
+                _nameController,
+                context.l10n.courseName,
+                required: true,
+              ),
               const SizedBox(height: 16),
-              _buildTextField(_roomController, '教室'),
+              _buildTextField(_roomController, context.l10n.classroomLabel),
               const SizedBox(height: 16),
-              _buildTextField(_teacherController, '老师'),
+              _buildTextField(_teacherController, context.l10n.instructor),
               const SizedBox(height: 24),
 
-              const LText(
-                '上课时间',
+              Text(
+                context.l10n.classTime,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -207,14 +216,14 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       DropdownButtonFormField<int>(
                         initialValue: _day,
                         decoration: InputDecoration(
-                          labelText: legacyTranslate(context, '星期'),
+                          labelText: context.l10n.weekday,
                         ),
                         items: List.generate(
                           7,
                           (index) => DropdownMenuItem(
                             value: index + 1,
-                            child: LText(
-                              ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][index],
+                            child: Text(
+                              localizedWeekdayLabel(context.l10n, index + 1),
                             ),
                           ),
                         ).toList(),
@@ -227,15 +236,18 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                             child: DropdownButtonFormField<int>(
                               initialValue: _startNode,
                               decoration: InputDecoration(
-                                labelText: legacyTranslate(context, '开始节次'),
+                                labelText: context.l10n.startPeriod,
                               ),
                               isExpanded: true,
                               items: List.generate(15, (index) {
                                 final node = index + 1;
                                 return DropdownMenuItem(
                                   value: node,
-                                  child: LText(
-                                    '第 $node 节 ${_getTimeString(node)}',
+                                  child: Text(
+                                    context.l10n.periodNumberWithTime(
+                                      node,
+                                      _getTimeString(node),
+                                    ),
                                     style: const TextStyle(fontSize: 12),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -257,15 +269,18 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                             child: DropdownButtonFormField<int>(
                               initialValue: _endNode,
                               decoration: InputDecoration(
-                                labelText: legacyTranslate(context, '结束节次'),
+                                labelText: context.l10n.endPeriod,
                               ),
                               isExpanded: true,
                               items: List.generate(15, (index) {
                                 final node = index + 1;
                                 return DropdownMenuItem(
                                   value: node,
-                                  child: LText(
-                                    '第 $node 节 ${_getTimeString(node)}',
+                                  child: Text(
+                                    context.l10n.periodNumberWithTime(
+                                      node,
+                                      _getTimeString(node),
+                                    ),
                                     style: const TextStyle(fontSize: 12),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -294,7 +309,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                               },
                               child: _buildTextField(
                                 _startTimeController,
-                                '开始时间(HH:mm)',
+                                context.l10n.startTimeHHMm,
                               ),
                             ),
                           ),
@@ -302,7 +317,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                           Expanded(
                             child: _buildTextField(
                               _endTimeController,
-                              '结束时间(HH:mm)',
+                              context.l10n.endTimeHHMm,
                             ),
                           ),
                         ],
@@ -313,8 +328,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
 
               const SizedBox(height: 24),
-              const LText(
-                '周次设置',
+              Text(
+                context.l10n.weekSettings,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -332,7 +347,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                           Expanded(
                             child: _buildTextField(
                               _startWeekController,
-                              '开始周',
+                              context.l10n.startWeek,
                               required: true,
                               isNumber: true,
                             ),
@@ -341,7 +356,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                           Expanded(
                             child: _buildTextField(
                               _endWeekController,
-                              '结束周',
+                              context.l10n.endWeek,
                               required: true,
                               isNumber: true,
                             ),
@@ -353,12 +368,21 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                         key: ValueKey(_type),
                         initialValue: _type,
                         decoration: InputDecoration(
-                          labelText: legacyTranslate(context, '单双周'),
+                          labelText: context.l10n.weekPattern,
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 0, child: LText('每周')),
-                          DropdownMenuItem(value: 1, child: LText('单周')),
-                          DropdownMenuItem(value: 2, child: LText('双周')),
+                        items: [
+                          DropdownMenuItem(
+                            value: 0,
+                            child: Text(context.l10n.everyWeek),
+                          ),
+                          DropdownMenuItem(
+                            value: 1,
+                            child: Text(context.l10n.oddWeeks),
+                          ),
+                          DropdownMenuItem(
+                            value: 2,
+                            child: Text(context.l10n.evenWeeks),
+                          ),
                         ],
                         onChanged: (v) => setState(() => _type = v!),
                       ),
@@ -368,8 +392,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
 
               const SizedBox(height: 24),
-              const LText(
-                '修读状态',
+              Text(
+                context.l10n.studyStatus,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -387,20 +411,20 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                         key: ValueKey(_studyType),
                         initialValue: _studyType,
                         decoration: InputDecoration(
-                          labelText: legacyTranslate(context, '当前状态'),
+                          labelText: context.l10n.status,
                         ),
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                             value: CourseStudyType.normal,
-                            child: LText('正常修读'),
+                            child: Text(context.l10n.normal),
                           ),
                           DropdownMenuItem(
                             value: CourseStudyType.retake,
-                            child: LText('重修'),
+                            child: Text(context.l10n.retake2),
                           ),
                           DropdownMenuItem(
                             value: CourseStudyType.exempt,
-                            child: LText('免听'),
+                            child: Text(context.l10n.attendanceExempt2),
                           ),
                         ],
                         onChanged: (v) {
@@ -415,12 +439,14 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       if (_studyType == CourseStudyType.exempt) ...[
                         const SizedBox(height: 12),
                         CheckboxListTile(
-                          title: const LText(
-                            '是否在课表中隐藏？',
+                          title: Text(
+                            context.l10n.hideThisCourseFromTheSchedule,
                             style: TextStyle(fontSize: 14),
                           ),
-                          subtitle: const LText(
-                            '隐藏后将不会在课表视图中显示该课程',
+                          subtitle: Text(
+                            context
+                                .l10n
+                                .hiddenCoursesAreNotShownInTheScheduleView,
                             style: TextStyle(fontSize: 12),
                           ),
                           value: _isHidden,
@@ -440,8 +466,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
 
               const SizedBox(height: 24),
-              const LText(
-                '课程颜色',
+              Text(
+                context.l10n.courseColor,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -479,7 +505,10 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                 height: 50,
                 child: FilledButton(
                   onPressed: _saveCourse,
-                  child: const LText('保存', style: TextStyle(fontSize: 18)),
+                  child: Text(
+                    context.l10n.save,
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -508,7 +537,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       ),
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       validator: required
-          ? (v) => v == null || v.isEmpty ? '请输入$label' : null
+          ? (v) => v == null || v.isEmpty
+                ? context.l10n.requiredField(label)
+                : null
           : null,
     );
   }
@@ -554,12 +585,14 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const LText('删除课程'),
-        content: LText('确认要删除课程 "${widget.course!.courseName}" 吗？'),
+        title: Text(context.l10n.deleteCourse),
+        content: Text(
+          context.l10n.deleteCourseQuestion(widget.course!.courseName),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const LText('取消'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -567,7 +600,10 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               await ScheduleDataService.deleteCourse(widget.course!.id);
               if (mounted) Navigator.pop(context, 'deleted'); // Return signal
             },
-            child: const LText('删除', style: TextStyle(color: Colors.red)),
+            child: Text(
+              context.l10n.delete,
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),

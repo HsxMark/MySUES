@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:mysues/l10n/legacy_text.dart';
 
 class LegalDocumentScreen extends StatelessWidget {
   const LegalDocumentScreen({
@@ -20,7 +19,7 @@ class LegalDocumentScreen extends StatelessWidget {
     final assetPath = 'assets/legal/${assetBaseName}_$suffix.md';
 
     return Scaffold(
-      appBar: AppBar(title: LText(title)),
+      appBar: AppBar(title: Text(title)),
       body: FutureBuilder<String>(
         future: rootBundle.loadString(assetPath),
         builder: (context, snapshot) {
@@ -28,7 +27,7 @@ class LegalDocumentScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: LText(snapshot.error.toString()));
+            return Center(child: Text(snapshot.error.toString()));
           }
           return Markdown(
             data: snapshot.data ?? '',

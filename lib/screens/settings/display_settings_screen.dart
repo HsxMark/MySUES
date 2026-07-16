@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:mysues/services/theme_service.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/widgets/material_you.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class DisplaySettingsScreen extends StatefulWidget {
   const DisplaySettingsScreen({super.key});
@@ -58,34 +59,51 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
         : (currentMode == ThemeMode.light ? 1 : 2);
 
     final currentFontFamily = ThemeService().fontFamily;
-    final fontName = _getFontName(currentFontFamily);
+    final fontName = _getFontName(context, currentFontFamily);
 
     return Scaffold(
-      appBar: AppBar(title: const LText('界面与显示')),
+      appBar: AppBar(title: Text(context.l10n.appearanceAndDisplay)),
       body: ListView(
         children: [
-          _buildSectionHeader('外观'),
-          ListTile(
-            title: const LText('深色模式'),
-            subtitle: LText(_getThemeModeText(themeModeIndex)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showThemePicker(themeModeIndex),
-          ),
-          ListTile(
-            title: const LText('设置背景图片'),
-            subtitle: LText(
-              ThemeService().backgroundImagePath != null ? '已设置' : '未设置',
-            ),
-            trailing: ThemeService().backgroundImagePath != null
-                ? IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () async {
-                      await ThemeService().clearBackgroundImage();
-                      setState(() {});
-                    },
-                  )
-                : const Icon(Icons.chevron_right),
-            onTap: () => _pickBackgroundImage(),
+          AppSectionHeader(context.l10n.appearance),
+          AppCardSection(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.brightness_6_outlined),
+                title: Text(context.l10n.darkMode),
+                subtitle: Text(_getThemeModeText(context, themeModeIndex)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showThemePicker(themeModeIndex),
+              ),
+              ListTile(
+                leading: const Icon(Icons.wallpaper_outlined),
+                title: Text(context.l10n.setBackgroundImage),
+                subtitle: Text(
+                  ThemeService().backgroundImagePath != null
+                      ? context.l10n.setValue
+                      : context.l10n.notSet,
+                ),
+                trailing: ThemeService().backgroundImagePath != null
+                    ? IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () async {
+                          await ThemeService().clearBackgroundImage();
+                          setState(() {});
+                        },
+                      )
+                    : const Icon(Icons.chevron_right),
+                onTap: () => _pickBackgroundImage(),
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.animation_outlined),
+                title: Text(context.l10n.splashAnimation),
+                subtitle: Text(
+                  context.l10n.showTheSplashAnimationWhenTheAppStarts,
+                ),
+                value: _splashAnimationEnabled,
+                onChanged: (value) => _saveSplashAnimation(value),
+              ),
+            ],
           ),
           if (ThemeService().backgroundImagePath != null)
             Padding(
@@ -119,7 +137,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const LText('背景透明度'),
+                  Text(context.l10n.backgroundOpacity),
                   Expanded(
                     child: Slider(
                       value:
@@ -144,7 +162,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                   ),
                   SizedBox(
                     width: 40,
-                    child: LText(
+                    child: Text(
                       '${((_previewOpacity ?? ThemeService().backgroundOpacity) * 100).round()}%',
                       textAlign: TextAlign.end,
                     ),
@@ -152,60 +170,61 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 ],
               ),
             ),
-          SwitchListTile(
-            title: const LText('开屏动画'),
-            subtitle: const LText('启动应用时显示开屏动画'),
-            value: _splashAnimationEnabled,
-            onChanged: (value) => _saveSplashAnimation(value),
+          AppSectionHeader(context.l10n.font),
+          AppCardSection(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.font_download_outlined),
+                title: Text(context.l10n.fontStyle),
+                subtitle: Text(fontName),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showFontPicker(currentFontFamily),
+              ),
+            ],
           ),
-          const Divider(),
-          _buildSectionHeader('字体'),
-          ListTile(
-            title: const LText('字体样式'),
-            subtitle: LText(fontName),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showFontPicker(currentFontFamily),
+          AppSectionHeader(context.l10n.experimentalAppearance),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: AppNoticeBanner(
+              message: context
+                  .l10n
+                  .experimentalAppearanceMayReduceContrastOrPerformanceOnSome,
+            ),
           ),
-          const Divider(),
-          _buildSectionHeader('实验性功能'),
-          SwitchListTile(
-            title: const LText('液态玻璃效果 (BETA)'),
-            subtitle: const LText('开启后界面将呈现磨砂玻璃质感'),
-            value: _liquidGlassEnabled,
-            onChanged: (value) => _saveLiquidGlass(value),
+          const SizedBox(height: 12),
+          AppCardSection(
+            children: [
+              SwitchListTile(
+                secondary: const Icon(Icons.blur_on_outlined),
+                title: Text(context.l10n.liquidGlassEffectBETA),
+                subtitle: Text(
+                  context.l10n.addsAFrostedGlassAppearanceToTheInterface,
+                ),
+                value: _liquidGlassEnabled,
+                onChanged: (value) => _saveLiquidGlass(value),
+              ),
+            ],
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: LText(
-        title,
-        style: TextStyle(
-          color: Theme.of(context).primaryColor,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  String _getThemeModeText(int index) {
+  String _getThemeModeText(BuildContext context, int index) {
     switch (index) {
       case 1:
-        return '浅色';
+        return context.l10n.light;
       case 2:
-        return '深色';
+        return context.l10n.dark;
       case 0:
       default:
-        return '跟随系统';
+        return context.l10n.languageSystem;
     }
   }
 
-  String _getFontName(String? family) {
-    if (family == null) return '系统默认';
+  String _getFontName(BuildContext context, String? family) {
+    if (family == null) return context.l10n.systemDefault;
     if (family == 'HarmonyOS Sans') return 'HarmonyOS Sans';
     if (family == 'MiSans') return 'MiSans';
     return family;
@@ -226,53 +245,32 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const LText('跟随系统'),
-                leading: Radio<int>(
-                  value: 0,
-                  groupValue: currentIndex,
-                  onChanged: (v) {
-                    _saveThemeMode(v!);
-                    Navigator.pop(context);
-                  },
-                ),
-                onTap: () {
-                  _saveThemeMode(0);
-                  Navigator.pop(context);
+            children: List.generate(3, (index) {
+              final labels = [
+                context.l10n.languageSystem,
+                context.l10n.lightMode,
+                context.l10n.darkMode,
+              ];
+              const icons = [
+                Icons.brightness_auto,
+                Icons.light_mode,
+                Icons.dark_mode,
+              ];
+              return ListTile(
+                leading: Icon(icons[index]),
+                title: Text(labels[index]),
+                trailing: currentIndex == index
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () async {
+                  await _saveThemeMode(index);
+                  if (context.mounted) Navigator.pop(context);
                 },
-              ),
-              ListTile(
-                title: const LText('浅色模式'),
-                leading: Radio<int>(
-                  value: 1,
-                  groupValue: currentIndex,
-                  onChanged: (v) {
-                    _saveThemeMode(v!);
-                    Navigator.pop(context);
-                  },
-                ),
-                onTap: () {
-                  _saveThemeMode(1);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const LText('深色模式'),
-                leading: Radio<int>(
-                  value: 2,
-                  groupValue: currentIndex,
-                  onChanged: (v) {
-                    _saveThemeMode(v!);
-                    Navigator.pop(context);
-                  },
-                ),
-                onTap: () {
-                  _saveThemeMode(2);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+              );
+            }),
           ),
         );
       },
@@ -287,9 +285,12 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
         Widget buildTile(String title, String? family) {
           final isSelected = currentFamily == family;
           return ListTile(
-            title: LText(title),
+            title: Text(title),
             trailing: isSelected
-                ? const Icon(Icons.check, color: Colors.blue)
+                ? Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
                 : null,
             onTap: () async {
               await ThemeService().updateFontFamily(family);
@@ -302,7 +303,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              buildTile('系统默认', null),
+              buildTile(context.l10n.systemDefault, null),
               buildTile('HarmonyOS Sans', 'HarmonyOS Sans'),
               buildTile('MiSans', 'MiSans'),
             ],

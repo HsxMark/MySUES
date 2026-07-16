@@ -7,7 +7,8 @@ import '../services/score_service.dart';
 import '../services/theme_service.dart';
 import 'transcript_details_screen.dart';
 import 'login_webview_screen.dart';
-import 'package:mysues/l10n/legacy_text.dart';
+import 'package:mysues/widgets/material_you.dart';
+import 'package:mysues/l10n/l10n.dart';
 
 class TranscriptScreen extends StatefulWidget {
   const TranscriptScreen({super.key});
@@ -29,7 +30,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     super.initState();
     // 初始化默认值
     _semesters = [];
-    _selectedSemester = '无数据';
+    _selectedSemester = '';
     _loadScores();
     ScoreService.updateNotifier.addListener(_onScoresUpdated);
   }
@@ -68,7 +69,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         _selectedSemester = _semesters.first;
       }
     } else {
-      _selectedSemester = '无数据';
+      _selectedSemester = '';
     }
   }
 
@@ -101,7 +102,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const LText('成绩单'),
+        title: Text(context.l10n.grades),
         centerTitle: true,
         backgroundColor: ThemeService().liquidGlassEnabled
             ? Colors.transparent
@@ -115,7 +116,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 return IconButton(
                   onPressed: () => _showLiquidGlassMenu(context),
                   icon: const Icon(Icons.more_vert),
-                  tooltip: legacyTranslate(context, '菜单'),
+                  tooltip: context.l10n.menu,
                 );
               }
               return MenuAnchor(
@@ -134,7 +135,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           }
                         },
                         icon: const Icon(Icons.more_vert),
-                        tooltip: legacyTranslate(context, '菜单'),
+                        tooltip: context.l10n.menu,
                       );
                     },
                 menuChildren: [
@@ -151,30 +152,50 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         await _loadScores();
                       }
                     },
-                    child: const LText('同步成绩'),
+                    child: Text(context.l10n.syncGrades),
                   ),
                   MenuItemButton(
-                    leadingIcon: const Icon(
+                    leadingIcon: const Icon(Icons.info_outline),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TranscriptDetailsScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(context.l10n.details),
+                  ),
+                  const Divider(indent: 12, endIndent: 12),
+                  MenuItemButton(
+                    leadingIcon: Icon(
                       Icons.delete_outline,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                     onPressed: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const LText('确认清空'),
-                          content: const LText('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                          title: Text(context.l10n.clear),
+                          content: Text(
+                            context.l10n.clearAllGradeDataThisCannotBeUndone,
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const LText('取消'),
+                              child: Text(context.l10n.cancel),
                             ),
-                            TextButton(
+                            FilledButton(
                               onPressed: () => Navigator.pop(context, true),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.error,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onError,
                               ),
-                              child: const LText('确认清空'),
+                              child: Text(context.l10n.clear),
                             ),
                           ],
                         ),
@@ -190,22 +211,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         });
                       }
                     },
-                    child: const LText('清空成绩'),
-                  ),
-                  MenuItemButton(
-                    leadingIcon: const Icon(
-                      Icons.info_outline,
-                      color: Colors.grey,
+                    child: Text(
+                      context.l10n.clearGrades,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TranscriptDetailsScreen(),
-                        ),
-                      );
-                    },
-                    child: const LText('详情'),
                   ),
                 ],
               );
@@ -216,7 +227,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _semesters.isEmpty
-          ? const Center(child: LText("暂无成绩数据，点击右上方按钮进行导入"))
+          ? Center(child: Text(context.l10n.noGradesYetImportThemFromTheMenu))
           : Column(
               children: [
                 // 顶部总览卡片
@@ -230,8 +241,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const LText(
-                        "学期详情",
+                      Text(
+                        context.l10n.semester,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -242,7 +253,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         items: _semesters.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
-                            child: LText(value),
+                            child: Text(value),
                           );
                         }).toList(),
                         onChanged: (newValue) {
@@ -281,8 +292,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 if (_lastImportTime != null)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: LText(
-                      "上次导入成绩时间$_lastImportTime",
+                    child: Text(
+                      context.l10n.lastImportedAt(_lastImportTime!),
                       style: TextStyle(color: Colors.grey[400], fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
@@ -335,7 +346,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
-                            label: '同步成绩',
+                            label: context.l10n.syncGrades,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               await Navigator.push(
@@ -361,19 +372,23 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.delete_outline,
-                            label: '清空成绩',
+                            label: context.l10n.clearGrades,
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const LText('确认清空'),
-                                  content: const LText('确定要清空所有成绩数据吗？此操作不可撤销。'),
+                                  title: Text(context.l10n.clear),
+                                  content: Text(
+                                    context
+                                        .l10n
+                                        .clearAllGradeDataThisCannotBeUndone,
+                                  ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.pop(context, false),
-                                      child: const LText('取消'),
+                                      child: Text(context.l10n.cancel),
                                     ),
                                     TextButton(
                                       onPressed: () =>
@@ -381,7 +396,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.red,
                                       ),
-                                      child: const LText('确认清空'),
+                                      child: Text(context.l10n.clear),
                                     ),
                                   ],
                                 ),
@@ -400,7 +415,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.info_outline,
-                            label: '详情',
+                            label: context.l10n.details,
                             onTap: () {
                               Navigator.pop(dialogContext);
                               Navigator.push(
@@ -460,7 +475,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               color: iconColor ?? theme.colorScheme.onSurface,
             ),
             const SizedBox(width: 12),
-            LText(
+            Text(
               label,
               style: TextStyle(
                 fontSize: 15,
@@ -474,20 +489,14 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   }
 
   Widget _buildOverallCard(double totalGPA) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -497,23 +506,25 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               child: Icon(
                 Icons.school_rounded,
                 size: 96,
-                color: Colors.white.withValues(alpha: 0.08),
+                color: scheme.onPrimaryContainer.withValues(alpha: 0.08),
               ),
             ),
           ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const LText(
-                "总平均绩点 (GPA)",
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+              Text(
+                context.l10n.overallGpa,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
-              LText(
+              Text(
                 totalGPA.toStringAsFixed(2),
-                style: const TextStyle(
-                  color: Colors.white,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: scheme.onPrimaryContainer,
                   fontSize: 42,
                   fontWeight: FontWeight.bold,
                 ),
@@ -545,53 +556,26 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           Row(
             children: [
               _buildInfoChip(
-                label: "学期 GPA",
+                label: context.l10n.semesterGpa,
                 value: gpa.toStringAsFixed(2),
-                color: Colors.blueAccent,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 10),
               _buildInfoChip(
-                label: "修读学分",
+                label: context.l10n.credits,
                 value: totalCredits.toStringAsFixed(1),
-                color: Colors.orange,
+                color: context.statusColors.warning,
               ),
             ],
           ),
           if (unEvaluatedCount > 0)
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 12,
+              child: AppNoticeBanner(
+                message: context.l10n.unevaluatedCoursesExcludedFromGpa(
+                  unEvaluatedCount,
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.orange.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Colors.orange,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: LText(
-                        "本学期有 $unEvaluatedCount 门课程未评教，不计入GPA",
-                        style: const TextStyle(
-                          color: Colors.orange,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                kind: AppNoticeKind.warning,
               ),
             ),
         ],
@@ -609,12 +593,11 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
-            LText(
+            Text(
               label,
               style: TextStyle(color: color, fontSize: 12),
               textAlign: TextAlign.center,
@@ -622,7 +605,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
-            LText(
+            Text(
               value,
               style: TextStyle(
                 color: color,
@@ -651,45 +634,30 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 Row(
                   children: [
                     Flexible(
-                      child: LText(
+                      child: Text(
                         score.courseName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (score.gradePoint == 0 && score.isEvaluated)
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: Colors.red.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: const LText(
-                          '挂科',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: AppStatusBadge(
+                          label: context.l10n.failed,
+                          kind: AppStatusKind.error,
                         ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                LText(
-                  "学分: ${score.credit}",
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                Text(
+                  context.l10n.creditsValue(score.credit.toString()),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -698,21 +666,23 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (score.isEvaluated)
-                LText(
+                Text(
                   score.gradePoint.toStringAsFixed(1),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: score.gradePoint > 0 ? Colors.green : Colors.red,
+                    color: score.gradePoint > 0
+                        ? context.statusColors.success
+                        : theme.colorScheme.error,
                   ),
                 )
               else
-                const LText(
-                  "未评教",
+                Text(
+                  context.l10n.pending,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+                    color: context.statusColors.warning,
                   ),
                 ),
             ],
@@ -743,11 +713,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       );
     }
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: content,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(child: content),
     );
   }
 }
