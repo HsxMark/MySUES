@@ -5,6 +5,7 @@ import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../models/score.dart';
 import '../services/score_service.dart';
 import '../services/theme_service.dart';
+import '../utils/score_metrics.dart';
 import 'transcript_details_screen.dart';
 import 'login_webview_screen.dart';
 import 'package:mysues/widgets/material_you.dart';
@@ -73,24 +74,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     }
   }
 
-  // 计算GPA helper
-  double _calculateGPA(List<Score> scores) {
-    if (scores.isEmpty) return 0.0;
-    double totalPoints = 0;
-    double totalCredits = 0;
-    for (var score in scores) {
-      if (!score.isEvaluated) continue; // 跳过未评教课程
-      double gp = score.gradePoint;
-      totalPoints += gp * score.credit;
-      totalCredits += score.credit;
-    }
-    return totalCredits == 0 ? 0.0 : totalPoints / totalCredits;
-  }
-
   @override
   Widget build(BuildContext context) {
     // 总 GPA 计算
-    final totalGPA = _calculateGPA(_allScores);
+    final totalGPA = ScoreMetrics.calculateGpa(_allScores);
 
     // 当前学期数据
     final semesterScores = _allScores
@@ -98,7 +85,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         .toList();
 
     // 当前学期 GPA 计算
-    final semesterGPA = _calculateGPA(semesterScores);
+    final semesterGPA = ScoreMetrics.calculateGpa(semesterScores);
 
     return Scaffold(
       appBar: AppBar(
@@ -522,7 +509,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                totalGPA.toStringAsFixed(2),
+                ScoreMetrics.formatGpa(totalGPA),
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                   color: scheme.onPrimaryContainer,
                   fontSize: 42,
@@ -557,13 +544,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             children: [
               _buildInfoChip(
                 label: context.l10n.semesterGpa,
-                value: gpa.toStringAsFixed(2),
+                value: ScoreMetrics.formatGpa(gpa),
                 color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 10),
               _buildInfoChip(
                 label: context.l10n.credits,
-                value: totalCredits.toStringAsFixed(1),
+                value: ScoreMetrics.formatCredits(totalCredits),
                 color: context.statusColors.warning,
               ),
             ],
@@ -654,7 +641,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  context.l10n.creditsValue(score.credit.toString()),
+                  context.l10n.creditsValue(
+                    ScoreMetrics.formatCredits(score.credit),
+                  ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
