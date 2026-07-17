@@ -8,6 +8,8 @@ import 'package:mysues/screens/course_catalog_screen.dart';
 import 'package:mysues/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _longCourseName = '网络流媒体技术与超高清交互式视频系统综合实践课程';
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -23,7 +25,7 @@ void main() {
       courses: const [
         CourseDetail(
           sourceKey: 'lesson:2',
-          courseName: '网络流媒体',
+          courseName: _longCourseName,
           courseCode: '021553',
           courseType: '专业选修课',
           examMode: '',
@@ -71,10 +73,27 @@ void main() {
     expect(find.text('2'), findsOneWidget);
     expect(find.text('Semester Credits'), findsOneWidget);
     expect(find.text('6.25'), findsOneWidget);
-    expect(find.text('2 credits'), findsNWidgets(2));
+    expect(
+      find.text(
+        'This page is for reference only. Please rely on the official academic system.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.menu_book_rounded), findsNothing);
+    expect(find.byIcon(Icons.school_rounded), findsNothing);
+    expect(
+      tester.widget<Text>(find.text('Semester Courses')).textAlign,
+      TextAlign.center,
+    );
+    expect(tester.widget<Text>(find.text('2')).textAlign, TextAlign.center);
+    expect(find.text('2 credits'), findsNothing);
+
+    final longNameText = tester.widget<Text>(find.text(_longCourseName));
+    expect(longNameText.maxLines, 1);
+    expect(longNameText.overflow, TextOverflow.ellipsis);
 
     final designTop = tester.getTopLeft(find.text('专业综合设计')).dy;
-    final streamingTop = tester.getTopLeft(find.text('网络流媒体')).dy;
+    final streamingTop = tester.getTopLeft(find.text(_longCourseName)).dy;
     expect(designTop, lessThan(streamingTop));
 
     await tester.tap(find.text('专业综合设计'));
@@ -84,6 +103,12 @@ void main() {
     expect(find.text('020612'), findsOneWidget);
     expect(find.text('Assessment Method'), findsOneWidget);
     expect(find.text('考查'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Credits'),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Credits'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Class Hour Breakdown'),
       250,
@@ -95,25 +120,30 @@ void main() {
     expect(find.text('Theory'), findsNothing);
   });
 
-  testWidgets(
-    'catalog without saved details keeps zero summary and empty list',
-    (tester) async {
-      await tester.pumpWidget(
-        _app(
-          const CourseCatalogScreen(
-            tableId: 99,
-            fallbackSemesterName: 'Manual Schedule',
-          ),
+  testWidgets('catalog without saved details keeps zero summary and empty list', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        const CourseCatalogScreen(
+          tableId: 99,
+          fallbackSemesterName: 'Manual Schedule',
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text('Manual Schedule'), findsOneWidget);
-      expect(find.text('0'), findsOneWidget);
-      expect(find.text('0.00'), findsOneWidget);
-      expect(find.byType(ListTile), findsNothing);
-    },
-  );
+    expect(find.text('Manual Schedule'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('0.00'), findsOneWidget);
+    expect(
+      find.text(
+        'This page is for reference only. Please rely on the official academic system.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(ListTile), findsNothing);
+  });
 }
 
 Widget _app(Widget home) {

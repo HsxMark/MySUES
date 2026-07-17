@@ -444,6 +444,7 @@
   "examCopyText": "{course}\nTime: {time}\nLocation: {location}",
   "@examCopyText": {"placeholders": {"course": {"type": "String"}, "time": {"type": "String"}, "location": {"type": "String"}}},
   "courseDetails": "Course Details",
+  "courseCatalogDisclaimer": "This page is for reference only. Please rely on the official academic system.",
   "semesterCourseCount": "Semester Courses",
   "semesterTotalCredits": "Semester Credits",
   "courseCode": "Course Code",

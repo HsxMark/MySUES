@@ -1436,6 +1436,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courseDetails => 'Course Details';
 
   @override
+  String get courseCatalogDisclaimer =>
+      'This page is for reference only. Please rely on the official academic system.';
+
+  @override
   String get semesterCourseCount => 'Semester Courses';
 
   @override

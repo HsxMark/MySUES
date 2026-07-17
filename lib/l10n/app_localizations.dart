@@ -2563,6 +2563,12 @@ abstract class AppLocalizations {
   /// **'课程详情'**
   String get courseDetails;
 
+  /// No description provided for @courseCatalogDisclaimer.
+  ///
+  /// In zh, this message translates to:
+  /// **'该页面仅供参考，请以教务系统为准'**
+  String get courseCatalogDisclaimer;
+
   /// No description provided for @semesterCourseCount.
   ///
   /// In zh, this message translates to:

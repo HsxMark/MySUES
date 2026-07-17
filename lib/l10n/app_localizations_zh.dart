@@ -1347,6 +1347,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courseDetails => '课程详情';
 
   @override
+  String get courseCatalogDisclaimer => '该页面仅供参考，请以教务系统为准';
+
+  @override
   String get semesterCourseCount => '本学期课程数量';
 
   @override

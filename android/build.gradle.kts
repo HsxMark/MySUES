@@ -28,6 +28,29 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+subprojects {
+    if (!state.executed) {
+        afterEvaluate {
+            extensions.findByType<com.android.build.api.dsl.LibraryExtension>()?.apply {
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_17
+                    targetCompatibility = JavaVersion.VERSION_17
+                }
+            }
+        }
+    }
+}
+
+gradle.projectsEvaluated {
+    rootProject.subprojects.forEach { subproject ->
+        subproject.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

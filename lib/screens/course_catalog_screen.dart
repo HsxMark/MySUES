@@ -5,6 +5,7 @@ import '../models/course_detail.dart';
 import '../services/schedule_service.dart';
 import '../services/theme_service.dart';
 import '../utils/course_credit_formatter.dart';
+import '../widgets/material_you.dart';
 import 'course_detail_screen.dart';
 
 class CourseCatalogScreen extends StatefulWidget {
@@ -66,84 +67,80 @@ class _CourseCatalogScreenState extends State<CourseCatalogScreen> {
             : null,
         elevation: ThemeService().liquidGlassEnabled ? 0 : null,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Row(
+      body: Column(
+        children: [
+          AppNoticeBanner(
+            message: context.l10n.courseCatalogDisclaimer,
+            kind: AppNoticeKind.warning,
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
                     children: [
-                      Expanded(
-                        child: _SummaryCard(
-                          label: context.l10n.semesterCourseCount,
-                          value: _courses.length.toString(),
-                          icon: Icons.menu_book_rounded,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _SummaryCard(
+                                label: context.l10n.semesterCourseCount,
+                                value: _courses.length.toString(),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _SummaryCard(
+                                label: context.l10n.semesterTotalCredits,
+                                value: formatTotalCredits(totalCredits),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
                       Expanded(
-                        child: _SummaryCard(
-                          label: context.l10n.semesterTotalCredits,
-                          value: formatTotalCredits(totalCredits),
-                          icon: Icons.school_rounded,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          itemCount: _courses.length,
+                          itemBuilder: (context, index) {
+                            final course = _courses[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Card(
+                                clipBehavior: Clip.antiAlias,
+                                child: ListTile(
+                                  title: Text(
+                                    course.courseName.isEmpty
+                                        ? context.l10n.unknown
+                                        : course.courseName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  trailing: const Icon(
+                                    Icons.chevron_right_rounded,
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            CourseDetailScreen(course: course),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
                   ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    itemCount: _courses.length,
-                    itemBuilder: (context, index) {
-                      final course = _courses[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Card(
-                          clipBehavior: Clip.antiAlias,
-                          child: ListTile(
-                            title: Text(
-                              course.courseName.isEmpty
-                                  ? context.l10n.unknown
-                                  : course.courseName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  context.l10n.courseCreditValue(
-                                    formatCourseCredits(course.credits),
-                                  ),
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.chevron_right_rounded),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      CourseDetailScreen(course: course),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -151,13 +148,8 @@ class _CourseCatalogScreenState extends State<CourseCatalogScreen> {
 class _SummaryCard extends StatelessWidget {
   final String label;
   final String value;
-  final IconData icon;
 
-  const _SummaryCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
+  const _SummaryCard({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -168,31 +160,25 @@ class _SummaryCard extends StatelessWidget {
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: colorScheme.onPrimaryContainer),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
