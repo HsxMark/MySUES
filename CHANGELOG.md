@@ -2,6 +2,21 @@
 
 MySUES follows [Semantic Versioning 2.0.0](http://semver.org/).
 
+## 1.2.0
+
+`2026-07-17`
+
+- 🌟 Add semester course catalog and course detail pages, including credits, exam mode, teaching format, department, and class-hour breakdown. @HsxMark
+- 🌟 Add complete English and Simplified Chinese UI localization, including localized exam terminology and widget strings. @HsxMark
+- 🌟 Refresh the app with a Material You design system, adaptive tablet/iPad layouts, responsive schedule pages, and draggable floating actions. @HsxMark
+- 🌟 Add schedule tools for shifting schedules, handling duplicate courses, jumping to a specific day, and exporting schedules to iCalendar. @HsxMark
+- 🌟 Improve daily schedule views and home-screen widgets on Android and iOS, with faster actions, schedule-matched colors, and stability fixes. @HsxMark
+- 🌟 Add an in-app update check action. @HsxMark
+- 🐛 Fix exam importing, Android Google API integration, iOS widget behavior, splash-screen themes, profile week progress, and schedule rendering issues. @HsxMark
+- 🐛 Preserve course-credit and GPA precision and refine grade and GPA layouts. @HsxMark
+- 🛠 Remove deprecated PDF schedule import support and streamline academic sync labels and navigation. @HsxMark
+- 🛠 Update Chinese app branding and improve legal-document and settings screens. @HsxMark
+
 ## 1.1.0
 
 `2026-03-11`
