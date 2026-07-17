@@ -11,7 +11,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.light(null),
+        theme: AppTheme.light(),
         home: const Scaffold(
           body: Column(
             children: [
@@ -33,7 +33,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.light(null),
+        theme: AppTheme.light(),
         home: const Scaffold(
           body: AppCardSection(
             children: [
@@ -57,7 +57,7 @@ void main() {
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        theme: AppTheme.light(null),
+        theme: AppTheme.light(),
         home: Builder(
           builder: (context) => Scaffold(
             body: Column(

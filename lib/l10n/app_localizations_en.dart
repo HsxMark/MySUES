@@ -454,18 +454,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get darkMode => 'Dark Mode';
 
   @override
-  String get systemDefault => 'System Default';
-
-  @override
-  String get font => 'Font';
-
-  @override
-  String get fontStyle => 'Font Style';
-
-  @override
-  String get fontResources => 'Font Resources';
-
-  @override
   String get setBackgroundImage => 'Set Background Image';
 
   @override
@@ -1172,18 +1160,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get engineeringManagementDesign => 'Engineering  Management  Design';
 
   @override
-  String get freeForCommercialUse => 'Free for Commercial Use';
-
-  @override
   String get forInternationalStudents => 'For International Students';
-
-  @override
-  String get licensedUnderTheHarmonyOSSansFontLicense =>
-      'Licensed under the HarmonyOS Sans Font License';
-
-  @override
-  String get licensedUnderTheMiSansFontLicense =>
-      'Licensed under the MiSans Font License';
 
   @override
   String get holidayAdjustmentInstructionsThisMovesClassesFromDateA =>
@@ -1261,11 +1238,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String weekInputLabel(int maxWeek) {
     return 'Week (1-$maxWeek)';
-  }
-
-  @override
-  String providedBy(String provider) {
-    return 'Provided by $provider';
   }
 
   @override
@@ -1355,13 +1327,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retrievingExams => 'Retrieving exams…';
-
-  @override
-  String get huaweiSoftwareTechnologies =>
-      'Huawei Software Technologies Co., Ltd.';
-
-  @override
-  String get xiaomiTechnology => 'Xiaomi Technology Co., Ltd.';
 
   @override
   String examReminderAt(int days, String time) {

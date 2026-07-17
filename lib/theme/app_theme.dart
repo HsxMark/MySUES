@@ -6,13 +6,11 @@ abstract final class AppTheme {
   // Stable SUES/MySUES blue. A fixed seed keeps Android and iOS consistent.
   static const Color seedColor = Color(0xFF315F8C);
 
-  static ThemeData light(String? fontFamily) =>
-      _build(Brightness.light, fontFamily);
+  static ThemeData light() => _build(Brightness.light);
 
-  static ThemeData dark(String? fontFamily) =>
-      _build(Brightness.dark, fontFamily);
+  static ThemeData dark() => _build(Brightness.dark);
 
-  static ThemeData _build(Brightness brightness, String? fontFamily) {
+  static ThemeData _build(Brightness brightness) {
     final scheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
@@ -22,7 +20,6 @@ abstract final class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      fontFamily: fontFamily,
       scaffoldBackgroundColor: scheme.surface,
       extensions: <ThemeExtension<dynamic>>[
         isDark ? AppStatusColors.dark : AppStatusColors.light,

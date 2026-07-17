@@ -919,30 +919,6 @@ abstract class AppLocalizations {
   /// **'深色模式'**
   String get darkMode;
 
-  /// No description provided for @systemDefault.
-  ///
-  /// In zh, this message translates to:
-  /// **'系统默认'**
-  String get systemDefault;
-
-  /// No description provided for @font.
-  ///
-  /// In zh, this message translates to:
-  /// **'字体'**
-  String get font;
-
-  /// No description provided for @fontStyle.
-  ///
-  /// In zh, this message translates to:
-  /// **'字体样式'**
-  String get fontStyle;
-
-  /// No description provided for @fontResources.
-  ///
-  /// In zh, this message translates to:
-  /// **'字体资源'**
-  String get fontResources;
-
   /// No description provided for @setBackgroundImage.
   ///
   /// In zh, this message translates to:
@@ -2287,29 +2263,11 @@ abstract class AppLocalizations {
   /// **'工程  管理  设计'**
   String get engineeringManagementDesign;
 
-  /// No description provided for @freeForCommercialUse.
-  ///
-  /// In zh, this message translates to:
-  /// **'免费商用'**
-  String get freeForCommercialUse;
-
   /// No description provided for @forInternationalStudents.
   ///
   /// In zh, this message translates to:
   /// **'留学生专用'**
   String get forInternationalStudents;
-
-  /// No description provided for @licensedUnderTheHarmonyOSSansFontLicense.
-  ///
-  /// In zh, this message translates to:
-  /// **'遵循 HarmonyOS Sans 字体授权协议'**
-  String get licensedUnderTheHarmonyOSSansFontLicense;
-
-  /// No description provided for @licensedUnderTheMiSansFontLicense.
-  ///
-  /// In zh, this message translates to:
-  /// **'遵循 MiSans 字体知识产权许可协议'**
-  String get licensedUnderTheMiSansFontLicense;
 
   /// No description provided for @holidayAdjustmentInstructionsThisMovesClassesFromDateA.
   ///
@@ -2407,12 +2365,6 @@ abstract class AppLocalizations {
   /// **'周次（1-{maxWeek}）'**
   String weekInputLabel(int maxWeek);
 
-  /// No description provided for @providedBy.
-  ///
-  /// In zh, this message translates to:
-  /// **'由 {provider} 提供'**
-  String providedBy(String provider);
-
   /// No description provided for @importedCourses.
   ///
   /// In zh, this message translates to:
@@ -2484,18 +2436,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'正在提取考试安排……'**
   String get retrievingExams;
-
-  /// No description provided for @huaweiSoftwareTechnologies.
-  ///
-  /// In zh, this message translates to:
-  /// **'华为软件技术有限公司'**
-  String get huaweiSoftwareTechnologies;
-
-  /// No description provided for @xiaomiTechnology.
-  ///
-  /// In zh, this message translates to:
-  /// **'小米科技有限责任公司'**
-  String get xiaomiTechnology;
 
   /// No description provided for @examReminderAt.
   ///

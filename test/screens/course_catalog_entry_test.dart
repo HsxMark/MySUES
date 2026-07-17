@@ -41,7 +41,7 @@ void main() {
 
 Widget _app(Widget home) {
   return MaterialApp(
-    theme: AppTheme.light(null),
+    theme: AppTheme.light(),
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,

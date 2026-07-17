@@ -438,18 +438,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get darkMode => '深色模式';
 
   @override
-  String get systemDefault => '系统默认';
-
-  @override
-  String get font => '字体';
-
-  @override
-  String get fontStyle => '字体样式';
-
-  @override
-  String get fontResources => '字体资源';
-
-  @override
   String get setBackgroundImage => '设置背景图片';
 
   @override
@@ -1133,17 +1121,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get engineeringManagementDesign => '工程  管理  设计';
 
   @override
-  String get freeForCommercialUse => '免费商用';
-
-  @override
   String get forInternationalStudents => '留学生专用';
-
-  @override
-  String get licensedUnderTheHarmonyOSSansFontLicense =>
-      '遵循 HarmonyOS Sans 字体授权协议';
-
-  @override
-  String get licensedUnderTheMiSansFontLicense => '遵循 MiSans 字体知识产权许可协议';
 
   @override
   String get holidayAdjustmentInstructionsThisMovesClassesFromDateA =>
@@ -1224,11 +1202,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String providedBy(String provider) {
-    return '由 $provider 提供';
-  }
-
-  @override
   String importedCourses(int courseCount, int recordCount) {
     return '成功导入 $courseCount 门课程（共 $recordCount 条记录）';
   }
@@ -1285,12 +1258,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get retrievingExams => '正在提取考试安排……';
-
-  @override
-  String get huaweiSoftwareTechnologies => '华为软件技术有限公司';
-
-  @override
-  String get xiaomiTechnology => '小米科技有限责任公司';
 
   @override
   String examReminderAt(int days, String time) {

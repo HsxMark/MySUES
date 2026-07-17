@@ -103,90 +103,9 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            Text(
-              context.l10n.fontResources,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 0,
-              color: Theme.of(context).cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildFontInfo(
-                      context,
-                      'HarmonyOS Sans',
-                      context.l10n.huaweiSoftwareTechnologies,
-                      context.l10n.licensedUnderTheHarmonyOSSansFontLicense,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Divider(height: 1),
-                    ),
-                    _buildFontInfo(
-                      context,
-                      'MiSans',
-                      context.l10n.xiaomiTechnology,
-                      context.l10n.licensedUnderTheMiSansFontLicense,
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFontInfo(
-    BuildContext context,
-    String name,
-    String provider,
-    String license,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                context.l10n.freeForCommercialUse,
-                style: TextStyle(fontSize: 10, color: Colors.blue),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          context.l10n.providedBy(provider),
-          style: const TextStyle(fontSize: 13),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          license,
-          style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
-        ),
-      ],
     );
   }
 }

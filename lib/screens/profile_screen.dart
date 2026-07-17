@@ -525,7 +525,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 14,
-                    fontFamily: Platform.isIOS ? 'Courier' : null,
                   ),
                 ),
               ],

@@ -14,14 +14,12 @@ class ThemeService extends ChangeNotifier {
   ThemeService._internal();
 
   ThemeMode _themeMode = ThemeMode.system;
-  String? _fontFamily;
   bool _liquidGlassEnabled = false;
   bool _splashAnimationEnabled = false;
   String? _backgroundImagePath;
   double _backgroundOpacity = 0.5;
 
   ThemeMode get themeMode => _themeMode;
-  String? get fontFamily => _fontFamily;
   bool get liquidGlassEnabled => _liquidGlassEnabled;
   bool get splashAnimationEnabled => _splashAnimationEnabled;
   String? get backgroundImagePath => _backgroundImagePath;
@@ -30,7 +28,6 @@ class ThemeService extends ChangeNotifier {
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final int? modeIndex = prefs.getInt('theme_mode');
-    _fontFamily = prefs.getString('app_font_family');
     _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
     _splashAnimationEnabled = prefs.getBool('splash_animation_enabled') ?? false;
     _backgroundImagePath = prefs.getString('background_image_path');
@@ -49,17 +46,6 @@ class ThemeService extends ChangeNotifier {
         _themeMode = ThemeMode.system;
         break;
     }
-    notifyListeners();
-  }
-
-  Future<void> updateFontFamily(String? family) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (family == null) {
-      await prefs.remove('app_font_family');
-    } else {
-      await prefs.setString('app_font_family', family);
-    }
-    _fontFamily = family;
     notifyListeners();
   }
 
