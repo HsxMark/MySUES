@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/exam.dart';
 import '../services/exam_service.dart';
+import '../utils/exam_status.dart';
 import 'package:mysues/l10n/l10n.dart';
 
 class AddExamScreen extends StatefulWidget {
@@ -26,8 +27,6 @@ class _AddExamScreenState extends State<AddExamScreen> {
 
   DateTime? _startDateTime;
   DateTime? _endDateTime;
-
-  final String _status = '未结束';
 
   @override
   void initState() {
@@ -231,7 +230,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
         timeString: finalTimeString,
         location: _location,
         type: _typeController.text,
-        status: widget.existingExam?.status ?? _status,
+        status: examStatusForEndTime(end),
       );
 
       if (widget.existingExam != null) {
