@@ -87,8 +87,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get userAgreementAndPrivacy => '用户协议与隐私政策';
 
   @override
-  String get welcomeAgreement =>
-      '欢迎使用三旋翼课程表（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：';
+  String get welcomeAgreement => '欢迎使用三旋翼课程表（My SUES）。在使用本应用前，请您仔细阅读并同意以下协议：';
 
   @override
   String get userAgreement => '用户协议';
@@ -437,18 +436,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get darkMode => '深色模式';
-
-  @override
-  String get systemDefault => '系统默认';
-
-  @override
-  String get font => '字体';
-
-  @override
-  String get fontStyle => '字体样式';
-
-  @override
-  String get fontResources => '字体资源';
 
   @override
   String get setBackgroundImage => '设置背景图片';
@@ -892,7 +879,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get projectInformation => '项目信息';
 
   @override
-  String get tutorial => '使用教程';
+  String get tutorial => '软件介绍';
 
   @override
   String get checkForUpdates => '检查更新';
@@ -1134,17 +1121,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get engineeringManagementDesign => '工程  管理  设计';
 
   @override
-  String get freeForCommercialUse => '免费商用';
-
-  @override
   String get forInternationalStudents => '留学生专用';
-
-  @override
-  String get licensedUnderTheHarmonyOSSansFontLicense =>
-      '遵循 HarmonyOS Sans 字体授权协议';
-
-  @override
-  String get licensedUnderTheMiSansFontLicense => '遵循 MiSans 字体知识产权许可协议';
 
   @override
   String get holidayAdjustmentInstructionsThisMovesClassesFromDateA =>
@@ -1225,11 +1202,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String providedBy(String provider) {
-    return '由 $provider 提供';
-  }
-
-  @override
   String importedCourses(int courseCount, int recordCount) {
     return '成功导入 $courseCount 门课程（共 $recordCount 条记录）';
   }
@@ -1288,12 +1260,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get retrievingExams => '正在提取考试安排……';
 
   @override
-  String get huaweiSoftwareTechnologies => '华为软件技术有限公司';
-
-  @override
-  String get xiaomiTechnology => '小米科技有限责任公司';
-
-  @override
   String examReminderAt(int days, String time) {
     return '考试前 $days 天 $time 提醒';
   }
@@ -1342,6 +1308,74 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String examCopyText(String course, String time, String location) {
     return '$course\n时间：$time\n地点：$location';
+  }
+
+  @override
+  String get courseDetails => '课程详情';
+
+  @override
+  String get courseCatalogDisclaimer => '该页面仅供参考，请以教务系统为准';
+
+  @override
+  String get semesterCourseCount => '本学期课程数量';
+
+  @override
+  String get semesterTotalCredits => '本学期总学分';
+
+  @override
+  String get courseCode => '课程代码';
+
+  @override
+  String get courseType => '课程类型';
+
+  @override
+  String get assessmentMethod => '考核方式';
+
+  @override
+  String get offeringDepartment => '开课部门';
+
+  @override
+  String get teachingFormat => '教学形式';
+
+  @override
+  String get totalClassHours => '总学时';
+
+  @override
+  String get teachingWeeks => '教学周数';
+
+  @override
+  String get classHourBreakdown => '学时组成';
+
+  @override
+  String get theoryHours => '理论';
+
+  @override
+  String get practiceHours => '实践';
+
+  @override
+  String get focusedPracticeHours => '集中实践';
+
+  @override
+  String get dispersedPracticeHours => '分散实践';
+
+  @override
+  String get assessmentHours => '考核';
+
+  @override
+  String get experimentHours => '实验';
+
+  @override
+  String get computerHours => '上机';
+
+  @override
+  String get designHours => '设计';
+
+  @override
+  String get extracurricularHours => '课外';
+
+  @override
+  String courseCreditValue(String value) {
+    return '$value 学分';
   }
 
   @override

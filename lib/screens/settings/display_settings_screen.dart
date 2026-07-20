@@ -58,9 +58,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
         ? 0
         : (currentMode == ThemeMode.light ? 1 : 2);
 
-    final currentFontFamily = ThemeService().fontFamily;
-    final fontName = _getFontName(context, currentFontFamily);
-
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.appearanceAndDisplay)),
       body: ListView(
@@ -170,18 +167,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 ],
               ),
             ),
-          AppSectionHeader(context.l10n.font),
-          AppCardSection(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.font_download_outlined),
-                title: Text(context.l10n.fontStyle),
-                subtitle: Text(fontName),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showFontPicker(currentFontFamily),
-              ),
-            ],
-          ),
           AppSectionHeader(context.l10n.experimentalAppearance),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -221,13 +206,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
       default:
         return context.l10n.languageSystem;
     }
-  }
-
-  String _getFontName(BuildContext context, String? family) {
-    if (family == null) return context.l10n.systemDefault;
-    if (family == 'HarmonyOS Sans') return 'HarmonyOS Sans';
-    if (family == 'MiSans') return 'MiSans';
-    return family;
   }
 
   Future<void> _pickBackgroundImage() async {
@@ -271,42 +249,6 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 },
               );
             }),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showFontPicker(String? currentFamily) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        // Helper to build list tiles
-        Widget buildTile(String title, String? family) {
-          final isSelected = currentFamily == family;
-          return ListTile(
-            title: Text(title),
-            trailing: isSelected
-                ? Icon(
-                    Icons.check,
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : null,
-            onTap: () async {
-              await ThemeService().updateFontFamily(family);
-              if (mounted) Navigator.pop(context);
-            },
-          );
-        }
-
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              buildTile(context.l10n.systemDefault, null),
-              buildTile('HarmonyOS Sans', 'HarmonyOS Sans'),
-              buildTile('MiSans', 'MiSans'),
-            ],
           ),
         );
       },

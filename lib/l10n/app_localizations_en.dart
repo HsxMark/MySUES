@@ -454,18 +454,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get darkMode => 'Dark Mode';
 
   @override
-  String get systemDefault => 'System Default';
-
-  @override
-  String get font => 'Font';
-
-  @override
-  String get fontStyle => 'Font Style';
-
-  @override
-  String get fontResources => 'Font Resources';
-
-  @override
   String get setBackgroundImage => 'Set Background Image';
 
   @override
@@ -921,7 +909,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectInformation => 'Project Information';
 
   @override
-  String get tutorial => 'Tutorial';
+  String get tutorial => 'App Introduction';
 
   @override
   String get checkForUpdates => 'Check for Updates';
@@ -1172,18 +1160,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get engineeringManagementDesign => 'Engineering  Management  Design';
 
   @override
-  String get freeForCommercialUse => 'Free for Commercial Use';
-
-  @override
   String get forInternationalStudents => 'For International Students';
-
-  @override
-  String get licensedUnderTheHarmonyOSSansFontLicense =>
-      'Licensed under the HarmonyOS Sans Font License';
-
-  @override
-  String get licensedUnderTheMiSansFontLicense =>
-      'Licensed under the MiSans Font License';
 
   @override
   String get holidayAdjustmentInstructionsThisMovesClassesFromDateA =>
@@ -1261,11 +1238,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String weekInputLabel(int maxWeek) {
     return 'Week (1-$maxWeek)';
-  }
-
-  @override
-  String providedBy(String provider) {
-    return 'Provided by $provider';
   }
 
   @override
@@ -1357,13 +1329,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retrievingExams => 'Retrieving exams…';
 
   @override
-  String get huaweiSoftwareTechnologies =>
-      'Huawei Software Technologies Co., Ltd.';
-
-  @override
-  String get xiaomiTechnology => 'Xiaomi Technology Co., Ltd.';
-
-  @override
   String examReminderAt(int days, String time) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -1430,6 +1395,75 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String examCopyText(String course, String time, String location) {
     return '$course\nTime: $time\nLocation: $location';
+  }
+
+  @override
+  String get courseDetails => 'Course Details';
+
+  @override
+  String get courseCatalogDisclaimer =>
+      'This page is for reference only. Please rely on the official academic system.';
+
+  @override
+  String get semesterCourseCount => 'Semester Courses';
+
+  @override
+  String get semesterTotalCredits => 'Semester Credits';
+
+  @override
+  String get courseCode => 'Course Code';
+
+  @override
+  String get courseType => 'Course Type';
+
+  @override
+  String get assessmentMethod => 'Assessment Method';
+
+  @override
+  String get offeringDepartment => 'Offering Department';
+
+  @override
+  String get teachingFormat => 'Teaching Format';
+
+  @override
+  String get totalClassHours => 'Total Class Hours';
+
+  @override
+  String get teachingWeeks => 'Teaching Weeks';
+
+  @override
+  String get classHourBreakdown => 'Class Hour Breakdown';
+
+  @override
+  String get theoryHours => 'Theory';
+
+  @override
+  String get practiceHours => 'Practice';
+
+  @override
+  String get focusedPracticeHours => 'Focused Practice';
+
+  @override
+  String get dispersedPracticeHours => 'Dispersed Practice';
+
+  @override
+  String get assessmentHours => 'Assessment';
+
+  @override
+  String get experimentHours => 'Experiment';
+
+  @override
+  String get computerHours => 'Computer Lab';
+
+  @override
+  String get designHours => 'Design';
+
+  @override
+  String get extracurricularHours => 'Extracurricular';
+
+  @override
+  String courseCreditValue(String value) {
+    return '$value credits';
   }
 
   @override

@@ -13,6 +13,7 @@ import 'add_course_screen.dart';
 import 'schedule_settings_screen.dart';
 import 'schedule_view_container.dart';
 import 'login_webview_screen.dart';
+import 'course_catalog_screen.dart';
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
 import 'package:mysues/l10n/localized_formatters.dart';
@@ -694,6 +695,22 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
             child: IconButton(
               onPressed: widget.onSwitchToWeek,
               icon: const Icon(Icons.view_week_outlined, size: 22),
+            ),
+          ),
+          Tooltip(
+            message: context.l10n.courseDetails,
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => CourseCatalogScreen(
+                      tableId: _currentTable!.id,
+                      fallbackSemesterName: _currentTable!.tableName,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.menu_book_outlined, size: 22),
             ),
           ),
           ListenableBuilder(

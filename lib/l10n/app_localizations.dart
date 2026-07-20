@@ -919,30 +919,6 @@ abstract class AppLocalizations {
   /// **'深色模式'**
   String get darkMode;
 
-  /// No description provided for @systemDefault.
-  ///
-  /// In zh, this message translates to:
-  /// **'系统默认'**
-  String get systemDefault;
-
-  /// No description provided for @font.
-  ///
-  /// In zh, this message translates to:
-  /// **'字体'**
-  String get font;
-
-  /// No description provided for @fontStyle.
-  ///
-  /// In zh, this message translates to:
-  /// **'字体样式'**
-  String get fontStyle;
-
-  /// No description provided for @fontResources.
-  ///
-  /// In zh, this message translates to:
-  /// **'字体资源'**
-  String get fontResources;
-
   /// No description provided for @setBackgroundImage.
   ///
   /// In zh, this message translates to:
@@ -1816,7 +1792,7 @@ abstract class AppLocalizations {
   /// No description provided for @tutorial.
   ///
   /// In zh, this message translates to:
-  /// **'使用教程'**
+  /// **'软件介绍'**
   String get tutorial;
 
   /// No description provided for @checkForUpdates.
@@ -2287,29 +2263,11 @@ abstract class AppLocalizations {
   /// **'工程  管理  设计'**
   String get engineeringManagementDesign;
 
-  /// No description provided for @freeForCommercialUse.
-  ///
-  /// In zh, this message translates to:
-  /// **'免费商用'**
-  String get freeForCommercialUse;
-
   /// No description provided for @forInternationalStudents.
   ///
   /// In zh, this message translates to:
   /// **'留学生专用'**
   String get forInternationalStudents;
-
-  /// No description provided for @licensedUnderTheHarmonyOSSansFontLicense.
-  ///
-  /// In zh, this message translates to:
-  /// **'遵循 HarmonyOS Sans 字体授权协议'**
-  String get licensedUnderTheHarmonyOSSansFontLicense;
-
-  /// No description provided for @licensedUnderTheMiSansFontLicense.
-  ///
-  /// In zh, this message translates to:
-  /// **'遵循 MiSans 字体知识产权许可协议'**
-  String get licensedUnderTheMiSansFontLicense;
 
   /// No description provided for @holidayAdjustmentInstructionsThisMovesClassesFromDateA.
   ///
@@ -2407,12 +2365,6 @@ abstract class AppLocalizations {
   /// **'周次（1-{maxWeek}）'**
   String weekInputLabel(int maxWeek);
 
-  /// No description provided for @providedBy.
-  ///
-  /// In zh, this message translates to:
-  /// **'由 {provider} 提供'**
-  String providedBy(String provider);
-
   /// No description provided for @importedCourses.
   ///
   /// In zh, this message translates to:
@@ -2485,18 +2437,6 @@ abstract class AppLocalizations {
   /// **'正在提取考试安排……'**
   String get retrievingExams;
 
-  /// No description provided for @huaweiSoftwareTechnologies.
-  ///
-  /// In zh, this message translates to:
-  /// **'华为软件技术有限公司'**
-  String get huaweiSoftwareTechnologies;
-
-  /// No description provided for @xiaomiTechnology.
-  ///
-  /// In zh, this message translates to:
-  /// **'小米科技有限责任公司'**
-  String get xiaomiTechnology;
-
   /// No description provided for @examReminderAt.
   ///
   /// In zh, this message translates to:
@@ -2556,6 +2496,138 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{course}\n时间：{time}\n地点：{location}'**
   String examCopyText(String course, String time, String location);
+
+  /// No description provided for @courseDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'课程详情'**
+  String get courseDetails;
+
+  /// No description provided for @courseCatalogDisclaimer.
+  ///
+  /// In zh, this message translates to:
+  /// **'该页面仅供参考，请以教务系统为准'**
+  String get courseCatalogDisclaimer;
+
+  /// No description provided for @semesterCourseCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'本学期课程数量'**
+  String get semesterCourseCount;
+
+  /// No description provided for @semesterTotalCredits.
+  ///
+  /// In zh, this message translates to:
+  /// **'本学期总学分'**
+  String get semesterTotalCredits;
+
+  /// No description provided for @courseCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'课程代码'**
+  String get courseCode;
+
+  /// No description provided for @courseType.
+  ///
+  /// In zh, this message translates to:
+  /// **'课程类型'**
+  String get courseType;
+
+  /// No description provided for @assessmentMethod.
+  ///
+  /// In zh, this message translates to:
+  /// **'考核方式'**
+  String get assessmentMethod;
+
+  /// No description provided for @offeringDepartment.
+  ///
+  /// In zh, this message translates to:
+  /// **'开课部门'**
+  String get offeringDepartment;
+
+  /// No description provided for @teachingFormat.
+  ///
+  /// In zh, this message translates to:
+  /// **'教学形式'**
+  String get teachingFormat;
+
+  /// No description provided for @totalClassHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'总学时'**
+  String get totalClassHours;
+
+  /// No description provided for @teachingWeeks.
+  ///
+  /// In zh, this message translates to:
+  /// **'教学周数'**
+  String get teachingWeeks;
+
+  /// No description provided for @classHourBreakdown.
+  ///
+  /// In zh, this message translates to:
+  /// **'学时组成'**
+  String get classHourBreakdown;
+
+  /// No description provided for @theoryHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'理论'**
+  String get theoryHours;
+
+  /// No description provided for @practiceHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'实践'**
+  String get practiceHours;
+
+  /// No description provided for @focusedPracticeHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'集中实践'**
+  String get focusedPracticeHours;
+
+  /// No description provided for @dispersedPracticeHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'分散实践'**
+  String get dispersedPracticeHours;
+
+  /// No description provided for @assessmentHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'考核'**
+  String get assessmentHours;
+
+  /// No description provided for @experimentHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'实验'**
+  String get experimentHours;
+
+  /// No description provided for @computerHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'上机'**
+  String get computerHours;
+
+  /// No description provided for @designHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'设计'**
+  String get designHours;
+
+  /// No description provided for @extracurricularHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'课外'**
+  String get extracurricularHours;
+
+  /// No description provided for @courseCreditValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'{value} 学分'**
+  String courseCreditValue(String value);
 
   /// No description provided for @requiredField.
   ///

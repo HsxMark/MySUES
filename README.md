@@ -13,7 +13,7 @@ My SUES is a campus life assistant app created by student developers from Shangh
 - **📅 Schedule Query**: Check course schedules anytime, anywhere. Supports not only online educational administration system data synchronization but also provides an intuitive weekly view.
 - **📊 Grade Query**: Quickly query grades and GPA for each semester to keep track of learning progress.
 - **📝 Exam Information**: Check exam times and location arrangements, never miss an exam again.
-- **🎨 Personalization**: Supports Dark Mode, customizable fonts, creating an exclusive app experience.
+- **🎨 Personalization**: Supports Dark Mode and customizable appearance settings.
 - **🔒 Secure Login**: Built-in WebView for logging into the educational administration system, maintaining sessions via Cookie management, safe and convenient.
 
 ## 🛠️ Tech Stack

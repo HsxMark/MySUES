@@ -86,14 +86,6 @@ flutter:
     - assets/videos/
     - assets/legal/
 
-  fonts:
-    - family: HarmonyOS Sans
-      fonts:
-        - asset: assets/fonts/HarmonyOS_Sans_Regular.ttf
-    - family: MiSans
-      fonts:
-        - asset: assets/fonts/MiSans-Regular.ttf
-
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
@@ -128,18 +120,20 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/MySUES-1024x1024@1x.png"
+  image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
+  image_path_ios: "assets/images/Icon-iOS-Default-1024@1x.png"
   min_sdk_android: 21
-  remove_alpha_ios: false
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
   web:
     generate: true
-    image_path: "assets/images/MySUES-1024x1024@1x.png"
+    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
   windows:
     generate: true
-    image_path: "assets/images/MySUES-1024x1024@1x.png"
+    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
   macos:
     generate: true
-    image_path: "assets/images/MySUES-1024x1024@1x.png"
+    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
   linux:
     generate: true
-    image_path: "assets/images/MySUES-1024x1024@1x.png"
+    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"

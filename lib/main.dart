@@ -62,8 +62,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
           themeMode: ThemeService().themeMode,
-          theme: AppTheme.light(ThemeService().fontFamily),
-          darkTheme: AppTheme.dark(ThemeService().fontFamily),
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
