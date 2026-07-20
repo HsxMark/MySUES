@@ -909,7 +909,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectInformation => 'Project Information';
 
   @override
-  String get tutorial => 'Tutorial';
+  String get tutorial => 'App Introduction';
 
   @override
   String get checkForUpdates => 'Check for Updates';

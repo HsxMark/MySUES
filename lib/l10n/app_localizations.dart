@@ -1792,7 +1792,7 @@ abstract class AppLocalizations {
   /// No description provided for @tutorial.
   ///
   /// In zh, this message translates to:
-  /// **'使用教程'**
+  /// **'软件介绍'**
   String get tutorial;
 
   /// No description provided for @checkForUpdates.

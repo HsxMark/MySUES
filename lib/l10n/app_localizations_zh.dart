@@ -879,7 +879,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get projectInformation => '项目信息';
 
   @override
-  String get tutorial => '使用教程';
+  String get tutorial => '软件介绍';
 
   @override
   String get checkForUpdates => '检查更新';
