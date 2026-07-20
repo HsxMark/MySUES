@@ -463,12 +463,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           await ScheduleDataService.saveCourses(allCourses);
           await ScheduleDataService.saveCourseCatalog(courseCatalog);
         } else {
-          // If canceled, we might need to rollback the table creation (not implemented strictly here, but just return)
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.l10n.importCancelled)),
-            );
-          }
+          if (!mounted) return;
+          final l10n = context.l10n;
+          setState(() {
+            _currentStep = l10n.operationCancelled;
+            _hasStartedAutoFetch = false;
+          });
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.importCancelled)));
           return;
         }
 

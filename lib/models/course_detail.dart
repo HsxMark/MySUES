@@ -101,6 +101,15 @@ class CourseDetail {
 
   factory CourseDetail.fromJson(Map<String, dynamic> json) {
     final periodJson = json['periodInfo'];
+    final periodInfo = periodJson is Map
+        ? CoursePeriodInfo.fromJson(
+            Map<String, dynamic>.fromEntries(
+              periodJson.entries.map(
+                (entry) => MapEntry(entry.key.toString(), entry.value),
+              ),
+            ),
+          )
+        : const CoursePeriodInfo();
     return CourseDetail(
       sourceKey: json['sourceKey']?.toString() ?? '',
       lessonId: _toInt(json['lessonId']),
@@ -111,11 +120,7 @@ class CourseDetail {
       openDepartment: json['openDepartment']?.toString() ?? '',
       teachingFormat: json['teachingFormat']?.toString() ?? '',
       credits: _toDouble(json['credits']) ?? 0,
-      periodInfo: periodJson is Map<String, dynamic>
-          ? CoursePeriodInfo.fromJson(periodJson)
-          : CoursePeriodInfo.fromJson(
-              Map<String, dynamic>.from(periodJson as Map? ?? const {}),
-            ),
+      periodInfo: periodInfo,
     );
   }
 
