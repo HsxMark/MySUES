@@ -898,18 +898,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get doNotShowAgain => '不再显示';
 
   @override
-  String get appIntegrityWarningTitle => '应用来源无法确认';
+  String get appIntegrityWarningTitle => '应用来源提醒';
 
   @override
-  String get appIntegrityWarningMessage =>
-      '无法确认此应用来自官方发布渠道。它可能已被第三方修改，存在账号、数据或设备安全风险。建议立即卸载，并从官方网站重新下载。';
+  String get appIntegrityWarningMessage => '无法确认这是官方版本，请自行选择是否继续使用。';
 
   @override
-  String get appIntegrityRiskAcknowledgement =>
-      '开发者无法保证此版本的安全性。继续使用即表示您已了解并自行承担相关风险与损失。';
-
-  @override
-  String get downloadOfficialVersion => '前往官方网站下载';
+  String get downloadOfficialVersion => '查看官方网站';
 
   @override
   String get continueUsing => '继续使用';
@@ -918,7 +913,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get officialDownloadOpenFailed => '无法打开官方网站，请稍后重试。';
 
   @override
-  String get doNotRemindAtStartup => '不再提醒';
+  String get doNotRemindAtStartup => '不再弹出';
 
   @override
   String get iUnderstand => '我已知悉';

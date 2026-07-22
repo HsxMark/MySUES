@@ -60,28 +60,37 @@ Future<void> showAppIntegrityWarningDialog(
                 children: [
                   Text(dialogContext.l10n.appIntegrityWarningMessage),
                   const SizedBox(height: 12),
-                  Text(
-                    dialogContext.l10n.appIntegrityRiskAcknowledgement,
-                    style: TextStyle(
-                      color: colorScheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  CheckboxListTile(
-                    value: doNotRemindAgain,
-                    onChanged: (value) {
-                      setDialogState(() {
-                        doNotRemindAgain = value ?? false;
-                      });
-                    },
-                    title: Text(
-                      dialogContext.l10n.doNotRemindAtStartup,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: doNotRemindAgain,
+                        onChanged: (value) {
+                          setDialogState(() {
+                            doNotRemindAgain = value ?? false;
+                          });
+                        },
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            setDialogState(() {
+                              doNotRemindAgain = !doNotRemindAgain;
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text(
+                              dialogContext.l10n.doNotRemindAtStartup,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -131,7 +140,7 @@ class AppIntegrityWarningCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(Icons.gpp_bad_outlined, color: colorScheme.error),
             const SizedBox(width: 12),
@@ -150,14 +159,6 @@ class AppIntegrityWarningCard extends StatelessWidget {
                   Text(
                     context.l10n.appIntegrityWarningMessage,
                     style: TextStyle(color: colorScheme.onErrorContainer),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.l10n.appIntegrityRiskAcknowledgement,
-                    style: TextStyle(
-                      color: colorScheme.onErrorContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(

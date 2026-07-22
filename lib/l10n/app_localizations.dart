@@ -1828,25 +1828,19 @@ abstract class AppLocalizations {
   /// No description provided for @appIntegrityWarningTitle.
   ///
   /// In zh, this message translates to:
-  /// **'应用来源无法确认'**
+  /// **'应用来源提醒'**
   String get appIntegrityWarningTitle;
 
   /// No description provided for @appIntegrityWarningMessage.
   ///
   /// In zh, this message translates to:
-  /// **'无法确认此应用来自官方发布渠道。它可能已被第三方修改，存在账号、数据或设备安全风险。建议立即卸载，并从官方网站重新下载。'**
+  /// **'无法确认这是官方版本，请自行选择是否继续使用。'**
   String get appIntegrityWarningMessage;
-
-  /// No description provided for @appIntegrityRiskAcknowledgement.
-  ///
-  /// In zh, this message translates to:
-  /// **'开发者无法保证此版本的安全性。继续使用即表示您已了解并自行承担相关风险与损失。'**
-  String get appIntegrityRiskAcknowledgement;
 
   /// No description provided for @downloadOfficialVersion.
   ///
   /// In zh, this message translates to:
-  /// **'前往官方网站下载'**
+  /// **'查看官方网站'**
   String get downloadOfficialVersion;
 
   /// No description provided for @continueUsing.
@@ -1864,7 +1858,7 @@ abstract class AppLocalizations {
   /// No description provided for @doNotRemindAtStartup.
   ///
   /// In zh, this message translates to:
-  /// **'不再提醒'**
+  /// **'不再弹出'**
   String get doNotRemindAtStartup;
 
   /// No description provided for @iUnderstand.
