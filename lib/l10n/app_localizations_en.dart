@@ -932,7 +932,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appIntegrityWarningMessage =>
-      'We couldn\'t confirm that this is the official version. You can choose whether to continue.';
+      'We couldn\'t confirm that this app is from the official source. It may have been modified by a third party, which could put your account, data, or device at risk.';
+
+  @override
+  String get appIntegrityRiskAcknowledgement =>
+      'By continuing, you acknowledge the risks and accept responsibility for any related loss.';
 
   @override
   String get downloadOfficialVersion => 'View Official Website';

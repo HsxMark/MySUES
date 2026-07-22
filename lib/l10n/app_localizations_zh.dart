@@ -901,7 +901,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appIntegrityWarningTitle => '应用来源提醒';
 
   @override
-  String get appIntegrityWarningMessage => '无法确认这是官方版本，请自行选择是否继续使用。';
+  String get appIntegrityWarningMessage =>
+      '无法确认此应用是否来自官方。它可能已被第三方修改，存在账号、数据或设备安全风险。';
+
+  @override
+  String get appIntegrityRiskAcknowledgement => '继续使用即表示您已了解并自行承担相关风险与损失。';
 
   @override
   String get downloadOfficialVersion => '查看官方网站';

@@ -1834,8 +1834,14 @@ abstract class AppLocalizations {
   /// No description provided for @appIntegrityWarningMessage.
   ///
   /// In zh, this message translates to:
-  /// **'无法确认这是官方版本，请自行选择是否继续使用。'**
+  /// **'无法确认此应用是否来自官方。它可能已被第三方修改，存在账号、数据或设备安全风险。'**
   String get appIntegrityWarningMessage;
+
+  /// No description provided for @appIntegrityRiskAcknowledgement.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续使用即表示您已了解并自行承担相关风险与损失。'**
+  String get appIntegrityRiskAcknowledgement;
 
   /// No description provided for @downloadOfficialVersion.
   ///

@@ -60,6 +60,14 @@ Future<void> showAppIntegrityWarningDialog(
                 children: [
                   Text(dialogContext.l10n.appIntegrityWarningMessage),
                   const SizedBox(height: 12),
+                  Text(
+                    dialogContext.l10n.appIntegrityRiskAcknowledgement,
+                    style: TextStyle(
+                      color: colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Checkbox(
@@ -159,6 +167,14 @@ class AppIntegrityWarningCard extends StatelessWidget {
                   Text(
                     context.l10n.appIntegrityWarningMessage,
                     style: TextStyle(color: colorScheme.onErrorContainer),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.appIntegrityRiskAcknowledgement,
+                    style: TextStyle(
+                      color: colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
