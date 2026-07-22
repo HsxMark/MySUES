@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mysues/services/app_integrity_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/screen_breakpoints.dart';
+import 'package:mysues/widgets/app_integrity_warning.dart';
 import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
 import 'package:mysues/l10n/l10n.dart';
 import 'schedule_view_container.dart';
@@ -49,30 +51,35 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
   @override
   void initState() {
     super.initState();
-    _checkFirstLaunch();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _runStartupFlow();
+    });
   }
 
-  Future<void> _checkFirstLaunch() async {
+  Future<void> _runStartupFlow() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    if (AppIntegrityService().requiresWarning) {
+      await showAppIntegrityWarningDialog(context, preferences: prefs);
+      if (!mounted) return;
+    }
+
     final agreementAccepted = prefs.getBool('agreement_accepted') ?? false;
-    if (!agreementAccepted && mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showAgreementDialog();
-      });
+    if (!agreementAccepted) {
+      await _showAgreementDialog(prefs);
     } else {
       // Agreement already accepted — check onboarding
       final onboardingCompleted =
           prefs.getBool('onboarding_completed') ?? false;
       if (!onboardingCompleted && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showOnboarding(prefs);
-        });
+        await _showOnboarding(prefs);
       }
     }
   }
 
-  void _showAgreementDialog() {
-    showDialog(
+  Future<void> _showAgreementDialog(SharedPreferences prefs) async {
+    final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
@@ -194,13 +201,10 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
               ),
               FilledButton(
                 onPressed: () async {
-                  final prefs = await SharedPreferences.getInstance();
                   await prefs.setBool('agreement_accepted', true);
                   if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
+                    Navigator.of(dialogContext).pop(true);
                   }
-                  // Show onboarding after agreement
-                  _showOnboarding(prefs);
                 },
                 child: Text(dialogContext.l10n.agreeAndContinue),
               ),
@@ -209,6 +213,10 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         );
       },
     );
+
+    if (accepted == true && mounted) {
+      await _showOnboarding(prefs);
+    }
   }
 
   Future<void> _showOnboarding(SharedPreferences prefs) async {

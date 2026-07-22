@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mysues/l10n/app_localizations.dart';
 import 'package:mysues/services/locale_service.dart';
+import 'package:mysues/services/app_integrity_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/notification_service.dart';
 import 'package:mysues/theme/app_theme.dart';
@@ -38,6 +39,9 @@ void main() async {
 
   final localeService = LocaleService();
   await localeService.loadSettings();
+
+  // Verify the Android release signing certificate before rendering the app.
+  await AppIntegrityService().initialize();
 
   // Initialize notification service
   final notificationService = NotificationService();

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:mysues/screens/about/user_agreement_screen.dart';
 import 'package:mysues/screens/about/privacy_policy_screen.dart';
 import 'package:mysues/screens/about/sponsor_screen.dart';
@@ -7,7 +6,9 @@ import 'package:mysues/screens/about/acknowledgements_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
 import 'package:mysues/screens/about/egg_screen.dart';
 import 'package:mysues/screens/main_entry_screen.dart';
+import 'package:mysues/services/app_integrity_service.dart';
 import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/widgets/app_integrity_warning.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -65,15 +66,12 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Version Alpha 1.2.0',
+                  'Version 1.2.0-Alpha',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: () => launchUrl(
-                    Uri.parse('https://syntrion.dev/mysues#download'),
-                    mode: LaunchMode.externalApplication,
-                  ),
+                  onTap: () => openOfficialDownloadPage(context),
                   child: Text(
                     context.l10n.checkForUpdates,
                     style: TextStyle(color: Colors.grey[500], fontSize: 13),
@@ -82,6 +80,10 @@ class _AboutScreenState extends State<AboutScreen> {
               ],
             ),
           ),
+          if (AppIntegrityService().requiresWarning) ...[
+            const SizedBox(height: 24),
+            const AppIntegrityWarningCard(),
+          ],
           const SizedBox(height: 40),
 
           Card(

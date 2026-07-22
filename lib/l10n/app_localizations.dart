@@ -1825,6 +1825,48 @@ abstract class AppLocalizations {
   /// **'不再显示'**
   String get doNotShowAgain;
 
+  /// No description provided for @appIntegrityWarningTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'应用来源无法确认'**
+  String get appIntegrityWarningTitle;
+
+  /// No description provided for @appIntegrityWarningMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法确认此应用来自官方发布渠道。它可能已被第三方修改，存在账号、数据或设备安全风险。建议立即卸载，并从官方网站重新下载。'**
+  String get appIntegrityWarningMessage;
+
+  /// No description provided for @appIntegrityRiskAcknowledgement.
+  ///
+  /// In zh, this message translates to:
+  /// **'开发者无法保证此版本的安全性。继续使用即表示您已了解并自行承担相关风险与损失。'**
+  String get appIntegrityRiskAcknowledgement;
+
+  /// No description provided for @downloadOfficialVersion.
+  ///
+  /// In zh, this message translates to:
+  /// **'前往官方网站下载'**
+  String get downloadOfficialVersion;
+
+  /// No description provided for @continueUsing.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续使用'**
+  String get continueUsing;
+
+  /// No description provided for @officialDownloadOpenFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法打开官方网站，请稍后重试。'**
+  String get officialDownloadOpenFailed;
+
+  /// No description provided for @doNotRemindAtStartup.
+  ///
+  /// In zh, this message translates to:
+  /// **'不再提醒'**
+  String get doNotRemindAtStartup;
+
   /// No description provided for @iUnderstand.
   ///
   /// In zh, this message translates to:

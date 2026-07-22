@@ -928,6 +928,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doNotShowAgain => 'Do not show again';
 
   @override
+  String get appIntegrityWarningTitle => 'App Source Cannot Be Confirmed';
+
+  @override
+  String get appIntegrityWarningMessage =>
+      'We cannot confirm that this app came from the official release channel. It may have been modified by a third party and could put your account, data, or device at risk. Uninstall it and download the official version from our website.';
+
+  @override
+  String get appIntegrityRiskAcknowledgement =>
+      'The developer cannot guarantee the safety of this version. By continuing, you acknowledge and accept the related risks and possible losses.';
+
+  @override
+  String get downloadOfficialVersion => 'Download Official Version';
+
+  @override
+  String get continueUsing => 'Continue Anyway';
+
+  @override
+  String get officialDownloadOpenFailed =>
+      'Unable to open the official website. Please try again later.';
+
+  @override
+  String get doNotRemindAtStartup => 'Do not remind me again at startup';
+
+  @override
   String get iUnderstand => 'I Understand';
 
   @override
