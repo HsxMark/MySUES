@@ -123,20 +123,19 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
-  image_path_ios: "assets/images/Icon-iOS-Default-1024@1x.png"
+  image_path: "assets/images/MySUES.png"
   min_sdk_android: 21
   remove_alpha_ios: true
   background_color_ios: "#FFFFFF"
   web:
     generate: true
-    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
+    image_path: "assets/images/MySUES.png"
   windows:
     generate: true
-    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
+    image_path: "assets/images/MySUES.png"
   macos:
     generate: true
-    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
+    image_path: "assets/images/MySUES.png"
   linux:
     generate: true
-    image_path: "assets/images/Icon-macOS-Default-1024@1x.png"
+    image_path: "assets/images/MySUES.png"

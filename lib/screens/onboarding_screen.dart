@@ -17,7 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<_PageData> _pages(BuildContext context) => [
     _PageData(
-      image: 'assets/images/example/MySUES-1024x1024@1x.png',
+      image: 'assets/images/MySUES.png',
       isLogo: true,
       title: context.l10n.welcomeToMySues,
       description: context.l10n.yourAllInOneCampusAssistantForASimpler,
