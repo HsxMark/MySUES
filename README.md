@@ -6,7 +6,7 @@
 
 [简体中文](docs/README_zh-Hans.md) | **English**
 
-My SUES is a campus life assistant app created by student developers from Shanghai University of Engineering Science (SUES). Designed to provide SUESers with more convenient educational information query services, supporting both iOS and Android.
+My SUES is a campus life assistant app created by an independent developer. Designed to provide students with more convenient educational information query services, supporting both iOS and Android.
 
 ## ✨ Features
 
@@ -53,8 +53,8 @@ If you want to run this project locally, please ensure you have the Flutter deve
 
 ## ⚠️ Disclaimer
 
-This project is an unofficial application developed by individual students for learning and exchange purposes only.
-- All data in the application comes directly from the school's educational administration system. This project does not save any user account passwords.
+This project is an unofficial application developed by an individual developer for learning and exchange purposes only.
+- All data in the application comes directly from the specific academic affairs system of a specific university. Account IDs, passwords, and other credentials are entered and submitted by users directly on that university's academic affairs system website. This project does not save any user account passwords and keeps nothing related to them locally.
 - Do not use this project for any commercial purposes.
 
 ## 📜 License

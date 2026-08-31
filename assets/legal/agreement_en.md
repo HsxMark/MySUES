@@ -4,49 +4,49 @@ Important: read and understand this agreement before using My SUES. By downloadi
 
 ### Article 1 — Nature of the Software
 
-1. My SUES is an independent third-party personal utility developed and maintained by students of Shanghai University of Engineering Science.
-2. It assists students with viewing schedules, grades, exams, and related academic information.
-3. It is not an official product of, or authorized by, Shanghai University of Engineering Science. It has no affiliation, commission, or partnership with the Academic Affairs Office or any other university department.
+1.1 My SUES (hereinafter "the App") is a personal utility tool independently developed and maintained by an independent third-party developer (hereinafter "the Developer").
+1.2 The App provides auxiliary functions that help users view schedules, grades, exams, and related academic information.
+1.3 The App is **not an official product of, or authorized by, any university**. It has no affiliation, commission, or partnership with any university or any of its administrative departments.
 
-### Article 2 — Service and Risk Notice
+### Article 2 — Data Interaction and Account Security
 
-1. The app communicates with the university academic system through WebVPN sign-in.
-2. You acknowledge possible data-security, data-accuracy, service-reliability, and account-security risks.
-3. Displayed data originates from university systems. The developer does not guarantee that it is timely, complete, or accurate. Official university channels remain authoritative.
-4. The app is maintained by individual developers and may fail, be delayed, be interrupted, or cease operation.
-5. You are responsible for confirming that your use complies with university information-system rules and for consequences arising from your use.
+2.1 The App accesses the **specific academic affairs system of a specific university** through an embedded web page (WebView). You complete authentication on that university's academic-system sign-in page.
+2.2 All credentials you enter, such as your account ID and password, are entered and submitted by you directly on the sign-in page of the **specific university's academic affairs system website**. The App does not process, collect, or store such information, keeps nothing related to it on your device, and does not upload such information to any server.
+2.3 The App only browses and displays pages of the university's academic affairs system. It does not perform any credential-related authentication, processing, or storage operations on behalf of the university's academic affairs system.
 
-### Article 3 — User Obligations
+### Article 3 — Service and Risk Notice
 
-1. You must be a current SUES student and may use the app only to access your own academic information.
-2. Protect your credentials. Do not access another person's information or use the app for illegal or commercial purposes.
-3. Follow university information-system and network-use rules.
-4. Do not crack, maliciously interfere with, or otherwise misuse the app.
+3.1 All data displayed by the App originates from the **specific academic affairs system of a specific university**. The Developer does not guarantee that the data obtained, parsed, or displayed is timely, complete, or accurate. The university's official channels remain authoritative.
+3.2 The App is maintained by individual developers with limited resources and may fail, be delayed, be interrupted, or cease operation at any time, without any availability guarantee.
+3.3 You acknowledge and confirm that using the App to access functions of the university's academic affairs system may involve university rules governing the use of information systems. You bear all consequences and liability arising therefrom and agree not to assert any claim against the Developer in this regard.
 
-### Article 4 — Disclaimer
+### Article 4 — User Obligations
 
-1. The app is provided “as is” and “as available.” To the extent permitted by law, the developer disclaims all express and implied warranties.
-2. To the maximum extent permitted by law, the developer is not liable for direct, indirect, incidental, special, punitive, or consequential losses resulting from use of or inability to use the app, except for damage caused intentionally or through gross negligence where liability cannot legally be excluded.
-3. The developer is not responsible for unavailability caused by changes to university systems, interfaces, or security policies and does not promise continuing updates.
+4.1 You must use your own valid account information, and you may use the App only to access your own academic information.
+4.2 You warrant that the student ID, password, and other identity information you provide belong to you, and you are responsible for keeping them confidential. You must not use the App to access another person's information or for any illegal or commercial purposes.
+4.3 You agree to comply with all university rules on the use of information systems and networks. You are solely responsible for any consequences of violating such rules through your use of the App.
+4.4 You must not reverse engineer, decompile, crack, or otherwise interfere with the normal operation of the App.
 
-### Article 5 — Privacy
+### Article 5 — Disclaimer (please read carefully)
 
-The developer respects your privacy. The app does not persistently store your academic-system password. Schedules, grades, and similar data are cached only on your device. See the Privacy Policy for details.
+5.1 The App is provided "as is" and "as available." To the extent permitted by law, the Developer disclaims all express and implied warranties, including but not limited to merchantability, fitness for a particular purpose, and non-infringement of third-party rights.
+5.2 To the maximum extent permitted by applicable law, the Developer is not liable for any damages arising from the use of or inability to use the App (including but not limited to direct, indirect, incidental, special, punitive, or consequential damages, such as data loss, academic delay, account suspension, or property loss), whether based on contract, tort (including negligence), or any other legal theory, and regardless of whether the Developer was advised of the possibility of such damages. This clause does not apply to damages caused by the Developer's intent or gross negligence.
+5.3 The Developer is not responsible for unavailability caused by changes to a university's academic affairs system, interface changes, or security-policy upgrades, and has no obligation to provide updates or ongoing support.
 
-### Article 6 — Changes and Termination
+### Article 6 — Privacy
 
-1. The developer may amend this agreement and publish the updated terms in the app. Continuing to use the app constitutes acceptance of the changes.
-2. The developer may suspend or terminate any or all features.
-3. You may terminate your use at any time by stopping use or uninstalling the app.
+6.1 The Developer respects your privacy. The App does not process or store your account ID, password, or other credentials; the credentials you enter are submitted by you directly on the **specific university's academic affairs system website**. Data necessary for the app's functions, such as schedules and grades, is cached only on your device for offline viewing. For details, please refer to the App's Privacy Policy.
 
 ### Article 7 — General Terms
 
-1. This agreement is governed by the laws of the People's Republic of China.
-2. Disputes should first be resolved through consultation. If consultation fails, either party may bring proceedings before a competent court where the developer is located.
-3. If any provision is invalid or unenforceable, the remaining provisions remain effective.
+7.1 This agreement is governed by the laws of the People's Republic of China.
+7.2 Any dispute arising from or relating to this agreement shall first be resolved through friendly consultation. If consultation fails, either party may submit the dispute to a competent people's court where the Developer is located.
+7.3 If any provision of this agreement is invalid or unenforceable for any reason, the remaining provisions remain effective and binding on both parties.
 
 Published: February 6, 2026
 
 First revision: February 8, 2026
+
+Second revision: August 31, 2026
 
 > This English translation is provided for reference. If there is any discrepancy, the Chinese version prevails.

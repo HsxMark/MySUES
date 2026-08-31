@@ -1600,7 +1600,7 @@ abstract class AppLocalizations {
   /// No description provided for @examInformationMayNotBeCurrentAlwaysConfirmIt.
   ///
   /// In zh, this message translates to:
-  /// **'考试信息非即时获取，仅供参考，请以教务处系统提示为准！'**
+  /// **'考试信息非即时获取，仅供参考，请以教务系统提示为准！'**
   String get examInformationMayNotBeCurrentAlwaysConfirmIt;
 
   /// No description provided for @noMatchingExams.
@@ -1816,7 +1816,7 @@ abstract class AppLocalizations {
   /// No description provided for @thisFeatureProvidesAConvenientWayToSyncInformation.
   ///
   /// In zh, this message translates to:
-  /// **'本功能仅提供便捷的信息同步服务，导入的数据可能存在偏差。请仔细核对同步后的信息，一切以教务处网站显示为准。'**
+  /// **'本功能仅提供便捷的信息同步服务，导入的数据可能存在偏差。请仔细核对同步后的信息，一切以教务系统网站显示为准。'**
   String get thisFeatureProvidesAConvenientWayToSyncInformation;
 
   /// No description provided for @doNotShowAgain.
