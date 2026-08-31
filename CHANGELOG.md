@@ -16,6 +16,7 @@ MySUES follows [Semantic Versioning 2.0.0](http://semver.org/).
 - 🐛 Preserve course-credit and GPA precision and refine grade and GPA layouts. @HsxMark
 - 🛠 Remove deprecated PDF schedule import support and streamline academic sync labels and navigation. @HsxMark
 - 🛠 Update Chinese app branding and improve legal-document and settings screens. @HsxMark
+- 🛠 Rewrite the User Agreement and Privacy Policy: remove university-specific references and clarify that all account credentials are entered and submitted by users directly on the academic affairs system website of a specific university, with nothing processed or stored locally by the app. @HsxMark
 
 ## 1.1.0
 

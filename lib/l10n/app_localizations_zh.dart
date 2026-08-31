@@ -781,7 +781,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get examInformationMayNotBeCurrentAlwaysConfirmIt =>
-      '考试信息非即时获取，仅供参考，请以教务处系统提示为准！';
+      '考试信息非即时获取，仅供参考，请以教务系统提示为准！';
 
   @override
   String get noMatchingExams => '暂无符合条件的考试信息';
@@ -892,7 +892,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get thisFeatureProvidesAConvenientWayToSyncInformation =>
-      '本功能仅提供便捷的信息同步服务，导入的数据可能存在偏差。请仔细核对同步后的信息，一切以教务处网站显示为准。';
+      '本功能仅提供便捷的信息同步服务，导入的数据可能存在偏差。请仔细核对同步后的信息，一切以教务系统网站显示为准。';
 
   @override
   String get doNotShowAgain => '不再显示';
