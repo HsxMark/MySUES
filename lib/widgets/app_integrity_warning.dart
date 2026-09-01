@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 const hideAppIntegrityWarningPreferenceKey =
     'hide_unofficial_distribution_warning_on_startup';
-const officialAppDownloadUrl = 'https://syntrion.dev/mysues#download';
+const officialAppDownloadUrl = 'https://mysues.top';
 
 Future<void> openOfficialDownloadPage(BuildContext context) async {
   var launched = false;
