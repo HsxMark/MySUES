@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:mysues/screens/about/user_agreement_screen.dart';
 import 'package:mysues/screens/about/privacy_policy_screen.dart';
 import 'package:mysues/screens/about/sponsor_screen.dart';
@@ -139,15 +140,35 @@ class _AboutScreenState extends State<AboutScreen> {
           ),
 
           const SizedBox(height: 48),
-          const Center(
-            child: Text(
-              'Copyright © 2026 HsxMark',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
+          Column(
+            children: [
+              const Text(
+                'Copyright © 2026 HsxMark',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 6),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _openIcpFiling,
+                child: const Text(
+                  '鲁ICP备2026043859号-2A',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _openIcpFiling() async {
+    final Uri uri = Uri.parse('https://beian.miit.gov.cn/');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not open MIIT ICP filing query page: $uri');
+    }
   }
 
   Widget _buildOptionItem(BuildContext context, String title, Widget page) {
