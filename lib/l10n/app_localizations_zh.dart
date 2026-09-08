@@ -61,7 +61,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get clearAllDataWarning =>
-      '此操作不可撤销。所有本地存储的课表、成绩、个人设置等都将被永久删除，App 将恢复到初始状态。';
+      '此操作不可撤销。所有本地存储的课表、成绩、个人资料与偏好设置，以及头像、自定义背景等本地文件和登录会话信息都将被永久删除，App 将恢复到初始状态。';
 
   @override
   String get cancel => '取消';
@@ -106,7 +106,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get agreeAndContinue => '同意并继续';
 
   @override
-  String get agreementConsentHint => '点击“同意并继续”表示您已阅读并同意以上协议。';
+  String get agreementCheckboxLabel => '我已阅读并同意《用户协议》和《隐私政策》';
 
   @override
   String get legalChinesePrevails => '英文译文仅供参考，如有歧义，以中文版本为准。';
@@ -1134,10 +1134,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get sincereThanksToTheFollowingSponsorsListedInNo =>
       '衷心感谢以下用户对本项目的赞助（排名不分先后）';
-
-  @override
-  String get forSupportJoinQQGroup1045770691 =>
-      '若遇到什么问题，请添加QQ群聊：1045770691 反馈问题';
 
   @override
   String get engineeringManagementDesign => '工程  管理  设计';

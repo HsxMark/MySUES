@@ -62,7 +62,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearAllDataWarning =>
-      'This cannot be undone. All locally stored schedules, grades, profile data, and settings will be permanently deleted and the app will return to its initial state.';
+      'This cannot be undone. All locally stored schedules, grades, profile data, and settings — together with local files such as your avatar and custom background and your sign-in session — will be permanently deleted and the app will return to its initial state.';
 
   @override
   String get cancel => 'Cancel';
@@ -109,8 +109,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get agreeAndContinue => 'Agree and Continue';
 
   @override
-  String get agreementConsentHint =>
-      'By selecting “Agree and Continue,” you confirm that you have read and accepted these documents.';
+  String get agreementCheckboxLabel =>
+      'I have read and agree to the User Agreement and the Privacy Policy.';
 
   @override
   String get legalChinesePrevails =>
@@ -1175,10 +1175,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sincereThanksToTheFollowingSponsorsListedInNo =>
       'Sincere thanks to the following sponsors, listed in no particular order.';
-
-  @override
-  String get forSupportJoinQQGroup1045770691 =>
-      'For support, join QQ group 1045770691.';
 
   @override
   String get engineeringManagementDesign => 'Engineering  Management  Design';

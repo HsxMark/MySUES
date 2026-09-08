@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @clearAllDataWarning.
   ///
   /// In zh, this message translates to:
-  /// **'此操作不可撤销。所有本地存储的课表、成绩、个人设置等都将被永久删除，App 将恢复到初始状态。'**
+  /// **'此操作不可撤销。所有本地存储的课表、成绩、个人资料与偏好设置，以及头像、自定义背景等本地文件和登录会话信息都将被永久删除，App 将恢复到初始状态。'**
   String get clearAllDataWarning;
 
   /// No description provided for @cancel.
@@ -284,11 +284,11 @@ abstract class AppLocalizations {
   /// **'同意并继续'**
   String get agreeAndContinue;
 
-  /// No description provided for @agreementConsentHint.
+  /// No description provided for @agreementCheckboxLabel.
   ///
   /// In zh, this message translates to:
-  /// **'点击“同意并继续”表示您已阅读并同意以上协议。'**
-  String get agreementConsentHint;
+  /// **'我已阅读并同意《用户协议》和《隐私政策》'**
+  String get agreementCheckboxLabel;
 
   /// No description provided for @legalChinesePrevails.
   ///
@@ -2292,12 +2292,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'衷心感谢以下用户对本项目的赞助（排名不分先后）'**
   String get sincereThanksToTheFollowingSponsorsListedInNo;
-
-  /// No description provided for @forSupportJoinQQGroup1045770691.
-  ///
-  /// In zh, this message translates to:
-  /// **'若遇到什么问题，请添加QQ群聊：1045770691 反馈问题'**
-  String get forSupportJoinQQGroup1045770691;
 
   /// No description provided for @engineeringManagementDesign.
   ///

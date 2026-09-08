@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:mysues/screens/settings/display_settings_screen.dart';
 import 'package:mysues/screens/settings/notifications_screen.dart';
 import 'package:mysues/l10n/l10n.dart';
@@ -167,9 +171,29 @@ class SettingsScreen extends StatelessWidget {
   Future<void> _performClearData(BuildContext context) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
 
-      // TODO: Add clearing of any local files/databases here if implemented later
+      // Capture stored file paths before clearing preferences.
+      final avatarPath = prefs.getString('user_avatar_path');
+      final backgroundPath = prefs.getString('background_image_path');
+
+      // Cancel scheduled local reminders while the scheduled-ID lists are
+      // still readable from preferences.
+      try {
+        await NotificationService().cancelCourseReminders();
+        await NotificationService().cancelExamReminders();
+      } catch (_) {
+        // Best effort: the notification plugin may be unavailable on some
+        // platforms or not yet initialized.
+      }
+
+      await prefs.clear();
+      await _deleteLocalFiles(
+        avatarPath: avatarPath,
+        backgroundPath: backgroundPath,
+      );
+
+      // Refresh the home-screen widget so it no longer shows stale data.
+      await WidgetService.updateWidget();
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -182,6 +206,55 @@ class SettingsScreen extends StatelessWidget {
           SnackBar(content: Text(context.l10n.clearFailed(e.toString()))),
         );
       }
+    }
+  }
+
+  /// Deletes the app-owned files stored in the documents directory: the user
+  /// avatar, the custom background image, any persisted session cookies, and
+  /// the WebView session cookies (mobile platforms).
+  Future<void> _deleteLocalFiles({
+    String? avatarPath,
+    String? backgroundPath,
+  }) async {
+    await _deleteFileIfExists(avatarPath);
+    await _deleteFileIfExists(backgroundPath);
+
+    final Directory docDir = await getApplicationDocumentsDirectory();
+    if (await docDir.exists()) {
+      await for (final entity in docDir.list()) {
+        final name = entity.path.split(RegExp(r'[/\\]')).last;
+        try {
+          if (entity is File &&
+              (name.startsWith('user_avatar_') ||
+                  name.startsWith('background_image'))) {
+            await entity.delete();
+          } else if (entity is Directory && name == '.cookies') {
+            await entity.delete(recursive: true);
+          }
+        } catch (_) {
+          // Best effort per file.
+        }
+      }
+    }
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      try {
+        await WebViewCookieManager().clearCookies();
+      } catch (_) {
+        // Best effort; webview cookie manager may be unavailable.
+      }
+    }
+  }
+
+  Future<void> _deleteFileIfExists(String? path) async {
+    if (path == null || path.isEmpty) return;
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {
+      // Best effort.
     }
   }
 }
