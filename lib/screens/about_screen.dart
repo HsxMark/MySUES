@@ -67,7 +67,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Version 1.2.0-Build.3',
+                  'Version 1.2.0-Build.4',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
