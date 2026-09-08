@@ -41,9 +41,7 @@ The App requests permissions **only when you use the corresponding feature and a
 
 - **Network:** used to access your university's academic-affairs system website and to retrieve/synchronize class schedules, grades, and exam arrangements.
 - **Notifications:** used to send you local notifications for the course/exam reminders you have set. Requested and used only when you enable the relevant reminder feature.
-- **Alarm / exact alarm (Android):** used to trigger reminders on time as you have scheduled. Used only when you enable reminders.
 - **Photo / media library:** used only when you pick an image as your avatar or custom background.
-- **Boot completed / wake lock (Android):** used to restore reminders you have scheduled locally after the device restarts. This is a system-level reminder capability and involves no personal-information collection.
 
 ### 3. Third-Party Services and Sharing
 
