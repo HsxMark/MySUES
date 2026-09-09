@@ -11,7 +11,7 @@ class AcknowledgementsScreen extends StatelessWidget {
     '寰宇BH4HAP',
     '楚龙',
     'a1375625918',
-    '想吸夜魔内陷乳',
+    'HYJ',
   ];
 
   @override
