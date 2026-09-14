@@ -1863,24 +1863,50 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                               textAlign: TextAlign.center,
                             ),
                           if (course.studyType == CourseStudyType.retake)
-                            Text(
-                              context.l10n.retake,
-                              style: TextStyle(
-                                color: Colors.red.withValues(alpha: 0.8),
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                                vertical: 1,
                               ),
-                              textAlign: TextAlign.center,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(3),
+                                border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              child: Text(
+                                context.l10n.retake,
+                                style: TextStyle(
+                                  color: Colors.red.withValues(alpha: 0.8),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           if (course.studyType == CourseStudyType.exempt)
-                            Text(
-                              context.l10n.attendanceExempt,
-                              style: TextStyle(
-                                color: Colors.green.withValues(alpha: 0.8),
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                                vertical: 1,
                               ),
-                              textAlign: TextAlign.center,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(3),
+                                border: Border.all(
+                                  color: Colors.green.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              child: Text(
+                                context.l10n.attendanceExempt,
+                                style: TextStyle(
+                                  color: Colors.green.withValues(alpha: 0.8),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           Text(
                             course.courseName,

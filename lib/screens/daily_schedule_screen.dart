@@ -1347,21 +1347,47 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (course.studyType == CourseStudyType.retake)
-                              Text(
-                                context.l10n.retake,
-                                style: TextStyle(
-                                  color: Colors.red.shade900,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: Colors.red.shade900,
+                                  ),
+                                ),
+                                child: Text(
+                                  context.l10n.retake,
+                                  style: TextStyle(
+                                    color: Colors.red.shade900,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             if (course.studyType == CourseStudyType.exempt)
-                              Text(
-                                context.l10n.attendanceExempt,
-                                style: TextStyle(
-                                  color: Colors.green.shade900,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: Colors.green.shade900,
+                                  ),
+                                ),
+                                child: Text(
+                                  context.l10n.attendanceExempt,
+                                  style: TextStyle(
+                                    color: Colors.green.shade900,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             Flexible(
