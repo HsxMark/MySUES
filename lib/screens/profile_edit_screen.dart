@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/models/student_info.dart';
+import 'package:mysues/utils/profile_preference_keys.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   final String name;
@@ -32,6 +34,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   late String _major;
   late String _college;
   late String _className;
+  String? _gradeOverride;
 
   static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _nicknamePrefsKey = 'user_nickname';
@@ -90,6 +93,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         _className = savedClass;
       });
     }
+
+    setState(() {
+      _gradeOverride = prefs.getString(
+        ProfilePreferenceKeys.gradeOverride(widget.studentId),
+      );
+    });
   }
 
   Future<void> _pickAndSaveAvatar() async {
@@ -282,6 +291,62 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
+  String _gradeLabel(String grade) {
+    switch (grade) {
+      case '1':
+        return context.l10n.firstYear;
+      case '2':
+        return context.l10n.secondYear;
+      case '3':
+        return context.l10n.thirdYear;
+      case '4':
+        return context.l10n.fourthYear;
+      default:
+        return context.l10n.graduatedOrUnknown;
+    }
+  }
+
+  Future<void> _updateGrade() async {
+    final automaticGrade = StudentInfoHelper.calculateGradeNumber(
+      widget.studentId,
+    ).toString();
+    final selectedGrade = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.changeYear),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, 'automatic'),
+            child: Text(
+              context.l10n.automaticYear(_gradeLabel(automaticGrade)),
+            ),
+          ),
+          for (final grade in const ['1', '2', '3', '4', 'graduated'])
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, grade),
+              child: Text(_gradeLabel(grade)),
+            ),
+        ],
+      ),
+    );
+
+    if (selectedGrade == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final gradeOverrideKey = ProfilePreferenceKeys.gradeOverride(
+      widget.studentId,
+    );
+    if (selectedGrade == 'automatic') {
+      await prefs.remove(gradeOverrideKey);
+      if (!mounted) return;
+      setState(() => _gradeOverride = null);
+    } else {
+      await prefs.setString(gradeOverrideKey, selectedGrade);
+      if (!mounted) return;
+      setState(() => _gradeOverride = selectedGrade);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -331,6 +396,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             value: (_className.isEmpty) ? context.l10n.notSet : _className,
             isEditable: true,
             onTap: _updateClass,
+          ),
+          const Divider(),
+          _buildInfoItem(
+            label: context.l10n.year,
+            value: _gradeOverride == null
+                ? context.l10n.automaticYear(
+                    _gradeLabel(
+                      StudentInfoHelper.calculateGradeNumber(
+                        widget.studentId,
+                      ).toString(),
+                    ),
+                  )
+                : _gradeLabel(_gradeOverride!),
+            isEditable: true,
+            onTap: _updateGrade,
           ),
         ],
       ),

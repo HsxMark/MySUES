@@ -1,13 +1,15 @@
 class StudentInfoHelper {
   static const Map<String, Map<String, String>> _collegeMajorMap = {
-    '01': { // Mechanical
-       '11': '机械工程及自动化',
-       '12': '机械设计制造及其自动化(现代装备与控制工程)',
-       '13': '热能与动力工程',
-       '14': '能源与环境系统工程',
-       '41': '机械设备及自动化(数控技术与现代装备)(高职专科)',
+    '01': {
+      // Mechanical
+      '11': '机械工程及自动化',
+      '12': '机械设计制造及其自动化(现代装备与控制工程)',
+      '13': '热能与动力工程',
+      '14': '能源与环境系统工程',
+      '41': '机械设备及自动化(数控技术与现代装备)(高职专科)',
     },
-    '02': { // Electronic
+    '02': {
+      // Electronic
       '11': '计算机科学与技术',
       '12': '自动化',
       '13': '电气工程及其自动化',
@@ -17,7 +19,8 @@ class StudentInfoHelper {
       '41': '计算机应用与维护(高职专科)',
       '42': '应用电子技术(高职专科)',
     },
-    '03': { // Management
+    '03': {
+      // Management
       '11': '工商管理',
       '12': '金融学',
       '13': '工程管理',
@@ -32,21 +35,24 @@ class StudentInfoHelper {
       '51': '工商管理（学生运动员班）',
       '59': '公共事业管理（学生运动员班）',
     },
-    '04': { // Chemistry
-       '11': '化学工程与工艺(精细化工)',
-       '12': '高分子材料与工程',
-       '13': '轻化工程',
-       '14': '制药工程',
-       '15': '环境工程',
+    '04': {
+      // Chemistry
+      '11': '化学工程与工艺(精细化工)',
+      '12': '高分子材料与工程',
+      '13': '轻化工程',
+      '14': '制药工程',
+      '15': '环境工程',
     },
-    '05': { // Material
+    '05': {
+      // Material
       '11': '材料成型及控制工程',
       '13': '金属材料工程(纳米表面工程)',
       '14': '材料科学与工程(纳米表面工程)',
       '15': '材料成型及控制工程（微电子封装）',
       '31': '材料成型及控制工程(模具 CAD/CAM)（教改班）',
     },
-    '06': { // Automotive
+    '06': {
+      // Automotive
       '11': '机械设计制造及自动化(汽车工程)',
       '12': '交通运输(汽车运用技术)',
       '13': '市场营销(汽车营销)',
@@ -56,7 +62,8 @@ class StudentInfoHelper {
       '23': '交通运输(汽车运用工程)(中美合作)',
       '41': '汽车运用技术(高职专科)',
     },
-    '07': { // Art
+    '07': {
+      // Art
       '11': '广告学',
       '12': '艺术设计(艺)',
       '13': '摄影(艺)',
@@ -68,7 +75,8 @@ class StudentInfoHelper {
       '42': '广告艺术设计',
       '43': '视觉传达艺术设计',
     },
-    '08': { // Aviation
+    '08': {
+      // Aviation
       '11': '交通运输(航空器械维修)',
       '12': '工商管理(航空经营管理)',
       '13': '国际经济与贸易(国际货运)',
@@ -77,7 +85,8 @@ class StudentInfoHelper {
       '43': '民航运输(航空商务)(高职专科)/民航商务',
       '44': '航空机电设备维修',
     },
-    '09': { // Fashion
+    '09': {
+      // Fashion
       '11': '服装设计与工程',
       '12': '艺术设计(服装与装饰设计)(艺)',
       '13': '纺织工程',
@@ -89,7 +98,8 @@ class StudentInfoHelper {
       '42': '时装表演与策划',
       '43': '服装表演',
     },
-    '10': { // Urban Rail
+    '10': {
+      // Urban Rail
       '11': '机械工程及自动化(城市轨道交通车辆)',
       '12': '电子信息工程(城市轨道交通通信信号)',
       '13': '交通运输(城市轨道交通运营管理)',
@@ -103,10 +113,12 @@ class StudentInfoHelper {
       '46': '城市轨道交通工程技术(通信信号)',
       '47': '城市轨道交通工程技术(机电设备)',
     },
-    '12': { // Sino-French
+    '12': {
+      // Sino-French
       '21': '服装设计与工程(中法合作)',
     },
-    '16': { // Vocational
+    '16': {
+      // Vocational
       '41': '数控技术应用',
       '42': '应用电子技术',
       '43': '汽车运用技术',
@@ -127,20 +139,18 @@ class StudentInfoHelper {
       '4I': '文秘',
       '4J': '商务英语',
       '4K': '应用艺术设计',
-    }
+    },
   };
 
-  static Map<String, String> parseStudentId(String id) {
+  static Map<String, String> parseStudentId(String id, {DateTime? now}) {
     if (id.length < 9) return {'grade': '未知', 'major': '未知'};
 
     // Structure: College(2) + Nature(1) + MajorCode(1) + Year(2) + Class(1) + Serial(2)
     String collegeCode = id.substring(0, 2);
     String majorNature = id.substring(2, 3);
     String majorSuffix = id.substring(3, 4);
-    String yearStr = id.substring(4, 6);
-
     String majorCode = majorNature + majorSuffix;
-    
+
     // Major Lookup
     String majorName = '未知专业';
     if (_collegeMajorMap.containsKey(collegeCode)) {
@@ -150,28 +160,47 @@ class StudentInfoHelper {
       }
     }
 
-    // Grade Calculation (Assuming current year 2026 Feb)
-    int entranceYear = 2000 + (int.tryParse(yearStr) ?? 0);
-    int currentYear = 2026;
-    int currentMonth = 2; // Feb
-
-    // If currentMonth >= 9, grade = current - entrance + 1
-    // If currentMonth < 9, grade = current - entrance
-    int gradeNum = currentYear - entranceYear;
-    if (currentMonth >= 9) gradeNum += 1;
+    final gradeNum = calculateGradeNumber(id, now: now);
 
     String gradeName;
     switch (gradeNum) {
-      case 1: gradeName = '大一'; break;
-      case 2: gradeName = '大二'; break;
-      case 3: gradeName = '大三'; break;
-      case 4: gradeName = '大四'; break;
-      default: gradeName = '毕业/未知';
+      case 1:
+        gradeName = '大一';
+        break;
+      case 2:
+        gradeName = '大二';
+        break;
+      case 3:
+        gradeName = '大三';
+        break;
+      case 4:
+        gradeName = '大四';
+        break;
+      default:
+        gradeName = '毕业/未知';
     }
 
-    return {
-      'grade': gradeName,
-      'major': majorName,
-    };
+    return {'grade': gradeName, 'major': majorName};
+  }
+
+  /// Calculates the current year of study from the entrance year embedded in
+  /// the student ID. A new academic year starts in September.
+  ///
+  /// The optional [now] parameter keeps the calculation deterministic in
+  /// tests. A non-positive value represents an invalid or not-yet-enrolled
+  /// student ID, while values above four represent graduation or an extended
+  /// course of study.
+  static int calculateGradeNumber(String id, {DateTime? now}) {
+    if (id.length < 9) return 0;
+
+    final entranceYearSuffix = int.tryParse(id.substring(4, 6));
+    if (entranceYearSuffix == null) return 0;
+
+    final currentDate = now ?? DateTime.now();
+    final entranceYear = 2000 + entranceYearSuffix;
+    var grade = currentDate.year - entranceYear;
+    if (currentDate.month >= DateTime.september) grade += 1;
+
+    return grade > 0 ? grade : 0;
   }
 }

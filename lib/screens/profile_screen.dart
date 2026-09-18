@@ -15,6 +15,8 @@ import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'dart:math' as math;
 import 'package:mysues/widgets/material_you.dart';
 import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/utils/profile_preference_keys.dart';
+
 // Ensure Course is imported
 
 class ProfileScreen extends StatefulWidget {
@@ -35,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _major;
   String? _college;
   String? _className;
+  String? _gradeOverride;
   String? _nickname;
   String? _lastSyncTime;
 
@@ -56,9 +59,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
+    final studentId = prefs.getString(_studentIdKey);
 
     setState(() {
-      _studentId = prefs.getString(_studentIdKey);
+      _studentId = studentId;
       _nickname = prefs.getString(_nicknamePrefsKey);
       _name =
           _nickname; // Use nickname as name for now, or fetch separate 'real_name' if saved
@@ -70,6 +74,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _major = prefs.getString(_majorPrefsKey);
       _college = prefs.getString(_collegePrefsKey);
       _className = prefs.getString(_classPrefsKey);
+      _gradeOverride = studentId == null || studentId.isEmpty
+          ? null
+          : prefs.getString(ProfilePreferenceKeys.gradeOverride(studentId));
       _lastSyncTime = prefs.getString(_lastSyncTimeKey);
     });
 
@@ -181,6 +188,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // Reload data when returning
     _loadData();
+  }
+
+  String _gradeLabel(String grade) {
+    switch (grade) {
+      case '1':
+        return context.l10n.firstYear;
+      case '2':
+        return context.l10n.secondYear;
+      case '3':
+        return context.l10n.thirdYear;
+      case '4':
+        return context.l10n.fourthYear;
+      default:
+        return context.l10n.graduatedOrUnknown;
+    }
   }
 
   @override
@@ -335,7 +357,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 _buildCompactInfoItem(
                   context.l10n.year,
-                  info['grade'] ?? context.l10n.unknown,
+                  _gradeLabel(
+                    _gradeOverride ??
+                        StudentInfoHelper.calculateGradeNumber(
+                          _studentId!,
+                        ).toString(),
+                  ),
                 ),
               ],
             ),

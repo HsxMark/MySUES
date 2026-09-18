@@ -1015,6 +1015,48 @@ abstract class AppLocalizations {
   /// **'年级'**
   String get year;
 
+  /// No description provided for @firstYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'大一'**
+  String get firstYear;
+
+  /// No description provided for @secondYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'大二'**
+  String get secondYear;
+
+  /// No description provided for @thirdYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'大三'**
+  String get thirdYear;
+
+  /// No description provided for @fourthYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'大四'**
+  String get fourthYear;
+
+  /// No description provided for @graduatedOrUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'已毕业/未知'**
+  String get graduatedOrUnknown;
+
+  /// No description provided for @changeYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'修改年级'**
+  String get changeYear;
+
+  /// No description provided for @automaticYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动（{year}）'**
+  String automaticYear(String year);
+
   /// No description provided for @changeNickname.
   ///
   /// In zh, this message translates to:

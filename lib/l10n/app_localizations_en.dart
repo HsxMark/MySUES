@@ -506,6 +506,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get year => 'Year';
 
   @override
+  String get firstYear => 'First year';
+
+  @override
+  String get secondYear => 'Second year';
+
+  @override
+  String get thirdYear => 'Third year';
+
+  @override
+  String get fourthYear => 'Fourth year';
+
+  @override
+  String get graduatedOrUnknown => 'Graduated / Unknown';
+
+  @override
+  String get changeYear => 'Change Year';
+
+  @override
+  String automaticYear(String year) {
+    return 'Automatic ($year)';
+  }
+
+  @override
   String get changeNickname => 'Change Nickname';
 
   @override

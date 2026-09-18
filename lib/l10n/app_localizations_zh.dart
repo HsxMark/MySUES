@@ -487,6 +487,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get year => '年级';
 
   @override
+  String get firstYear => '大一';
+
+  @override
+  String get secondYear => '大二';
+
+  @override
+  String get thirdYear => '大三';
+
+  @override
+  String get fourthYear => '大四';
+
+  @override
+  String get graduatedOrUnknown => '已毕业/未知';
+
+  @override
+  String get changeYear => '修改年级';
+
+  @override
+  String automaticYear(String year) {
+    return '自动（$year）';
+  }
+
+  @override
   String get changeNickname => '修改昵称';
 
   @override
