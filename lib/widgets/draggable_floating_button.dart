@@ -1,7 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:mysues/theme/glass_styles.dart';
 import '../services/theme_service.dart';
 
 /// A draggable floating action button for quick schedule navigation.
@@ -161,23 +159,11 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     );
 
     if (isLiquidGlass) {
-      final brightness = MediaQuery.platformBrightnessOf(context);
-      final isDark = brightness == Brightness.dark;
-      return LiquidGlassLayer(
-        settings: LiquidGlassSettings(
-          refractiveIndex: 1.21,
-          thickness: 30,
-          blur: 8,
-          saturation: 1.5,
-          lightIntensity: isDark ? .7 : 1,
-          ambientStrength: isDark ? .2 : .5,
-          lightAngle: math.pi / 4,
-          glassColor: bgColor.withValues(alpha: 0.6),
-        ),
-        child: LiquidGlass.grouped(
-          shape: const LiquidOval(),
-          child: GlassGlow(child: child),
-        ),
+      // Lens ball (showcase FAB): tinted with the theme's primary so the
+      // white glyph stays readable over any timetable cell behind it.
+      return GlassStyles.fabShell(
+        context,
+        child: const Icon(Icons.calendar_today_rounded, size: 24),
       );
     }
 

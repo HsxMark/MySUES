@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:mysues/l10n/app_localizations.dart';
 import 'package:mysues/services/locale_service.dart';
 import 'package:mysues/services/app_integrity_service.dart';
@@ -22,6 +23,8 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await LiquidGlassShaders.ensureLoaded();
 
   Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   Workmanager().registerPeriodicTask(
