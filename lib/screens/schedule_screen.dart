@@ -158,6 +158,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  /// 布局用展示副本 → 库中整课（编辑/导出/详情必须用这个）
+  Course _sourceCourse(Course display) {
+    return LunchSessionDisplayHelper.resolveSource(display, _courses);
+  }
+
   String _getTimeRange(Course course) {
     if (course.startTime != null &&
         course.endTime != null &&
@@ -323,11 +328,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
+    // 午间分场展示副本可能只含半场节点；详情/编辑/导出一律回源到库中整课
+    final source = _sourceCourse(course);
     if (_useLargeScreenDetailPanel(context)) {
-      _showCourseDetailSidePanel(context, course);
+      _showCourseDetailSidePanel(context, source);
       return;
     }
-    _showCourseDetailBottomSheet(context, course);
+    _showCourseDetailBottomSheet(context, source);
   }
 
   void _showCourseDetailBottomSheet(BuildContext context, Course course) {
@@ -1662,11 +1669,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                   colIndex: flexColIndex[course] ?? 0,
                                   totalCols: flexTotalCols[course] ?? 1,
                                   onTap: () {
+                                    final source = _sourceCourse(course);
                                     widget.onCourseTap?.call(
-                                      course,
+                                      source,
                                       _currentWeek,
                                     );
-                                    _showCourseDetail(context, course);
+                                    _showCourseDetail(context, source);
                                   },
                                 ),
                               );
@@ -1720,8 +1728,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                         dayColWidth: dayColWidth,
                                         isNonCurrentWeek: true,
                                         onTap: () {
-                                          widget.onCourseTap?.call(course, w);
-                                          _showCourseDetail(context, course);
+                                          final source = _sourceCourse(course);
+                                          widget.onCourseTap?.call(source, w);
+                                          _showCourseDetail(context, source);
                                         },
                                       ),
                                     );
@@ -1816,8 +1825,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         onTap:
             onTap ??
             () {
-              widget.onCourseTap?.call(course, _currentWeek);
-              _showCourseDetail(context, course);
+              final source = _sourceCourse(course);
+              widget.onCourseTap?.call(source, _currentWeek);
+              _showCourseDetail(context, source);
             },
         child: Container(
           margin: const EdgeInsets.all(1),

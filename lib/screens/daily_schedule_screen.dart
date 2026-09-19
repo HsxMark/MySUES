@@ -267,6 +267,11 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     return filtered;
   }
 
+  /// 布局用展示副本 → 库中整课（编辑/导出/详情必须用这个）
+  Course _sourceCourse(Course display) {
+    return LunchSessionDisplayHelper.resolveSource(display, _courses);
+  }
+
   /// 获取时间轴的小时列表
   List<int> _getTimelineHours() {
     if (_timeDetails.isEmpty) {
@@ -288,6 +293,8 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
+    // 午间分场展示副本可能只含半场节点；详情/编辑/导出一律回源到库中整课
+    final source = _sourceCourse(course);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -331,7 +338,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () => _deleteCourse(context, course),
+                      onPressed: () => _deleteCourse(context, source),
                       child: Text(
                         context.l10n.delete,
                         style: TextStyle(color: Colors.red, fontSize: 16),
@@ -344,10 +351,10 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             try {
                               await IcsExporter.exportCourses(
                                 context,
-                                [course],
+                                [source],
                                 _currentTable!,
                                 _timeDetails,
-                                fileName: 'mysues_course_${course.id}.ics',
+                                fileName: 'mysues_course_${source.id}.ics',
                               );
                             } catch (e) {
                               if (context.mounted) {
@@ -372,7 +379,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         TextButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            _editCourse(context, course);
+                            _editCourse(context, source);
                           },
                           child: Text(
                             context.l10n.edit,
@@ -390,7 +397,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                   vertical: 4,
                 ),
                 child: Text(
-                  course.courseName,
+                  source.courseName,
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -431,8 +438,8 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             _buildDetailRow(
                               icon: Icons.calendar_today_outlined,
                               content: context.l10n.weekRange(
-                                course.startWeek,
-                                course.endWeek,
+                                source.startWeek,
+                                source.endWeek,
                               ),
                               color: Colors.redAccent,
                             ),
@@ -440,28 +447,28 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             _buildDetailRow(
                               icon: Icons.access_time,
                               content: context.l10n.courseScheduleLine(
-                                localizedWeekdayLabel(context.l10n, course.day),
+                                localizedWeekdayLabel(context.l10n, source.day),
                                 context.l10n.periodRange(
-                                  course.startNode,
-                                  course.startNode + course.step - 1,
+                                  source.startNode,
+                                  source.startNode + source.step - 1,
                                 ),
-                                _getTimeRange(course),
+                                _getTimeRange(source),
                               ),
                               color: Colors.redAccent,
                             ),
-                            if (course.teacher.isNotEmpty) ...[
+                            if (source.teacher.isNotEmpty) ...[
                               const Divider(height: 1, indent: 56),
                               _buildDetailRow(
                                 icon: Icons.person_outline,
-                                content: course.teacher,
+                                content: source.teacher,
                                 color: Colors.redAccent,
                               ),
                             ],
-                            if (course.room.isNotEmpty) ...[
+                            if (source.room.isNotEmpty) ...[
                               const Divider(height: 1, indent: 56),
                               _buildDetailRow(
                                 icon: Icons.location_on_outlined,
-                                content: course.room,
+                                content: source.room,
                                 color: Colors.redAccent,
                               ),
                             ],
@@ -483,7 +490,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                               color: Colors.redAccent,
                               onTap: () {
                                 Clipboard.setData(
-                                  ClipboardData(text: course.courseName),
+                                  ClipboardData(text: source.courseName),
                                 );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -504,16 +511,16 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                                     .courseScheduleLine(
                                       localizedWeekdayLabel(
                                         context.l10n,
-                                        course.day,
+                                        source.day,
                                       ),
                                       context.l10n.periodRange(
-                                        course.startNode,
-                                        course.startNode + course.step - 1,
+                                        source.startNode,
+                                        source.startNode + source.step - 1,
                                       ),
-                                      _getTimeRange(course),
+                                      _getTimeRange(source),
                                     );
                                 final info =
-                                    '${course.courseName}\n$schedule\n${course.teacher} ${course.room}';
+                                    '${source.courseName}\n$schedule\n${source.teacher} ${source.room}';
                                 Clipboard.setData(ClipboardData(text: info));
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(

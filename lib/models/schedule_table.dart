@@ -23,8 +23,9 @@ class ScheduleTable {
   bool showFloatingButton;
   bool showHiddenCourses;
 
-  /// 午间分场显示：默认关闭。关闭时将导入拆开的上/下午场视觉合并；
-  /// 打开时跨午课显示为上/下午两场，并在第5-6节之间画午休分割线。
+  /// 午间分场显示：默认关闭。
+  /// 关闭时将导入拆开的上/下午场在 UI 上视觉合并为一块；
+  /// 打开时跨午课程显示为上午场与下午场两张卡片（软分割，不绘制午休分割线）。
   bool splitLunchSession;
 
   ScheduleTable({

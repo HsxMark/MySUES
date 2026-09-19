@@ -17,6 +17,15 @@ class LunchSessionDisplayHelper {
     return _mergeLunchHalves(courses);
   }
 
+  /// 展示副本只用于布局（可能被裁成半场且复用库内 id）。
+  /// 详情 / 编辑 / 导出 / 删除前必须先回源到存储中的整课，避免用半截数据覆盖。
+  static Course resolveSource(Course display, List<Course> stored) {
+    for (final c in stored) {
+      if (c.id == display.id) return c;
+    }
+    return display;
+  }
+
   /// 是否跨午（节次法；有自定义起止时间时用时间法）
   static bool crossesLunch(Course course) {
     final endNode = course.startNode + course.step - 1;
