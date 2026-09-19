@@ -1082,6 +1082,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show hidden attendance-exempt courses in the schedule';
 
   @override
+  String get splitLunchSession => 'Split Lunch Session';
+
+  @override
+  String get splitLunchSessionHint =>
+      'When on, cross-noon courses show as morning and afternoon sessions; when off, they merge into one block';
+
+  @override
+  String get lunchBreakLabel => 'Lunch';
+
+  @override
   String get advancedSettings => 'Advanced Settings';
 
   @override

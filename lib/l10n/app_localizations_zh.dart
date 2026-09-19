@@ -1046,6 +1046,15 @@ class AppLocalizationsZh extends AppLocalizations {
       '开启后在课表视图中显示已隐藏的免听课程';
 
   @override
+  String get splitLunchSession => '午间分场显示';
+
+  @override
+  String get splitLunchSessionHint => '开启后跨午课程分为上午场与下午场显示；关闭时合并为一块';
+
+  @override
+  String get lunchBreakLabel => '午休';
+
+  @override
   String get advancedSettings => '高级设置';
 
   @override
