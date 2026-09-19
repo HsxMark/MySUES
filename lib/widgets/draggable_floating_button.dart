@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mysues/theme/glass_styles.dart';
 import '../services/theme_service.dart';
 
 /// A draggable floating action button for quick schedule navigation.
@@ -159,11 +158,28 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     );
 
     if (isLiquidGlass) {
-      // Lens ball (showcase FAB): tinted with the theme's primary so the
-      // white glyph stays readable over any timetable cell behind it.
-      return GlassStyles.fabShell(
-        context,
-        child: const Icon(Icons.calendar_today_rounded, size: 24),
+      // Transparent ball + hairline ring only — no liquid glass fill.
+      // Dark: white ring; light: app theme / system color (colorScheme.primary).
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final ringColor = isDark
+          ? Colors.white
+          : Theme.of(context).colorScheme.primary;
+      return SizedBox(
+        width: _buttonSize,
+        height: _buttonSize,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: ringColor, width: 1.0),
+          ),
+          child: Center(
+            child: Icon(
+              Icons.calendar_today_rounded,
+              color: ringColor,
+              size: 24,
+            ),
+          ),
+        ),
       );
     }
 
