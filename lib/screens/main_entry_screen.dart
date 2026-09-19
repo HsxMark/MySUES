@@ -8,8 +8,9 @@ import 'package:mysues/services/app_integrity_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/screen_breakpoints.dart';
 import 'package:mysues/widgets/app_integrity_warning.dart';
-import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/theme/glass_styles.dart';
 import 'schedule_view_container.dart';
 import 'transcript_screen.dart';
 import 'exam_info_screen.dart';
@@ -226,7 +227,18 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
   // 懒加载：只有被访问过的 Tab 才会真正构建，避免首次进入时同时初始化全部页面
   final List<Widget?> _cachedPages = [null, null, null, null];
 
+  /// Glass mode the cache was built for. Pages like schedule/transcript/exam
+  /// branch on [ThemeService.liquidGlassEnabled] but do not listen to it, so
+  /// the instances must be dropped when the switch flips.
+  bool? _cachedPagesForLiquidGlass;
+
   Widget _getPage(int index) {
+    final liquidGlass = ThemeService().liquidGlassEnabled;
+    if (_cachedPagesForLiquidGlass != liquidGlass) {
+      // Schedule keeps state via GlobalKey; other tabs are safe to rebuild.
+      _cachedPages.fillRange(0, _cachedPages.length, null);
+      _cachedPagesForLiquidGlass = liquidGlass;
+    }
     _cachedPages[index] ??= switch (index) {
       0 => ScheduleViewContainer(key: ScheduleViewContainer.containerKey),
       1 => const TranscriptScreen(),
@@ -357,97 +369,193 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           }),
         );
 
-        Widget scaffold = Scaffold(
-          extendBody: useLiquidGlass && !useRightRail,
-          backgroundColor: hasBg ? Colors.transparent : null,
-          body: useRightRail
-              ? Row(
-                  children: [
-                    _buildLeftNavigationRail(context, useLiquidGlass),
-                    Expanded(child: pageStack),
-                  ],
-                )
-              : pageStack,
-          bottomNavigationBar: useRightRail
-              ? null
-              : (useLiquidGlass
-                    ? LiquidGlassBottomBar(
-                        selectedIndex: _currentIndex,
-                        onTabSelected: (index) {
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                        },
-                        tabs: [
-                          LiquidGlassBottomBarTab(
-                            icon: Icons.calendar_month,
-                            label: context.l10n.schedule,
-                          ),
-                          LiquidGlassBottomBarTab(
-                            icon: Icons.description,
-                            label: context.l10n.transcript,
-                          ),
-                          LiquidGlassBottomBarTab(
-                            icon: Icons.edit_calendar,
-                            label: context.l10n.exams,
-                          ),
-                          LiquidGlassBottomBarTab(
-                            icon: Icons.person,
-                            label: context.l10n.profile,
-                          ),
-                        ],
-                      )
-                    : NavigationBar(
-                        selectedIndex: _currentIndex,
-                        onDestinationSelected: (index) {
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                        },
-                        destinations: [
-                          NavigationDestination(
-                            icon: Icon(Icons.calendar_month_outlined),
-                            selectedIcon: Icon(Icons.calendar_month),
-                            label: context.l10n.schedule,
-                          ),
-                          NavigationDestination(
-                            icon: Icon(Icons.description_outlined),
-                            selectedIcon: Icon(Icons.description),
-                            label: context.l10n.transcript,
-                          ),
-                          NavigationDestination(
-                            icon: Icon(Icons.edit_calendar_outlined),
-                            selectedIcon: Icon(Icons.edit_calendar),
-                            label: context.l10n.exams,
-                          ),
-                          NavigationDestination(
-                            icon: Icon(Icons.person_outline),
-                            selectedIcon: Icon(Icons.person),
-                            label: context.l10n.profile,
-                          ),
-                        ],
-                      )),
+        final showGlassChrome = useLiquidGlass && !useRightRail;
+
+        // ── Glass OFF / large layout: original Material chrome, unchanged ──
+        if (!showGlassChrome) {
+          Widget scaffold = Scaffold(
+            extendBody: false,
+            backgroundColor: hasBg ? Colors.transparent : null,
+            body: useRightRail
+                ? Row(
+                    children: [
+                      _buildLeftNavigationRail(context, useLiquidGlass),
+                      Expanded(child: pageStack),
+                    ],
+                  )
+                : pageStack,
+            bottomNavigationBar: useRightRail
+                ? null
+                : NavigationBar(
+                    selectedIndex: _currentIndex,
+                    onDestinationSelected: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    },
+                    destinations: [
+                      NavigationDestination(
+                        icon: Icon(Icons.calendar_month_outlined),
+                        selectedIcon: Icon(Icons.calendar_month),
+                        label: context.l10n.schedule,
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.description_outlined),
+                        selectedIcon: Icon(Icons.description),
+                        label: context.l10n.transcript,
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.edit_calendar_outlined),
+                        selectedIcon: Icon(Icons.edit_calendar),
+                        label: context.l10n.exams,
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.person_outline),
+                        selectedIcon: Icon(Icons.person),
+                        label: context.l10n.profile,
+                      ),
+                    ],
+                  ),
+          );
+
+          if (!hasBg) return scaffold;
+
+          scaffold = Theme(
+            data: Theme.of(
+              context,
+            ).copyWith(scaffoldBackgroundColor: Colors.transparent),
+            child: scaffold,
+          );
+
+          final bgOpacity = ThemeService().backgroundOpacity;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
+              Opacity(
+                opacity: bgOpacity,
+                child: Image.file(
+                  File(bgPath),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  gaplessPlayback: true,
+                ),
+              ),
+              scaffold,
+            ],
+          );
+        }
+
+        // ── Glass ON (phone): official LiquidGlassScaffold + capsule TabBar ──
+        final scheme = Theme.of(context).colorScheme;
+        final barHeight = 64.0;
+        // Fit compact windows (split-screen / landscape): never wider than
+        // the available width; use 300–420 only when there is room.
+        final availableBarWidth = size.width - 32;
+        final barWidth = availableBarWidth <= 0
+            ? 0.0
+            : (availableBarWidth < 300
+                  ? availableBarWidth
+                  : availableBarWidth.clamp(300.0, 420.0));
+        final bottomPad = MediaQuery.paddingOf(context).bottom;
+
+        final glassShell = GlassStyles.scrollable(
+          child: LiquidGlassScaffold(
+          pixelRatio: 0.9,
+          useSync: true,
+          backgroundColor: hasBg
+              ? Colors.transparent
+              : Theme.of(context).scaffoldBackgroundColor,
+          body: Padding(
+            padding: EdgeInsets.only(bottom: 24 + barHeight + bottomPad),
+            child: pageStack,
+          ),
+          bottomNavigationBar: LiquidGlassTabBar(
+            items: [
+              LiquidGlassTabBarItem(
+                icon: Icons.calendar_month_outlined,
+                selectedIcon: Icons.calendar_month,
+                label: context.l10n.schedule,
+              ),
+              LiquidGlassTabBarItem(
+                icon: Icons.description_outlined,
+                selectedIcon: Icons.description,
+                label: context.l10n.transcript,
+              ),
+              LiquidGlassTabBarItem(
+                icon: Icons.edit_calendar_outlined,
+                selectedIcon: Icons.edit_calendar,
+                label: context.l10n.exams,
+              ),
+              LiquidGlassTabBarItem(
+                icon: Icons.person_outline,
+                selectedIcon: Icons.person,
+                label: context.l10n.profile,
+              ),
+            ],
+            selectedIndex: _currentIndex,
+            onChanged: (index) {
+              setState(() => _currentIndex = index);
+            },
+            width: barWidth,
+            height: barHeight,
+            itemPadding: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            style: LiquidGlassStyle(
+              shape: LiquidGlassShape.continuousRoundedRectangle(
+                cornerRadius: barHeight / 2,
+                clipQuality: LiquidGlassClipQuality.exact,
+                borderWidth: 1,
+                borderColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.12),
+                lightIntensity: 0.9,
+                lightDirection: 62,
+                borderType: const OpticalBorder(
+                  borderSaturation: 1.1,
+                  ambientIntensity: 0.65,
+                ),
+              ),
+              appearance: LiquidGlassAppearance(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black.withValues(alpha: 0.42)
+                    : Colors.white.withValues(alpha: 0.58),
+                blur: const LiquidGlassBlur(sigmaX: 4, sigmaY: 4),
+                saturation: 1.2,
+              ),
+              refraction: const LiquidGlassRefraction(
+                distortion: 0.07,
+                distortionWidth: 22,
+              ),
+            ),
+            itemStyle: LiquidGlassTabItemStyle(
+              selectedColor: scheme.primary,
+              unselectedColor: scheme.onSurface.withValues(alpha: 0.7),
+              iconSize: 24,
+              labelFontSize: 11,
+              iconLabelGap: 2,
+              underGlassIconSize: 28,
+              underGlassLabelFontSize: 11,
+              selectedFontWeight: FontWeight.w700,
+              unselectedFontWeight: FontWeight.w500,
+            ),
+            pillStyle: const LiquidGlassTabPillStyle(
+              mode: LiquidGlassPillMode.both,
+              animated: true,
+            ),
+          ),
+          ),
         );
 
-        if (!hasBg) return scaffold;
-
-        // Wrap with Theme override so child Scaffolds inherit transparent background
-        scaffold = Theme(
-          data: Theme.of(
-            context,
-          ).copyWith(scaffoldBackgroundColor: Colors.transparent),
-          child: scaffold,
-        );
-
-        final bgOpacity = ThemeService().backgroundOpacity;
+        if (!hasBg) return glassShell;
 
         return Stack(
           fit: StackFit.expand,
           children: [
-            // Fallback: normal theme background so it never flashes black
             ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
             Opacity(
-              opacity: bgOpacity,
+              opacity: ThemeService().backgroundOpacity,
               child: Image.file(
                 File(bgPath),
                 fit: BoxFit.cover,
@@ -456,7 +564,12 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                 gaplessPlayback: true,
               ),
             ),
-            scaffold,
+            Theme(
+              data: Theme.of(
+                context,
+              ).copyWith(scaffoldBackgroundColor: Colors.transparent),
+              child: glassShell,
+            ),
           ],
         );
       },

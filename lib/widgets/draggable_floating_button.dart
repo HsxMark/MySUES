@@ -1,7 +1,4 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../services/theme_service.dart';
 
 /// A draggable floating action button for quick schedule navigation.
@@ -161,22 +158,27 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     );
 
     if (isLiquidGlass) {
-      final brightness = MediaQuery.platformBrightnessOf(context);
-      final isDark = brightness == Brightness.dark;
-      return LiquidGlassLayer(
-        settings: LiquidGlassSettings(
-          refractiveIndex: 1.21,
-          thickness: 30,
-          blur: 8,
-          saturation: 1.5,
-          lightIntensity: isDark ? .7 : 1,
-          ambientStrength: isDark ? .2 : .5,
-          lightAngle: math.pi / 4,
-          glassColor: bgColor.withValues(alpha: 0.6),
-        ),
-        child: LiquidGlass.grouped(
-          shape: const LiquidOval(),
-          child: GlassGlow(child: child),
+      // Transparent ball + hairline ring only — no liquid glass fill.
+      // Dark: white ring; light: app theme / system color (colorScheme.primary).
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final ringColor = isDark
+          ? Colors.white
+          : Theme.of(context).colorScheme.primary;
+      return SizedBox(
+        width: _buttonSize,
+        height: _buttonSize,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: ringColor, width: 1.0),
+          ),
+          child: Center(
+            child: Icon(
+              Icons.calendar_today_rounded,
+              color: ringColor,
+              size: 24,
+            ),
+          ),
         ),
       );
     }
