@@ -16,6 +16,7 @@ import 'login_webview_screen.dart'; // Import
 import 'course_catalog_screen.dart';
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
+import '../utils/lunch_session_display_helper.dart';
 import '../utils/screen_breakpoints.dart';
 import '../widgets/study_type_badge.dart';
 import 'package:mysues/l10n/localized_formatters.dart';
@@ -148,6 +149,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   // _injectDemoCourses removed here
+
+  /// 展示层午间分场：关=合并上下午场，开=拆跨午课（不改存储数据）
+  List<Course> _displayCourses(List<Course> source) {
+    return LunchSessionDisplayHelper.prepareForDisplay(
+      source,
+      splitLunch: _currentTable?.splitLunchSession ?? false,
+    );
+  }
 
   String _getTimeRange(Course course) {
     if (course.startTime != null &&
@@ -1581,15 +1590,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           // Generic Course Builder
                           ...() {
                             final List<Widget> widgets = [];
-                            final activeCourses = _courses
-                                .where(
-                                  (c) =>
-                                      c.inWeek(weekNum) &&
-                                      (!c.isHidden ||
-                                          (_currentTable?.showHiddenCourses ??
-                                              false)),
-                                )
-                                .toList();
+                            final activeCourses = _displayCourses(
+                              _courses
+                                  .where(
+                                    (c) =>
+                                        c.inWeek(weekNum) &&
+                                        (!c.isHidden ||
+                                            (_currentTable?.showHiddenCourses ??
+                                                false)),
+                                  )
+                                  .toList(),
+                            );
 
                             // Set to track occupied slots to prevent overlapping
                             // Format: "day-node" e.g. "1-3" (Monday, Node 3)
@@ -1675,16 +1686,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                 w <= _currentTable!.maxWeek;
                                 w++
                               ) {
-                                final futureCourses = _courses
-                                    .where(
-                                      (c) =>
-                                          c.inWeek(w) &&
-                                          (!c.isHidden ||
-                                              (_currentTable
-                                                      ?.showHiddenCourses ??
-                                                  false)),
-                                    )
-                                    .toList();
+                                final futureCourses = _displayCourses(
+                                  _courses
+                                      .where(
+                                        (c) =>
+                                            c.inWeek(w) &&
+                                            (!c.isHidden ||
+                                                (_currentTable
+                                                        ?.showHiddenCourses ??
+                                                    false)),
+                                      )
+                                      .toList(),
+                                );
 
                                 for (var course in futureCourses) {
                                   // Check if this course's slots are already filled

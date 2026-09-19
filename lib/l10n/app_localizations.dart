@@ -2113,6 +2113,24 @@ abstract class AppLocalizations {
   /// **'开启后在课表视图中显示已隐藏的免听课程'**
   String get showHiddenAttendanceExemptCoursesInTheSchedule;
 
+  /// No description provided for @splitLunchSession.
+  ///
+  /// In zh, this message translates to:
+  /// **'午间分场显示'**
+  String get splitLunchSession;
+
+  /// No description provided for @splitLunchSessionHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'开启后跨午课程分为上午场与下午场显示；关闭时合并为一块'**
+  String get splitLunchSessionHint;
+
+  /// No description provided for @lunchBreakLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'午休'**
+  String get lunchBreakLabel;
+
   /// No description provided for @advancedSettings.
   ///
   /// In zh, this message translates to:

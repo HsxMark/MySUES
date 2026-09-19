@@ -16,6 +16,7 @@ import 'login_webview_screen.dart';
 import 'course_catalog_screen.dart';
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
+import '../utils/lunch_session_display_helper.dart';
 import '../widgets/study_type_badge.dart';
 import 'package:mysues/l10n/localized_formatters.dart';
 import 'package:mysues/l10n/l10n.dart';
@@ -245,18 +246,21 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     }
   }
 
-  /// 获取当天需要显示的课程
+  /// 获取当天需要显示的课程（含午间软分割：开=上/下午两场，关=合并）
   List<Course> _getCoursesForDate(DateTime date) {
     final week = _weekForDate(date);
     final dayOfWeek = date.weekday; // 1=Mon ... 7=Sun
-    final filtered = _courses
-        .where(
-          (c) =>
-              c.day == dayOfWeek &&
-              c.inWeek(week) &&
-              (!c.isHidden || (_currentTable?.showHiddenCourses ?? false)),
-        )
-        .toList();
+    final filtered = LunchSessionDisplayHelper.prepareForDisplay(
+      _courses
+          .where(
+            (c) =>
+                c.day == dayOfWeek &&
+                c.inWeek(week) &&
+                (!c.isHidden || (_currentTable?.showHiddenCourses ?? false)),
+          )
+          .toList(),
+      splitLunch: _currentTable?.splitLunchSession ?? false,
+    );
     filtered.sort(
       (a, b) => _courseStartMinutes(a).compareTo(_courseStartMinutes(b)),
     );
