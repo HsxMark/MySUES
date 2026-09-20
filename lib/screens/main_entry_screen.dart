@@ -227,15 +227,23 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
   // 懒加载：只有被访问过的 Tab 才会真正构建，避免首次进入时同时初始化全部页面
   final List<Widget?> _cachedPages = [null, null, null, null];
 
+  // The pages are cached *and* keyed, because caching the instances alone does
+  // not survive a change of ancestors: switching the Liquid Glass switch swaps
+  // the whole shell (Scaffold <-> LiquidGlassScaffold), which recreates every
+  // unkeyed subtree below it and with it the tab State — the selected semester
+  // on the transcript, the exam filter, scroll positions. A GlobalKey makes
+  // Flutter reparent the State instead, the same way
+  // ScheduleViewContainer.containerKey already does for the schedule.
+  final GlobalKey _transcriptKey = GlobalKey();
+  final GlobalKey _examKey = GlobalKey();
+  final GlobalKey _profileKey = GlobalKey();
+
   Widget _getPage(int index) {
-    // Do not drop cached instances when Liquid Glass toggles — that would
-    // dispose tab State (including ScheduleViewContainer). Pages rebuild
-    // glass chrome via ListenableBuilder on ThemeService in their own build.
     _cachedPages[index] ??= switch (index) {
       0 => ScheduleViewContainer(key: ScheduleViewContainer.containerKey),
-      1 => const TranscriptScreen(),
-      2 => const ExamInfoScreen(),
-      3 => const ProfileScreen(),
+      1 => TranscriptScreen(key: _transcriptKey),
+      2 => ExamInfoScreen(key: _examKey),
+      3 => ProfileScreen(key: _profileKey),
       _ => const SizedBox.shrink(),
     };
     return _cachedPages[index]!;
@@ -473,7 +481,10 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           // FAB disappear and drop the user's background image.
           final fallback = Scaffold(
             backgroundColor: hasBg ? Colors.transparent : null,
-            body: pageStack,
+            // Same overscroll opt-out the glass shell applies: the pages still
+            // render frosted BackdropFilter panels here, and those paint black
+            // while a stretching list holds them in their own layer.
+            body: GlassStyles.scrollable(child: pageStack),
             bottomNavigationBar: NavigationBar(
               selectedIndex: _currentIndex,
               onDestinationSelected: (index) {
