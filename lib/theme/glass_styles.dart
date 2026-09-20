@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 /// Glass looks for MySUES — used **only** while the Liquid Glass switch is
 /// on; with the switch off every screen keeps its plain Material path
@@ -12,8 +13,8 @@ import 'package:flutter/material.dart';
 ///   translucent fill, hairline outline, soft shadow. Cards, sheets and
 ///   pop-up menus all use it, because it lays out, scrolls and animates
 ///   without surprises.
-/// * Schedule FAB — intentional **transparent body + hairline ring** (not
-///   shader glass), so the icon stays readable over timetable cells.
+/// * Schedule FAB — liquid glass base + theme/white hairline ring
+///   (readable over the timetable; not a solid opaque button).
 ///
 /// Why the shader glass stays away from ordinary panels (every point below
 /// was reproduced on a Pixel-class Android device, Impeller/Vulkan):
@@ -136,6 +137,55 @@ class GlassStyles {
       // see [scrollable].
       child: GlassStyles.scrollable(
         child: Material(type: MaterialType.transparency, child: child),
+      ),
+    );
+  }
+
+  /// 課表悬浮球 — liquid glass base + theme/white hairline ring.
+  ///
+  /// The ball still refracts the timetable behind it; the ring and a light
+  /// primary/white tint keep it readable on busy grids.
+  static Widget fabShell(
+    BuildContext context, {
+    required Widget child,
+    Color? tint,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = _isDark(context);
+    final ringColor = isDark ? Colors.white : scheme.primary;
+    final glassTint =
+        tint ?? scheme.primary.withValues(alpha: isDark ? 0.35 : 0.42);
+
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: LiquidGlassLens(
+        style: LiquidGlassStyle(
+          shape: LiquidGlassShape.continuousRoundedRectangle(
+            cornerRadius: 28,
+            borderWidth: 1.0,
+            borderColor: ringColor,
+            lightColor: Colors.white,
+            lightIntensity: isDark ? 0.9 : 1.1,
+            lightDirection: 70,
+            borderType: const OpticalBorder(ambientIntensity: 0.7),
+          ),
+          appearance: LiquidGlassAppearance(
+            color: glassTint,
+            blur: const LiquidGlassBlur(sigmaX: 6, sigmaY: 6),
+            saturation: 1.25,
+          ),
+          refraction: const LiquidGlassRefraction(
+            distortion: 0.12,
+            distortionWidth: 22,
+          ),
+        ),
+        child: Center(
+          child: IconTheme(
+            data: IconThemeData(color: ringColor, size: 24),
+            child: child,
+          ),
+        ),
       ),
     );
   }
