@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart';
@@ -40,22 +43,40 @@ class IcsExporter {
     List<TimeDetail> timeDetails
   ) {
     final buffer = StringBuffer();
-    buffer.writeln('BEGIN:VCALENDAR');
-    buffer.writeln('VERSION:2.0');
-    buffer.writeln('PRODID:-//MySUES//Calendar Planner//ZH_CN');
-    buffer.writeln('CALSCALE:GREGORIAN');
-    buffer.writeln('METHOD:PUBLISH');
-    buffer.writeln('X-WR-CALNAME:MySUES 课程表');
-    buffer.writeln('X-WR-TIMEZONE:Asia/Shanghai');
+    void writeLine(String line) => _writeContentLine(buffer, line);
+
+    writeLine('BEGIN:VCALENDAR');
+    writeLine('VERSION:2.0');
+    writeLine('PRODID:-//MySUES//Calendar Planner//ZH_CN');
+    writeLine('CALSCALE:GREGORIAN');
+    writeLine('METHOD:PUBLISH');
+    writeLine('X-WR-CALNAME:MySUES 课程表');
+    writeLine('X-WR-TIMEZONE:Asia/Shanghai');
+
+    writeLine('BEGIN:VTIMEZONE');
+    writeLine('TZID:Asia/Shanghai');
+    writeLine('X-LIC-LOCATION:Asia/Shanghai');
+    writeLine('BEGIN:STANDARD');
+    writeLine('DTSTART:19700101T000000');
+    writeLine('TZOFFSETFROM:+0800');
+    writeLine('TZOFFSETTO:+0800');
+    writeLine('TZNAME:CST');
+    writeLine('END:STANDARD');
+    writeLine('END:VTIMEZONE');
     
     final DateFormat icsDateFormat = DateFormat("yyyyMMdd'T'HHmmss");
     final String nowUtcStr = icsDateFormat.format(DateTime.now().toUtc());
     final String nowStr = '${nowUtcStr}Z';
     
-    // 找出当学期第一周的周一
-    // weekday 1~7 (1 = Mon)
-    final startMonday = currentTable.startDateObj.subtract(
-      Duration(days: currentTable.startDateObj.weekday - 1),
+    // Normalize date-only arithmetic to UTC so device DST rules cannot shift it.
+    final startDate = currentTable.startDateObj;
+    final normalizedStartDate = DateTime.utc(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+    );
+    final startMonday = normalizedStartDate.subtract(
+      Duration(days: normalizedStartDate.weekday - 1),
     );
 
     for (var course in courses) {
@@ -73,39 +94,90 @@ class IcsExporter {
         String endHm = _getCourseEndTime(course, timeDetails);
         
         final startParts = startHm.split(':');
-        final courseStart = DateTime(
-          targetDate.year, targetDate.month, targetDate.day, 
-          int.parse(startParts[0]), int.parse(startParts[1])
+        final courseStart = DateTime.utc(
+          targetDate.year,
+          targetDate.month,
+          targetDate.day,
+          int.parse(startParts[0]),
+          int.parse(startParts[1]),
         );
 
         final endParts = endHm.split(':');
-        final courseEnd = DateTime(
-          targetDate.year, targetDate.month, targetDate.day, 
-          int.parse(endParts[0]), int.parse(endParts[1])
+        final courseEnd = DateTime.utc(
+          targetDate.year,
+          targetDate.month,
+          targetDate.day,
+          int.parse(endParts[0]),
+          int.parse(endParts[1]),
         );
-        
-        // 转换为 UTC 用于 ICS
-        final startUtc = courseStart.toUtc();
-        final endUtc = courseEnd.toUtc();
 
-        buffer.writeln('BEGIN:VEVENT');
-        buffer.writeln('DTSTAMP:$nowStr');
-        buffer.writeln('DTSTART:${icsDateFormat.format(startUtc)}Z');
-        buffer.writeln('DTEND:${icsDateFormat.format(endUtc)}Z');
-        buffer.writeln('SUMMARY:${course.courseName}');
+        writeLine('BEGIN:VEVENT');
+        writeLine('DTSTAMP:$nowStr');
+        writeLine(
+          'DTSTART;TZID=Asia/Shanghai:${icsDateFormat.format(courseStart)}',
+        );
+        writeLine(
+          'DTEND;TZID=Asia/Shanghai:${icsDateFormat.format(courseEnd)}',
+        );
+        writeLine('SUMMARY:${_escapeText(course.courseName)}');
         if (course.room.isNotEmpty) {
-          buffer.writeln('LOCATION:${course.room}');
+          writeLine('LOCATION:${_escapeText(course.room)}');
         }
         
-        String description = '教师: ${course.teacher.isNotEmpty ? course.teacher : '未知'}\\n节次: 第${course.startNode} - ${course.startNode + course.step - 1}节';
-        buffer.writeln('DESCRIPTION:$description');
-        buffer.writeln('UID:mysues_course_${course.id}_week${week}_${targetDate.millisecondsSinceEpoch}@mysues.app');
-        buffer.writeln('END:VEVENT');
+        final description =
+            '教师: ${course.teacher.isNotEmpty ? course.teacher : '未知'}\n'
+            '节次: 第${course.startNode} - '
+            '${course.startNode + course.step - 1}节';
+        writeLine('DESCRIPTION:${_escapeText(description)}');
+        final uidDateMillis = _legacyShanghaiEpochMillis(targetDate);
+        writeLine(
+          'UID:mysues_course_${course.id}_week${week}_'
+          '$uidDateMillis@mysues.app',
+        );
+        writeLine('END:VEVENT');
       }
     }
 
-    buffer.writeln('END:VCALENDAR');
+    writeLine('END:VCALENDAR');
     return buffer.toString();
+  }
+
+  /// Reproduces the legacy UID date component for the app's UTC+08:00 users
+  /// without depending on the device timezone.
+  static int _legacyShanghaiEpochMillis(DateTime date) {
+    return DateTime.utc(date.year, date.month, date.day)
+        .subtract(const Duration(hours: 8))
+        .millisecondsSinceEpoch;
+  }
+
+  static String _escapeText(String value) {
+    return value
+        .replaceAll('\\', '\\\\')
+        .replaceAll('\r\n', '\\n')
+        .replaceAll('\r', '\\n')
+        .replaceAll('\n', '\\n')
+        .replaceAll(';', '\\;')
+        .replaceAll(',', '\\,');
+  }
+
+  static void _writeContentLine(StringBuffer buffer, String line) {
+    const maxOctets = 75;
+    var octetsOnLine = 0;
+
+    for (final rune in line.runes) {
+      final character = String.fromCharCode(rune);
+      final characterOctets = utf8.encode(character).length;
+
+      if (octetsOnLine + characterOctets > maxOctets) {
+        buffer.write('\r\n ');
+        octetsOnLine = 1;
+      }
+
+      buffer.write(character);
+      octetsOnLine += characterOctets;
+    }
+
+    buffer.write('\r\n');
   }
 
   static String _getCourseStartTime(Course course, List<TimeDetail> timeDetails) {
