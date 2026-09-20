@@ -64,4 +64,44 @@ void main() {
     expect(sources.single.id, 42);
     expect(sources.single.step, 8);
   });
+
+  test('editor target for merged pair keeps full range and both source ids', () {
+    final morning = _course(id: 10, startNode: 3, step: 3);
+    final afternoon = _course(id: 11, startNode: 6, step: 5);
+    final display = LunchSessionDisplayHelper.prepareForDisplay(
+      [morning, afternoon],
+      splitLunch: false,
+    ).single;
+    final editor = LunchSessionDisplayHelper.courseForEditor(display, [
+      morning,
+      afternoon,
+    ]);
+    expect(editor.startNode, 3);
+    expect(editor.step, 8);
+    expect(editor.displaySourceIds, containsAll([10, 11]));
+    expect(
+      LunchSessionDisplayHelper.resolveSources(editor, [
+        morning,
+        afternoon,
+      ]).length,
+      2,
+    );
+  });
+
+  test('editor target for split segment resolves to full stored course', () {
+    final long = _course(id: 42, startNode: 3, step: 8);
+    final display = LunchSessionDisplayHelper.prepareForDisplay(
+      [long],
+      splitLunch: true,
+    ).last;
+    final editor = LunchSessionDisplayHelper.courseForEditor(display, [long]);
+    expect(editor.id, 42);
+    expect(editor.startNode, 3);
+    expect(editor.step, 8);
+    // 单源时返回库中对象本身（不污染存储）；sourceIds 由调用方用 resolveSources 得到
+    expect(
+      LunchSessionDisplayHelper.resolveSources(display, [long]).single.id,
+      42,
+    );
+  });
 }

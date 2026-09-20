@@ -132,6 +132,37 @@ class ScheduleDataService {
     await saveCourses(allCourses);
   }
 
+  /// 批量删除课程，只触发一次小组件刷新
+  static Future<void> deleteCourses(List<int> ids) async {
+    if (ids.isEmpty) return;
+    final allCourses = await loadCourses();
+    allCourses.removeWhere((c) => ids.contains(c.id));
+    await saveCourses(allCourses);
+  }
+
+  /// 一次写入：删除 [removeIds] 并加入 [toAdd]（id=0 时自动分配），只刷一次小组件
+  static Future<void> replaceCourses({
+    required List<int> removeIds,
+    required List<Course> toAdd,
+  }) async {
+    final allCourses = await loadCourses();
+    if (removeIds.isNotEmpty) {
+      allCourses.removeWhere((c) => removeIds.contains(c.id));
+    }
+    var maxId = 0;
+    if (allCourses.isNotEmpty) {
+      maxId = allCourses.map((e) => e.id).reduce((a, b) => a > b ? a : b);
+    }
+    for (final course in toAdd) {
+      if (course.id == 0) {
+        maxId += 1;
+        course.id = maxId;
+      }
+      allCourses.add(course);
+    }
+    await saveCourses(allCourses);
+  }
+
   // --- Semester Course Catalog Operations ---
 
   static Future<List<SemesterCourseCatalog>> loadCourseCatalogs() async {

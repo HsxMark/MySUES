@@ -267,11 +267,6 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     return filtered;
   }
 
-  /// 布局用展示副本 → 库中整课（编辑/导出/详情必须用这个）
-  Course _sourceCourse(Course display) {
-    return LunchSessionDisplayHelper.resolveSource(display, _courses);
-  }
-
   /// 获取时间轴的小时列表
   List<int> _getTimelineHours() {
     if (_timeDetails.isEmpty) {
@@ -293,8 +288,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
-    // 午间分场展示副本可能只含半场节点；详情/编辑/导出一律回源到库中整课
-    final source = _sourceCourse(course);
+    // 必须传入展示项（含 displaySourceIds），否则合并卡删除/导出/编辑会丢下午场
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -338,7 +332,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () => _deleteCourse(context, source),
+                      onPressed: () => _deleteCourse(context, course),
                       child: Text(
                         context.l10n.delete,
                         style: TextStyle(color: Colors.red, fontSize: 16),
@@ -351,7 +345,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             try {
                               final exportSources =
                                   LunchSessionDisplayHelper.resolveSources(
-                                    source,
+                                    course,
                                     _courses,
                                   );
                               await IcsExporter.exportCourses(
@@ -385,7 +379,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         TextButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            _editCourse(context, source);
+                            _editCourse(context, course);
                           },
                           child: Text(
                             context.l10n.edit,
@@ -403,7 +397,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                   vertical: 4,
                 ),
                 child: Text(
-                  source.courseName,
+                  course.courseName,
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -444,8 +438,8 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             _buildDetailRow(
                               icon: Icons.calendar_today_outlined,
                               content: context.l10n.weekRange(
-                                source.startWeek,
-                                source.endWeek,
+                                course.startWeek,
+                                course.endWeek,
                               ),
                               color: Colors.redAccent,
                             ),
@@ -453,28 +447,28 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                             _buildDetailRow(
                               icon: Icons.access_time,
                               content: context.l10n.courseScheduleLine(
-                                localizedWeekdayLabel(context.l10n, source.day),
+                                localizedWeekdayLabel(context.l10n, course.day),
                                 context.l10n.periodRange(
-                                  source.startNode,
-                                  source.startNode + source.step - 1,
+                                  course.startNode,
+                                  course.startNode + course.step - 1,
                                 ),
-                                _getTimeRange(source),
+                                _getTimeRange(course),
                               ),
                               color: Colors.redAccent,
                             ),
-                            if (source.teacher.isNotEmpty) ...[
+                            if (course.teacher.isNotEmpty) ...[
                               const Divider(height: 1, indent: 56),
                               _buildDetailRow(
                                 icon: Icons.person_outline,
-                                content: source.teacher,
+                                content: course.teacher,
                                 color: Colors.redAccent,
                               ),
                             ],
-                            if (source.room.isNotEmpty) ...[
+                            if (course.room.isNotEmpty) ...[
                               const Divider(height: 1, indent: 56),
                               _buildDetailRow(
                                 icon: Icons.location_on_outlined,
-                                content: source.room,
+                                content: course.room,
                                 color: Colors.redAccent,
                               ),
                             ],
@@ -496,7 +490,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                               color: Colors.redAccent,
                               onTap: () {
                                 Clipboard.setData(
-                                  ClipboardData(text: source.courseName),
+                                  ClipboardData(text: course.courseName),
                                 );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -517,16 +511,16 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                                     .courseScheduleLine(
                                       localizedWeekdayLabel(
                                         context.l10n,
-                                        source.day,
+                                        course.day,
                                       ),
                                       context.l10n.periodRange(
-                                        source.startNode,
-                                        source.startNode + source.step - 1,
+                                        course.startNode,
+                                        course.startNode + course.step - 1,
                                       ),
-                                      _getTimeRange(source),
+                                      _getTimeRange(course),
                                     );
                                 final info =
-                                    '${source.courseName}\n$schedule\n${source.teacher} ${source.room}';
+                                    '${course.courseName}\n$schedule\n${course.teacher} ${course.room}';
                                 Clipboard.setData(ClipboardData(text: info));
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -640,18 +634,23 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   Future<void> _editCourse(BuildContext context, Course course) async {
-    final sources = LunchSessionDisplayHelper.resolveSources(
+    final editTarget = LunchSessionDisplayHelper.courseForEditor(
       course,
       _courses,
     );
+    final sourceIds = editTarget.displaySourceIds.isNotEmpty
+        ? editTarget.displaySourceIds
+        : LunchSessionDisplayHelper.resolveSources(
+            course,
+            _courses,
+          ).map((s) => s.id).toList();
+
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
+      MaterialPageRoute(builder: (c) => AddCourseScreen(course: editTarget)),
     );
     if (result == 'deleted') {
-      for (final s in sources) {
-        await ScheduleDataService.deleteCourse(s.id);
-      }
+      await LunchSessionDisplayHelper.deleteDisplayCourse(course, _courses);
       _initData();
       return;
     }
@@ -659,7 +658,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
       await LunchSessionDisplayHelper.persistEditedCourse(
         result,
         _courses,
-        sourceIds: sources.map((s) => s.id).toList(),
+        sourceIds: sourceIds,
       );
       _initData();
     }

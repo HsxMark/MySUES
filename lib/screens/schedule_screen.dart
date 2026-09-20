@@ -158,11 +158,6 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  /// 布局用展示副本 → 库中整课（编辑/导出/详情必须用这个）
-  Course _sourceCourse(Course display) {
-    return LunchSessionDisplayHelper.resolveSource(display, _courses);
-  }
-
   String _getTimeRange(Course course) {
     if (course.startTime != null &&
         course.endTime != null &&
@@ -328,13 +323,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
-    // 午间分场展示副本可能只含半场节点；详情/编辑/导出一律回源到库中整课
-    final source = _sourceCourse(course);
+    // 必须传入展示项（含 displaySourceIds），否则合并卡删除/导出/编辑会丢下午场
     if (_useLargeScreenDetailPanel(context)) {
-      _showCourseDetailSidePanel(context, source);
+      _showCourseDetailSidePanel(context, course);
       return;
     }
-    _showCourseDetailBottomSheet(context, source);
+    _showCourseDetailBottomSheet(context, course);
   }
 
   void _showCourseDetailBottomSheet(BuildContext context, Course course) {
@@ -768,20 +762,25 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Future<void> _editCourse(BuildContext context, Course course) async {
-    final sources = LunchSessionDisplayHelper.resolveSources(
+    // course 为展示项；编辑器目标与 sourceIds 由 helper 统一解析
+    final editTarget = LunchSessionDisplayHelper.courseForEditor(
       course,
       _courses,
     );
+    final sourceIds = editTarget.displaySourceIds.isNotEmpty
+        ? editTarget.displaySourceIds
+        : LunchSessionDisplayHelper.resolveSources(
+            course,
+            _courses,
+          ).map((s) => s.id).toList();
+
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
+      MaterialPageRoute(builder: (c) => AddCourseScreen(course: editTarget)),
     );
 
-    // If result is strict string 'deleted', it was deleted
     if (result == 'deleted') {
-      for (final s in sources) {
-        await ScheduleDataService.deleteCourse(s.id);
-      }
+      await LunchSessionDisplayHelper.deleteDisplayCourse(course, _courses);
       _initData();
       return;
     }
@@ -790,7 +789,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       await LunchSessionDisplayHelper.persistEditedCourse(
         result,
         _courses,
-        sourceIds: sources.map((s) => s.id).toList(),
+        sourceIds: sourceIds,
       );
       _initData();
     }
@@ -1690,12 +1689,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                   colIndex: flexColIndex[course] ?? 0,
                                   totalCols: flexTotalCols[course] ?? 1,
                                   onTap: () {
-                                    final source = _sourceCourse(course);
+                                    // 传展示项，保留 pair id
                                     widget.onCourseTap?.call(
-                                      source,
+                                      course,
                                       _currentWeek,
                                     );
-                                    _showCourseDetail(context, source);
+                                    _showCourseDetail(context, course);
                                   },
                                 ),
                               );
@@ -1749,9 +1748,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                         dayColWidth: dayColWidth,
                                         isNonCurrentWeek: true,
                                         onTap: () {
-                                          final source = _sourceCourse(course);
-                                          widget.onCourseTap?.call(source, w);
-                                          _showCourseDetail(context, source);
+                                          widget.onCourseTap?.call(course, w);
+                                          _showCourseDetail(context, course);
                                         },
                                       ),
                                     );
@@ -1846,9 +1844,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         onTap:
             onTap ??
             () {
-              final source = _sourceCourse(course);
-              widget.onCourseTap?.call(source, _currentWeek);
-              _showCourseDetail(context, source);
+              widget.onCourseTap?.call(course, _currentWeek);
+              _showCourseDetail(context, course);
             },
         child: Container(
           margin: const EdgeInsets.all(1),

@@ -49,20 +49,50 @@ class LunchSessionDisplayHelper {
     return list.isEmpty ? display : list.first;
   }
 
+  /// 打开编辑器时使用的课程对象。
+  /// - 单源（含分场展示副本）：库中完整课
+  /// - 合并卡（多源）：保留合并后的节次范围，并携带全部源 id
+  static Course courseForEditor(Course display, List<Course> stored) {
+    final sources = resolveSources(display, stored);
+    if (sources.length == 1) {
+      return sources.first;
+    }
+    final editor = Course(
+      id: sources.isEmpty ? display.id : sources.first.id,
+      courseName: display.courseName,
+      day: display.day,
+      room: display.room,
+      teacher: display.teacher,
+      startNode: display.startNode,
+      step: display.step,
+      startWeek: display.startWeek,
+      endWeek: display.endWeek,
+      type: display.type,
+      color: display.color,
+      tableId: display.tableId,
+      startTime: display.startTime,
+      endTime: display.endTime,
+      studyType: display.studyType,
+      isHidden: display.isHidden,
+    );
+    editor.displaySourceIds = sources.map((s) => s.id).toList();
+    return editor;
+  }
+
   /// 删除展示项对应的全部库内课程（合并卡会删掉上、下午两条）。
+  /// 一次写入，只触发一次小组件刷新。
   static Future<void> deleteDisplayCourse(
     Course display,
     List<Course> stored,
   ) async {
     final sources = resolveSources(display, stored);
-    for (final s in sources) {
-      await ScheduleDataService.deleteCourse(s.id);
-    }
+    await ScheduleDataService.deleteCourses(sources.map((s) => s.id).toList());
   }
 
   /// 将编辑结果写回库。
   /// - 单源：update 原记录
-  /// - 多源（合并半场）：删掉旧半场后，按新的节次范围重写（仍跨午则继续拆成两条）
+  /// - 多源（合并半场）：一次事务内删旧半场并按新节次重写；
+  ///   仍跨午则拆成两条，且 **按半场裁剪自定义时间**，避免整课时间写入两半。
   ///
   /// [sourceIds]：编辑器返回的 Course 可能已丢失展示层字段，
   /// 由调用方传入打开编辑前解析到的库内源 id。
@@ -87,14 +117,21 @@ class LunchSessionDisplayHelper {
       return;
     }
 
-    for (final s in sources) {
-      await ScheduleDataService.deleteCourse(s.id);
-    }
-
     final start = edited.startNode;
     final endNode = edited.startNode + edited.step - 1;
+    const morningLast = BuildingLunchBoundary.morningLastNode;
+    const afternoonFirst = BuildingLunchBoundary.afternoonFirstNode;
 
-    Course make({required int startNode, required int step}) {
+    final hasCustomTimes =
+        (edited.startTime != null && edited.startTime!.isNotEmpty) ||
+        (edited.endTime != null && edited.endTime!.isNotEmpty);
+
+    Course make({
+      required int startNode,
+      required int step,
+      String? startTime,
+      String? endTime,
+    }) {
       return Course(
         courseName: edited.courseName,
         day: edited.day,
@@ -107,34 +144,57 @@ class LunchSessionDisplayHelper {
         type: edited.type,
         color: edited.color,
         tableId: edited.tableId,
-        startTime: edited.startTime,
-        endTime: edited.endTime,
+        startTime: startTime,
+        endTime: endTime,
         studyType: edited.studyType,
         isHidden: edited.isHidden,
       );
     }
 
+    final toAdd = <Course>[];
+
     if (BuildingLunchBoundary.crossesLunchByNodes(start, endNode)) {
-      final morningEnd = BuildingLunchBoundary.morningLastNode;
-      final afternoonStart = BuildingLunchBoundary.afternoonFirstNode;
-      if (start <= morningEnd) {
-        await ScheduleDataService.addCourse(
-          make(startNode: start, step: morningEnd - start + 1),
+      // 上午场：开始沿用整课 start；结束用该楼下课（勿把下午 end 写进上午）
+      if (start <= morningLast) {
+        toAdd.add(
+          make(
+            startNode: start,
+            step: morningLast - start + 1,
+            startTime: hasCustomTimes ? edited.startTime : null,
+            endTime: hasCustomTimes
+                ? BuildingLunchBoundary.morningEndForRoom(edited.room)
+                : null,
+          ),
         );
       }
-      if (endNode >= afternoonStart) {
-        await ScheduleDataService.addCourse(
+      // 下午场：开始 13:20；结束沿用整课 end
+      if (endNode >= afternoonFirst) {
+        toAdd.add(
           make(
-            startNode: afternoonStart,
-            step: endNode - afternoonStart + 1,
+            startNode: afternoonFirst,
+            step: endNode - afternoonFirst + 1,
+            startTime: hasCustomTimes
+                ? BuildingLunchBoundary.afternoonStart()
+                : null,
+            endTime: hasCustomTimes ? edited.endTime : null,
           ),
         );
       }
     } else {
-      await ScheduleDataService.addCourse(
-        make(startNode: start, step: edited.step),
+      toAdd.add(
+        make(
+          startNode: start,
+          step: edited.step,
+          startTime: edited.startTime,
+          endTime: edited.endTime,
+        ),
       );
     }
+
+    await ScheduleDataService.replaceCourses(
+      removeIds: sources.map((s) => s.id).toList(),
+      toAdd: toAdd,
+    );
   }
 
   /// 是否跨午（节次法；有自定义起止时间时用时间法）
