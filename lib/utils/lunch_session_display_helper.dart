@@ -1,10 +1,14 @@
 import '../models/course.dart';
+import '../services/schedule_service.dart';
 import 'building_lunch_boundary.dart';
 
 /// 课表显示层的午间分场处理（不改存储数据、不改解析逻辑）。
 ///
 /// - 开关关（默认）：把导入时被拆成「上午场 + 下午场」的同一门课视觉合并成一块。
 /// - 开关开：跨午长课拆成上/下午两张卡；已拆数据保持两场。
+///
+/// 合并展示项通过 [Course.displaySourceIds] 携带全部库内源 id，
+/// 删除/导出/编辑必须对整组源记录生效，不能只操作上午半场。
 class LunchSessionDisplayHelper {
   /// 为周课表准备展示用课程列表。
   static List<Course> prepareForDisplay(
@@ -17,13 +21,120 @@ class LunchSessionDisplayHelper {
     return _mergeLunchHalves(courses);
   }
 
-  /// 展示副本只用于布局（可能被裁成半场且复用库内 id）。
-  /// 详情 / 编辑 / 导出 / 删除前必须先回源到存储中的整课，避免用半截数据覆盖。
-  static Course resolveSource(Course display, List<Course> stored) {
-    for (final c in stored) {
-      if (c.id == display.id) return c;
+  /// 展示项 → 库中源课程列表（合并卡可能对应上下两条）。
+  static List<Course> resolveSources(Course display, List<Course> stored) {
+    final ids = <int>{};
+    if (display.displaySourceIds.isNotEmpty) {
+      ids.addAll(display.displaySourceIds.where((id) => id != 0));
+    } else if (display.id != 0) {
+      ids.add(display.id);
     }
-    return display;
+    if (ids.isEmpty) return [display];
+
+    final result = <Course>[];
+    for (final id in ids) {
+      for (final c in stored) {
+        if (c.id == id) {
+          result.add(c);
+          break;
+        }
+      }
+    }
+    return result.isEmpty ? [display] : result;
+  }
+
+  /// 单条源课程（详情文案等）；合并卡时取上午场。
+  static Course resolveSource(Course display, List<Course> stored) {
+    final list = resolveSources(display, stored);
+    return list.isEmpty ? display : list.first;
+  }
+
+  /// 删除展示项对应的全部库内课程（合并卡会删掉上、下午两条）。
+  static Future<void> deleteDisplayCourse(
+    Course display,
+    List<Course> stored,
+  ) async {
+    final sources = resolveSources(display, stored);
+    for (final s in sources) {
+      await ScheduleDataService.deleteCourse(s.id);
+    }
+  }
+
+  /// 将编辑结果写回库。
+  /// - 单源：update 原记录
+  /// - 多源（合并半场）：删掉旧半场后，按新的节次范围重写（仍跨午则继续拆成两条）
+  ///
+  /// [sourceIds]：编辑器返回的 Course 可能已丢失展示层字段，
+  /// 由调用方传入打开编辑前解析到的库内源 id。
+  static Future<void> persistEditedCourse(
+    Course edited,
+    List<Course> stored, {
+    List<int>? sourceIds,
+  }) async {
+    if (sourceIds != null && sourceIds.isNotEmpty) {
+      edited.displaySourceIds = sourceIds.where((id) => id != 0).toList();
+    }
+    final sources = resolveSources(edited, stored);
+
+    if (sources.length <= 1) {
+      final id = sources.isEmpty ? edited.id : sources.first.id;
+      if (id != 0) {
+        edited.id = id;
+        await ScheduleDataService.updateCourse(edited);
+        return;
+      }
+      await ScheduleDataService.addCourse(edited);
+      return;
+    }
+
+    for (final s in sources) {
+      await ScheduleDataService.deleteCourse(s.id);
+    }
+
+    final start = edited.startNode;
+    final endNode = edited.startNode + edited.step - 1;
+
+    Course make({required int startNode, required int step}) {
+      return Course(
+        courseName: edited.courseName,
+        day: edited.day,
+        room: edited.room,
+        teacher: edited.teacher,
+        startNode: startNode,
+        step: step,
+        startWeek: edited.startWeek,
+        endWeek: edited.endWeek,
+        type: edited.type,
+        color: edited.color,
+        tableId: edited.tableId,
+        startTime: edited.startTime,
+        endTime: edited.endTime,
+        studyType: edited.studyType,
+        isHidden: edited.isHidden,
+      );
+    }
+
+    if (BuildingLunchBoundary.crossesLunchByNodes(start, endNode)) {
+      final morningEnd = BuildingLunchBoundary.morningLastNode;
+      final afternoonStart = BuildingLunchBoundary.afternoonFirstNode;
+      if (start <= morningEnd) {
+        await ScheduleDataService.addCourse(
+          make(startNode: start, step: morningEnd - start + 1),
+        );
+      }
+      if (endNode >= afternoonStart) {
+        await ScheduleDataService.addCourse(
+          make(
+            startNode: afternoonStart,
+            step: endNode - afternoonStart + 1,
+          ),
+        );
+      }
+    } else {
+      await ScheduleDataService.addCourse(
+        make(startNode: start, step: edited.step),
+      );
+    }
   }
 
   /// 是否跨午（节次法；有自定义起止时间时用时间法）
@@ -57,7 +168,6 @@ class LunchSessionDisplayHelper {
       const morningLast = BuildingLunchBoundary.morningLastNode;
       const afternoonFirst = BuildingLunchBoundary.afternoonFirstNode;
 
-      // 按节次裁剪，避免「时间跨午但节次未跨」时错误扩格
       final morningStart = c.startNode;
       final morningEnd = endNode < morningLast ? endNode : morningLast;
       final afternoonStart =
@@ -71,6 +181,7 @@ class LunchSessionDisplayHelper {
       final cutsAtLunchStart = c.startNode < afternoonFirst;
 
       var added = false;
+      final sourceIds = [if (c.id != 0) c.id];
 
       if (morningStart <= morningLast && morningStart <= morningEnd) {
         result.add(
@@ -82,6 +193,7 @@ class LunchSessionDisplayHelper {
             endTime: hasCustomTimes && cutsAtLunchEnd
                 ? BuildingLunchBoundary.morningEndForRoom(c.room)
                 : c.endTime,
+            displaySourceIds: sourceIds,
           ),
         );
         added = true;
@@ -97,6 +209,7 @@ class LunchSessionDisplayHelper {
                 ? BuildingLunchBoundary.afternoonStart()
                 : c.startTime,
             endTime: c.endTime,
+            displaySourceIds: sourceIds,
           ),
         );
         added = true;
@@ -110,8 +223,6 @@ class LunchSessionDisplayHelper {
   }
 
   /// 开关关：将「上午场结束于第5节 + 下午场从第6节开始」的同门课合并为一块
-  ///
-  /// 两趟扫描：先配对再补未匹配项，避免存储顺序为「下午在前、上午在后」时漏合并。
   static List<Course> _mergeLunchHalves(List<Course> courses) {
     final result = <Course>[];
     final used = <int>{};
@@ -175,6 +286,10 @@ class LunchSessionDisplayHelper {
       step: endNode - startNode + 1,
       startTime: startTime,
       endTime: endTime,
+      displaySourceIds: [
+        if (morning.id != 0) morning.id,
+        if (afternoon.id != 0) afternoon.id,
+      ],
     );
   }
 
@@ -184,8 +299,9 @@ class LunchSessionDisplayHelper {
     required int step,
     String? startTime,
     String? endTime,
+    List<int> displaySourceIds = const [],
   }) {
-    return Course(
+    final copy = Course(
       id: source.id,
       courseName: source.courseName,
       day: source.day,
@@ -203,6 +319,8 @@ class LunchSessionDisplayHelper {
       studyType: source.studyType,
       isHidden: source.isHidden,
     );
+    copy.displaySourceIds = displaySourceIds;
+    return copy;
   }
 
   static int? _parseMinutes(String? time) {

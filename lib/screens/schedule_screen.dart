@@ -501,12 +501,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                   TextButton(
                     onPressed: () async {
                       try {
+                        final exportSources =
+                            LunchSessionDisplayHelper.resolveSources(
+                              course,
+                              _courses,
+                            );
                         await IcsExporter.exportCourses(
                           context,
-                          [course],
+                          exportSources,
                           _currentTable!,
                           _timeDetails,
-                          fileName: 'mysues_course_${course.id}.ics',
+                          fileName:
+                              'mysues_course_${exportSources.first.id}.ics',
                         );
                       } catch (e) {
                         if (context.mounted) {
@@ -744,7 +750,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
             onPressed: () async {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Close sheet
-              await ScheduleDataService.deleteCourse(course.id);
+              // 合并卡会同时删除库内上午场+下午场
+              await LunchSessionDisplayHelper.deleteDisplayCourse(
+                course,
+                _courses,
+              );
               _initData();
             },
             child: Text(
@@ -758,6 +768,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Future<void> _editCourse(BuildContext context, Course course) async {
+    final sources = LunchSessionDisplayHelper.resolveSources(
+      course,
+      _courses,
+    );
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
@@ -765,12 +779,19 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
     // If result is strict string 'deleted', it was deleted
     if (result == 'deleted') {
+      for (final s in sources) {
+        await ScheduleDataService.deleteCourse(s.id);
+      }
       _initData();
       return;
     }
 
     if (result != null && result is Course) {
-      await ScheduleDataService.updateCourse(result);
+      await LunchSessionDisplayHelper.persistEditedCourse(
+        result,
+        _courses,
+        sourceIds: sources.map((s) => s.id).toList(),
+      );
       _initData();
     }
   }
