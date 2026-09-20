@@ -581,7 +581,16 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
           ),
         );
 
-        if (!hasBg) return glassShell;
+        // The schedule ball is painted up here, above the shell: a lens inside
+        // LiquidGlassScaffold's body never renders (see GlassBallOverlay).
+        final ballOverlay = GlassBallOverlay(visible: _currentIndex == 0);
+
+        if (!hasBg) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [glassShell, ballOverlay],
+          );
+        }
 
         return Stack(
           fit: StackFit.expand,
@@ -603,6 +612,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
               ).copyWith(scaffoldBackgroundColor: Colors.transparent),
               child: glassShell,
             ),
+            ballOverlay,
           ],
         );
       },

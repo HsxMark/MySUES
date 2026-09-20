@@ -64,6 +64,38 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     }
   }
 
+  @override
+  void dispose() {
+    GlassBallAnchor.instance.report(null);
+    super.dispose();
+  }
+
+  /// Hands the ball's screen rect to the overlay that paints its glass.
+  ///
+  /// The glass itself cannot be drawn here: this button lives inside
+  /// `LiquidGlassScaffold`'s body, which the shell hands to `LiquidGlassView`
+  /// as the widget it captures, and a lens inside that capture renders
+  /// nothing. The overlay draws it above the shell instead.
+  ///
+  /// The rect is measured off the ball's own render box (see
+  /// [GlassStyles.ballKey]) after layout, so it cannot drift from the real
+  /// position the way reconstructing it from a parent origin did.
+  void _publishRect(bool isLiquidGlass) {
+    if (!isLiquidGlass) {
+      GlassBallAnchor.instance.report(null);
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = GlassStyles.ballKey.currentContext?.findRenderObject();
+      if (box is RenderBox && box.hasSize) {
+        GlassBallAnchor.instance.report(
+          box.localToGlobal(Offset.zero) & box.size,
+        );
+      }
+    });
+  }
+
   void _ensureInitialized(BoxConstraints constraints) {
     if (_initialized) {
       // Re-clamp on size changes
@@ -90,6 +122,7 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     return LayoutBuilder(
       builder: (context, constraints) {
         _ensureInitialized(constraints);
+        _publishRect(isLiquidGlass);
 
         return SizedBox(
           width: constraints.maxWidth,
@@ -101,6 +134,9 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
                 left: _dx,
                 top: _dy,
                 child: GestureDetector(
+                  // The glass visual is painted by the overlay, so the only
+                  // thing here is the target — it has to claim the touches.
+                  behavior: HitTestBehavior.opaque,
                   onPanStart: (_) {
                     _isDragging = false;
                   },
@@ -128,7 +164,10 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
                       widget.onTap();
                     }
                 },
-                child: _buildButton(theme, colorScheme, isLiquidGlass),
+                child: KeyedSubtree(
+                  key: GlassStyles.ballKey,
+                  child: _buildButton(theme, colorScheme, isLiquidGlass),
+                ),
               ),
             ),
           ],
@@ -159,11 +198,9 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     );
 
     if (isLiquidGlass) {
-      // Liquid glass base + theme/white hairline ring + primary tint.
-      return GlassStyles.fabShell(
-        context,
-        child: const Icon(Icons.calendar_today_rounded, size: 24),
-      );
+      // The ball's glass, ring and icon are all painted by GlassBallOverlay
+      // above the shell — see [_publishRect]. This is just the hit area.
+      return const SizedBox(width: _buttonSize, height: _buttonSize);
     }
 
     return Container(

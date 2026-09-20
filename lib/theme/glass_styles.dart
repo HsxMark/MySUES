@@ -13,8 +13,8 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 ///   translucent fill, hairline outline, soft shadow. Cards, sheets and
 ///   pop-up menus all use it, because it lays out, scrolls and animates
 ///   without surprises.
-/// * Schedule FAB — liquid glass base + theme/white hairline ring
-///   (readable over the timetable; not a solid opaque button).
+/// * [glassBall] — the schedule FAB: a real shader lens with the timetable
+///   refracting through it, and the ring + icon drawn by Flutter above it.
 ///
 /// Why the shader glass stays away from ordinary panels (every point below
 /// was reproduced on a Pixel-class Android device, Impeller/Vulkan):
@@ -30,6 +30,12 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 ///   lens paint a solid black band.
 class GlassStyles {
   GlassStyles._();
+
+  /// The ball's own box, keyed so the overlay can *measure* it instead of
+  /// reconstructing its position from a parent origin and the stored offset —
+  /// that arithmetic was measurably wrong (the ball landed 200 px off after a
+  /// shell rebuild), while measuring the real render box cannot drift.
+  static final GlobalKey ballKey = GlobalKey();
 
   static bool _isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
@@ -141,51 +147,178 @@ class GlassStyles {
     );
   }
 
-  /// 課表悬浮球 — liquid glass base + theme/white hairline ring.
+  /// The schedule FAB ball: a shader lens as the base, with the hairline ring
+  /// and the icon painted by Flutter above it.
   ///
-  /// The ball still refracts the timetable behind it; the ring and a light
-  /// primary/white tint keep it readable on busy grids.
-  static Widget fabShell(
+  /// The ring is deliberately **not** the lens' own border. That one is an
+  /// optical rim shaped by light intensity and ambient strength, not a
+  /// constant hairline — the 1 px outline this widget is recognised by has to
+  /// stay a plain 1 px outline. The child therefore inherits the ring colour
+  /// and sits on the lens, exactly as the non-glass button draws it.
+  ///
+  /// ## Known limitation: this lens does not render in the glass shell
+  ///
+  /// Measured on the Xiaomi Pad 5 (Android 14, Impeller/Vulkan, package
+  /// 4.3.1): inside `LiquidGlassScaffold`'s body the lens paints **nothing**.
+  /// A screenshot with the ball and the same screenshot with the ball dragged
+  /// away are byte-identical at eight points sampled from the centre out to
+  /// r=40; only the Flutter-drawn ring and icon differ. The same holds for a
+  /// minimal app: a `LiquidGlassLens` over a striped backdrop renders as soon
+  /// as it is a sibling of the scaffold, and stays blank inside it.
+  ///
+  /// The reason is in the shell: `LiquidGlassScaffold` hands its `body` to
+  /// `LiquidGlassView` as the `backgroundWidget` — the widget that gets
+  /// captured — so anything placed in the body, this ball included, sits
+  /// inside the captured image and its own glass never reaches the screen.
+  ///
+  /// Consequences, until the ball moves out of the body or off the library:
+  /// the numbers below are inert, and what the user actually sees is the 1 px
+  /// ring plus the icon.
+  static Widget glassBall(
     BuildContext context, {
     required Widget child,
-    Color? tint,
+    double size = 56,
   }) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = _isDark(context);
     final ringColor = isDark ? Colors.white : scheme.primary;
-    final glassTint =
-        tint ?? scheme.primary.withValues(alpha: isDark ? 0.35 : 0.42);
 
     return SizedBox(
-      width: 56,
-      height: 56,
-      child: LiquidGlassLens(
-        style: LiquidGlassStyle(
-          shape: LiquidGlassShape.continuousRoundedRectangle(
-            cornerRadius: 28,
-            borderWidth: 1.0,
-            borderColor: ringColor,
-            lightColor: Colors.white,
-            lightIntensity: isDark ? 0.9 : 1.1,
-            lightDirection: 70,
-            borderType: const OpticalBorder(ambientIntensity: 0.7),
+      width: size,
+      height: size,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: LiquidGlassLens(
+              style: LiquidGlassStyle(
+                // The lens' own optical rim stays on, *under* the Flutter
+                // outline: it is the lit edge that still reads as glass on a
+                // flat background, where a bare blur is invisible. Values are
+                // the package's own tuned FAB rim.
+                shape: LiquidGlassShape.roundedRectangle(
+                  cornerRadius: size / 2,
+                  borderWidth: 1.2,
+                  lightIntensity: 1.2,
+                  lightDirection: 80,
+                  borderType: const OpticalBorder(
+                    borderSaturation: 1.3,
+                    ambientIntensity: 1.0,
+                    borderSolidity: 0.4,
+                  ),
+                ),
+                appearance: LiquidGlassAppearance(
+                  // Thin, neutral tint. The glass has to stay transparent
+                  // enough to be glass — a heavier fill reads as a frosted
+                  // disc, which is the look this deliberately avoids.
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.16)
+                      : Colors.white.withValues(alpha: 0.13),
+                  // Frost, but only just: the refraction lives in a band
+                  // hugging the rim, and a heavy blur smears it away.
+                  blur: const LiquidGlassBlur(sigmaX: 6, sigmaY: 6),
+                  saturation: 1.5,
+                  // No contact shadow: around a ball this small it reads as a
+                  // dirty smudge rather than depth.
+                ),
+                // Physical refraction (Snell's law off a 3D surface normal):
+                // `refraction` is a real refractive index and `depth` is a
+                // straight strength dial, unlike the legacy anchor distortion
+                // whose shader factor `1 + d*100 * pow(t, d*100)` quietly
+                // collapses back to 1 past d ~ 0.2.
+                //
+                // Inert today — see the note on [glassBall]: the shell's body
+                // is the capture source, so this lens never reaches the screen.
+                refraction: const LiquidGlassRefraction(
+                  refractionType: OpticalRefraction(
+                    refraction: 1.7,
+                    refractionWidth: 40,
+                    depth: 0.45,
+                  ),
+                  chromaticAberration: 0,
+                ),
+              ),
+            ),
           ),
-          appearance: LiquidGlassAppearance(
-            color: glassTint,
-            blur: const LiquidGlassBlur(sigmaX: 6, sigmaY: 6),
-            saturation: 1.25,
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: ringColor, width: 1.0),
+              ),
+              child: Center(
+                child: IconTheme.merge(
+                  data: IconThemeData(color: ringColor),
+                  child: child,
+                ),
+              ),
+            ),
           ),
-          refraction: const LiquidGlassRefraction(
-            distortion: 0.12,
-            distortionWidth: 22,
-          ),
-        ),
-        child: Center(
-          child: IconTheme(
-            data: IconThemeData(color: ringColor, size: 24),
-            child: child,
-          ),
-        ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Where the schedule ball currently is, in screen coordinates.
+///
+/// The glass cannot be painted where the button lives: `LiquidGlassScaffold`
+/// hands its `body` to `LiquidGlassView` as the widget it captures, and a lens
+/// inside that capture renders nothing (measured on Android/Impeller — with the
+/// ball and without it, the ball's interior is pixel-identical). So the button
+/// reports its rect here and [GlassBallOverlay] paints the ball above the
+/// shell, where a lens does render.
+class GlassBallAnchor extends ValueNotifier<Rect?> {
+  GlassBallAnchor._() : super(null);
+
+  static final GlassBallAnchor instance = GlassBallAnchor._();
+
+  void report(Rect? rect) {
+    if (rect != value) value = rect;
+  }
+}
+
+/// The schedule ball, drawn above the glass shell.
+///
+/// Mount it as the last child of the shell's `Stack` (and keep the button
+/// itself as the invisible hit area). Never takes a pointer: the drag and tap
+/// belong to the button underneath.
+class GlassBallOverlay extends StatelessWidget {
+  const GlassBallOverlay({super.key, required this.visible});
+
+  /// Whether the schedule tab is the one on screen.
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!visible) return const SizedBox.shrink();
+
+    // Re-measure the ball's real box each time this builds (it builds when the
+    // ball is shown, hidden or moved), so a shell relayout that the button did
+    // not hear about cannot leave the glass behind.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final box = GlassStyles.ballKey.currentContext?.findRenderObject();
+      if (box is RenderBox && box.hasSize) {
+        GlassBallAnchor.instance.report(box.localToGlobal(Offset.zero) & box.size);
+      }
+    });
+
+    return IgnorePointer(
+      child: ValueListenableBuilder<Rect?>(
+        valueListenable: GlassBallAnchor.instance,
+        builder: (context, rect, _) {
+          if (rect == null) return const SizedBox.shrink();
+          return Stack(
+            children: [
+              Positioned.fromRect(
+                rect: rect,
+                child: GlassStyles.glassBall(
+                  context,
+                  child: const Icon(Icons.calendar_today_rounded, size: 24),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
