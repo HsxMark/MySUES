@@ -1,5 +1,5 @@
-name: mysues
-description: "三旋翼课程表 (My SUES)"
+﻿name: mysues
+description: "涓夋棆缈艰绋嬭〃 (My SUES)"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -55,7 +55,7 @@ dependencies:
   flutter_local_notifications: ^18.0.0
   timezone: ^0.10.0
   home_widget: ^0.9.0
-  workmanager: 0.9.0+3
+  workmanager: ^0.9.0+3
   share_plus: ^12.0.2
   intl: ^0.20.2
 
@@ -70,14 +70,6 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.2
-
-# workmanager 0.9.x transitives can resolve to mismatched platform_interface
-# (apple package missing newer interface methods). Pin a coherent set.
-dependency_overrides:
-  workmanager: 0.9.0+3
-  workmanager_android: 0.9.0+2
-  workmanager_apple: 0.9.1+2
-  workmanager_platform_interface: 0.9.1+1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -146,3 +138,4 @@ flutter_launcher_icons:
   linux:
     generate: true
     image_path: "assets/images/MySUES.png"
+

@@ -445,12 +445,51 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         // Fit compact windows (split-screen / landscape): never wider than
         // the available width; use 300–420 only when there is room.
         final availableBarWidth = size.width - 32;
-        final barWidth = availableBarWidth <= 0
+        // Never overflow the window; hide only if there is almost no room.
+        final barWidth = availableBarWidth <= 120
             ? 0.0
             : (availableBarWidth < 300
                   ? availableBarWidth
                   : availableBarWidth.clamp(300.0, 420.0));
         final bottomPad = MediaQuery.paddingOf(context).bottom;
+        // Match LiquidGlassTabBar.margin.bottom so body padding and bar inset agree.
+        const barMarginBottom = 20.0;
+
+        if (barWidth <= 0) {
+          // Degenerate compact window — fall back to Material nav.
+          return Scaffold(
+            backgroundColor: hasBg ? Colors.transparent : null,
+            body: pageStack,
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) {
+                setState(() => _currentIndex = index);
+              },
+              destinations: [
+                NavigationDestination(
+                  icon: Icon(Icons.calendar_month_outlined),
+                  selectedIcon: Icon(Icons.calendar_month),
+                  label: context.l10n.schedule,
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.description_outlined),
+                  selectedIcon: Icon(Icons.description),
+                  label: context.l10n.transcript,
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.edit_calendar_outlined),
+                  selectedIcon: Icon(Icons.edit_calendar),
+                  label: context.l10n.exams,
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person),
+                  label: context.l10n.profile,
+                ),
+              ],
+            ),
+          );
+        }
 
         final glassShell = GlassStyles.scrollable(
           child: LiquidGlassScaffold(
@@ -460,7 +499,9 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
               ? Colors.transparent
               : Theme.of(context).scaffoldBackgroundColor,
           body: Padding(
-            padding: EdgeInsets.only(bottom: 24 + barHeight + bottomPad),
+            padding: EdgeInsets.only(
+              bottom: barMarginBottom + barHeight + bottomPad,
+            ),
             child: pageStack,
           ),
           bottomNavigationBar: LiquidGlassTabBar(
@@ -493,7 +534,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
             width: barWidth,
             height: barHeight,
             itemPadding: 4,
-            margin: const EdgeInsets.only(bottom: 20),
+            margin: const EdgeInsets.only(bottom: barMarginBottom),
             style: LiquidGlassStyle(
               shape: LiquidGlassShape.continuousRoundedRectangle(
                 cornerRadius: barHeight / 2,

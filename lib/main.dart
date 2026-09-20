@@ -24,7 +24,12 @@ void callbackDispatcher() {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await LiquidGlassShaders.ensureLoaded();
+  try {
+    await LiquidGlassShaders.ensureLoaded();
+  } catch (e, st) {
+    // Shader preload must never block runApp (glass is optional/beta).
+    debugPrint('LiquidGlassShaders.ensureLoaded failed: $e\n$st');
+  }
 
   Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   Workmanager().registerPeriodicTask(
