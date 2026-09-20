@@ -372,7 +372,15 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                 ? Row(
                     children: [
                       _buildLeftNavigationRail(context, useLiquidGlass),
-                      Expanded(child: pageStack),
+                      Expanded(
+                        // Glass on but no glass shell in this layout (the rail
+                        // is the Material one), so the pages' frosted panels get
+                        // the overscroll opt-out here instead of leaving them to
+                        // flash black while a list stretches.
+                        child: useLiquidGlass
+                            ? GlassStyles.scrollable(child: pageStack)
+                            : pageStack,
+                      ),
                     ],
                   )
                 : pageStack,
@@ -457,7 +465,13 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
 
         if (barWidth <= 0) {
           // Degenerate compact window — fall back to Material nav.
-          return Scaffold(
+          //
+          // The wallpaper and the ball come along: with glass on, the button
+          // paints nothing by itself (it is only an invisible hit area, and
+          // GlassBallOverlay — which the glass shell above normally mounts —
+          // owns the glass), so returning a bare Scaffold here would make the
+          // FAB disappear and drop the user's background image.
+          final fallback = Scaffold(
             backgroundColor: hasBg ? Colors.transparent : null,
             body: pageStack,
             bottomNavigationBar: NavigationBar(
@@ -488,6 +502,38 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                 ),
               ],
             ),
+          );
+          final ballOverlay = GlassBallOverlay(visible: _currentIndex == 0);
+
+          if (!hasBg) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [fallback, ballOverlay],
+            );
+          }
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
+              Opacity(
+                opacity: ThemeService().backgroundOpacity,
+                child: Image.file(
+                  File(bgPath),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  gaplessPlayback: true,
+                ),
+              ),
+              Theme(
+                data: Theme.of(
+                  context,
+                ).copyWith(scaffoldBackgroundColor: Colors.transparent),
+                child: fallback,
+              ),
+              ballOverlay,
+            ],
           );
         }
 
