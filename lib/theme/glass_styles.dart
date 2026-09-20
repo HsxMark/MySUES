@@ -156,24 +156,15 @@ class GlassStyles {
   /// stay a plain 1 px outline. The child therefore inherits the ring colour
   /// and sits on the lens, exactly as the non-glass button draws it.
   ///
-  /// ## Known limitation: this lens does not render in the glass shell
-  ///
-  /// Measured on the Xiaomi Pad 5 (Android 14, Impeller/Vulkan, package
-  /// 4.3.1): inside `LiquidGlassScaffold`'s body the lens paints **nothing**.
-  /// A screenshot with the ball and the same screenshot with the ball dragged
-  /// away are byte-identical at eight points sampled from the centre out to
-  /// r=40; only the Flutter-drawn ring and icon differ. The same holds for a
-  /// minimal app: a `LiquidGlassLens` over a striped backdrop renders as soon
-  /// as it is a sibling of the scaffold, and stays blank inside it.
-  ///
-  /// The reason is in the shell: `LiquidGlassScaffold` hands its `body` to
-  /// `LiquidGlassView` as the `backgroundWidget` — the widget that gets
-  /// captured — so anything placed in the body, this ball included, sits
-  /// inside the captured image and its own glass never reaches the screen.
-  ///
-  /// Consequences, until the ball moves out of the body or off the library:
-  /// the numbers below are inert, and what the user actually sees is the 1 px
-  /// ring plus the icon.
+  /// Draw this **above the glass shell, never inside its body.** A lens inside
+  /// `LiquidGlassScaffold`'s body paints nothing: the scaffold hands that body
+  /// to `LiquidGlassView` as its `backgroundWidget`, i.e. the very widget the
+  /// view captures, so a lens in there samples the image it is drawn into and
+  /// its own output never reaches the screen. Measured on the Xiaomi Pad 5
+  /// (Android 14, Impeller, package 4.3.1): with the ball and with the ball
+  /// dragged away, eight points sampled from the centre out to r=40 were
+  /// byte-identical; the same lens renders as soon as it is a sibling of the
+  /// scaffold. [GlassBallOverlay] is what puts it in the right place.
   static Widget glassBall(
     BuildContext context, {
     required Widget child,
@@ -224,10 +215,10 @@ class GlassStyles {
                 // `refraction` is a real refractive index and `depth` is a
                 // straight strength dial, unlike the legacy anchor distortion
                 // whose shader factor `1 + d*100 * pow(t, d*100)` quietly
-                // collapses back to 1 past d ~ 0.2.
-                //
-                // Inert today — see the note on [glassBall]: the shell's body
-                // is the capture source, so this lens never reaches the screen.
+                // collapses back to 1 past d ~ 0.2. `refractionWidth` is how
+                // far in from the rim the bevel reaches — 40 spans the whole
+                // interior of a 56 px ball, so the timetable bends across it
+                // rather than only at the edge.
                 refraction: const LiquidGlassRefraction(
                   refractionType: OpticalRefraction(
                     refraction: 1.7,
