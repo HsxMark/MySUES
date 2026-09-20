@@ -642,7 +642,15 @@ class _GlassAwareCard extends StatelessWidget {
     if (ThemeService().liquidGlassEnabled) {
       return GestureDetector(
         onTap: onTap,
-        child: GlassStyles.frosted(context, radius: 20, child: child),
+        child: GlassStyles.frosted(
+          context,
+          radius: 36,
+          // Matches the exam cards' surface treatment — an explicit, fairly
+          // opaque surface tint instead of the default near-transparent
+          // veil, which reads as a blur rather than a card.
+          tint: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+          child: child,
+        ),
       );
     }
     return Card(

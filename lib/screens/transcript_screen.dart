@@ -677,6 +677,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         child: GlassStyles.frosted(
           context,
           radius: 36,
+          // Same surface treatment as the exam cards: an explicit, fairly
+          // opaque surface tint. Without it the panel keeps the default
+          // near-transparent veil and reads as a blur rather than a card.
+          tint: theme.colorScheme.surface.withValues(alpha: 0.6),
           child: content,
         ),
       );
