@@ -165,14 +165,24 @@ class GlassStyles {
   /// dragged away, eight points sampled from the centre out to r=40 were
   /// byte-identical; the same lens renders as soon as it is a sibling of the
   /// scaffold. [GlassBallOverlay] is what puts it in the right place.
+  ///
+  /// [isAtHome] colours it the way the Material button does its fill: on the
+  /// current week / today the outline is the one this ball has always had
+  /// (white in dark mode, the theme's primary in light), and away from it the
+  /// outline takes the accent that is *not* the home colour — tertiary beside a
+  /// light-mode primary, primary beside a dark-mode white — so the state stays
+  /// readable on a glass ball that has no fill to change.
   static Widget glassBall(
     BuildContext context, {
     required Widget child,
+    bool isAtHome = true,
     double size = 56,
   }) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = _isDark(context);
-    final ringColor = isDark ? Colors.white : scheme.primary;
+    final ringColor = isAtHome
+        ? (isDark ? Colors.white : scheme.primary)
+        : (isDark ? scheme.primary : scheme.tertiary);
 
     return SizedBox(
       width: size,
@@ -250,7 +260,7 @@ class GlassStyles {
   }
 }
 
-/// Where the schedule ball currently is, in screen coordinates.
+/// Where the schedule ball is, and the state it should draw itself in.
 ///
 /// The glass cannot be painted where the button lives: `LiquidGlassScaffold`
 /// hands its `body` to `LiquidGlassView` as the widget it captures, and a lens
@@ -258,13 +268,33 @@ class GlassStyles {
 /// ball and without it, the ball's interior is pixel-identical). So the button
 /// reports its rect here and [GlassBallOverlay] paints the ball above the
 /// shell, where a lens does render.
-class GlassBallAnchor extends ValueNotifier<Rect?> {
+@immutable
+class GlassBallState {
+  const GlassBallState({required this.rect, required this.isAtHome});
+
+  final Rect rect;
+
+  /// Whether the schedule shows the current week / today. The ball signals it
+  /// in its colours — the same thing the Material button says with its fill.
+  final bool isAtHome;
+
+  @override
+  bool operator ==(Object other) =>
+      other is GlassBallState &&
+      other.rect == rect &&
+      other.isAtHome == isAtHome;
+
+  @override
+  int get hashCode => Object.hash(rect, isAtHome);
+}
+
+class GlassBallAnchor extends ValueNotifier<GlassBallState?> {
   GlassBallAnchor._() : super(null);
 
   static final GlassBallAnchor instance = GlassBallAnchor._();
 
-  void report(Rect? rect) {
-    if (rect != value) value = rect;
+  void report(GlassBallState? state) {
+    if (state != value) value = state;
   }
 }
 
@@ -289,21 +319,28 @@ class GlassBallOverlay extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final box = GlassStyles.ballKey.currentContext?.findRenderObject();
       if (box is RenderBox && box.hasSize) {
-        GlassBallAnchor.instance.report(box.localToGlobal(Offset.zero) & box.size);
+        final anchor = GlassBallAnchor.instance;
+        anchor.report(
+          GlassBallState(
+            rect: box.localToGlobal(Offset.zero) & box.size,
+            isAtHome: anchor.value?.isAtHome ?? true,
+          ),
+        );
       }
     });
 
     return IgnorePointer(
-      child: ValueListenableBuilder<Rect?>(
+      child: ValueListenableBuilder<GlassBallState?>(
         valueListenable: GlassBallAnchor.instance,
-        builder: (context, rect, _) {
-          if (rect == null) return const SizedBox.shrink();
+        builder: (context, state, _) {
+          if (state == null) return const SizedBox.shrink();
           return Stack(
             children: [
               Positioned.fromRect(
-                rect: rect,
+                rect: state.rect,
                 child: GlassStyles.glassBall(
                   context,
+                  isAtHome: state.isAtHome,
                   child: const Icon(Icons.calendar_today_rounded, size: 24),
                 ),
               ),

@@ -70,7 +70,8 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     super.dispose();
   }
 
-  /// Hands the ball's screen rect to the overlay that paints its glass.
+  /// Hands the ball's position **and state** to the overlay that paints its
+  /// glass.
   ///
   /// The glass itself cannot be drawn here: this button lives inside
   /// `LiquidGlassScaffold`'s body, which the shell hands to `LiquidGlassView`
@@ -79,7 +80,9 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
   ///
   /// The rect is measured off the ball's own render box (see
   /// [GlassStyles.ballKey]) after layout, so it cannot drift from the real
-  /// position the way reconstructing it from a parent origin did.
+  /// position the way reconstructing it from a parent origin did. `isAtHome`
+  /// rides along so the ball can colour itself the way this button's Material
+  /// fill would.
   void _publishRect(bool isLiquidGlass) {
     if (!isLiquidGlass) {
       GlassBallAnchor.instance.report(null);
@@ -90,7 +93,10 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
       final box = GlassStyles.ballKey.currentContext?.findRenderObject();
       if (box is RenderBox && box.hasSize) {
         GlassBallAnchor.instance.report(
-          box.localToGlobal(Offset.zero) & box.size,
+          GlassBallState(
+            rect: box.localToGlobal(Offset.zero) & box.size,
+            isAtHome: widget.isAtHome,
+          ),
         );
       }
     });
