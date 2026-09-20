@@ -1,5 +1,5 @@
-﻿name: mysues
-description: "涓夋棆缈艰绋嬭〃 (My SUES)"
+name: mysues
+description: "三旋翼课程表 (My SUES)"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -20,7 +20,9 @@ version: 1.2.1+2002
 
 environment:
   sdk: ">=3.11.0 <4.0.0"
-  flutter: ">=3.19.0"
+  # The floor the resolved graph actually needs (see `sdks:` in pubspec.lock);
+  # the previous ">=3.19.0" was already below it.
+  flutter: ">=3.38.4"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -138,4 +140,3 @@ flutter_launcher_icons:
   linux:
     generate: true
     image_path: "assets/images/MySUES.png"
-
