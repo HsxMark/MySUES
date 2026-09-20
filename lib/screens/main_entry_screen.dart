@@ -227,18 +227,10 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
   // 懒加载：只有被访问过的 Tab 才会真正构建，避免首次进入时同时初始化全部页面
   final List<Widget?> _cachedPages = [null, null, null, null];
 
-  /// Glass mode the cache was built for. Pages like schedule/transcript/exam
-  /// branch on [ThemeService.liquidGlassEnabled] but do not listen to it, so
-  /// the instances must be dropped when the switch flips.
-  bool? _cachedPagesForLiquidGlass;
-
   Widget _getPage(int index) {
-    final liquidGlass = ThemeService().liquidGlassEnabled;
-    if (_cachedPagesForLiquidGlass != liquidGlass) {
-      // Schedule keeps state via GlobalKey; other tabs are safe to rebuild.
-      _cachedPages.fillRange(0, _cachedPages.length, null);
-      _cachedPagesForLiquidGlass = liquidGlass;
-    }
+    // Do not drop cached instances when Liquid Glass toggles — that would
+    // dispose tab State (including ScheduleViewContainer). Pages rebuild
+    // glass chrome via ListenableBuilder on ThemeService in their own build.
     _cachedPages[index] ??= switch (index) {
       0 => ScheduleViewContainer(key: ScheduleViewContainer.containerKey),
       1 => const TranscriptScreen(),

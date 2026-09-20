@@ -6,6 +6,7 @@ import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart';
 import '../services/schedule_service.dart';
+import '../services/theme_service.dart';
 import '../utils/building_time_override.dart';
 import '../utils/screen_breakpoints.dart';
 import 'schedule_screen.dart';
@@ -856,6 +857,14 @@ class ScheduleViewContainerState extends State<ScheduleViewContainer> {
 
   @override
   Widget build(BuildContext context) {
+    // Observe Liquid Glass so FAB / child chrome refresh without dropping State.
+    return ListenableBuilder(
+      listenable: ThemeService(),
+      builder: (context, _) => _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }

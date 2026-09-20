@@ -104,6 +104,14 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild when Liquid Glass toggles without disposing this State.
+    return ListenableBuilder(
+      listenable: ThemeService(),
+      builder: (context, _) => _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     final displayExams = _filteredExams;
 
     return Scaffold(

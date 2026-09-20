@@ -1,7 +1,6 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 /// Glass looks for MySUES — used **only** while the Liquid Glass switch is
 /// on; with the switch off every screen keeps its plain Material path
@@ -13,8 +12,8 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 ///   translucent fill, hairline outline, soft shadow. Cards, sheets and
 ///   pop-up menus all use it, because it lays out, scrolls and animates
 ///   without surprises.
-/// * [fabShell] — the package's shader glass, kept for the 課表 ball, the
-///   one surface where it renders reliably and looks like the showcase.
+/// * Schedule FAB — intentional **transparent body + hairline ring** (not
+///   shader glass), so the icon stays readable over timetable cells.
 ///
 /// Why the shader glass stays away from ordinary panels (every point below
 /// was reproduced on a Pixel-class Android device, Impeller/Vulkan):
@@ -137,77 +136,6 @@ class GlassStyles {
       // see [scrollable].
       child: GlassStyles.scrollable(
         child: Material(type: MaterialType.transparency, child: child),
-      ),
-    );
-  }
-
-  /// 課表悬浮球 — the showcase FAB ball.
-  ///
-  /// Tinted with the theme's primary so the white glyph on it stays legible
-  /// over anything it is dragged across; a fully clear ball leaves the icon
-  /// competing with the timetable underneath it.
-  static LiquidGlassStyle ballStyle(BuildContext context, {Color? glassColor}) {
-    final scheme = Theme.of(context).colorScheme;
-    final isDark = _isDark(context);
-    return LiquidGlassStyle(
-      shape: LiquidGlassShape.continuousRoundedRectangle(
-        cornerRadius: 28,
-        borderWidth: 1.2,
-        borderColor: Colors.white.withValues(alpha: isDark ? 0.45 : 0.85),
-        lightColor: Colors.white,
-        lightIntensity: 1.25,
-        lightDirection: 80,
-        borderType: const OpticalBorder(
-          borderSaturation: 1.3,
-          ambientIntensity: 1.0,
-          borderSolidity: 0.45,
-        ),
-      ),
-      appearance: LiquidGlassAppearance(
-        color: glassColor ?? scheme.primary.withValues(alpha: 0.62),
-        blur: const LiquidGlassBlur(sigmaX: 6, sigmaY: 6),
-        saturation: 1.3,
-        shadow: const LiquidGlassShadow(
-          blur: 12,
-          opacity: 0.22,
-          offset: Offset(0, 4),
-        ),
-      ),
-      refraction: const LiquidGlassRefraction(
-        magnification: 1.12,
-        distortion: 0.12,
-        distortionWidth: 30,
-        chromaticAberration: 0,
-      ),
-    );
-  }
-
-  /// 課表悬浮球 — lens ball with a legible glyph.
-  static Widget fabShell(
-    BuildContext context, {
-    required Widget child,
-    Color? tint,
-  }) {
-    return LiquidGlassLens(
-      style: ballStyle(context, glassColor: tint),
-      child: SizedBox(
-        width: 56,
-        height: 56,
-        child: Center(
-          child: IconTheme(
-            data: IconThemeData(
-              color: Colors.white,
-              size: 24,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.30),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: child,
-          ),
-        ),
       ),
     );
   }

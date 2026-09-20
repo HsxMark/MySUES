@@ -74,6 +74,14 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild when Liquid Glass toggles without disposing this State.
+    return ListenableBuilder(
+      listenable: ThemeService(),
+      builder: (context, _) => _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     // 总 GPA 计算
     final totalGPA = ScoreMetrics.calculateGpa(_allScores);
 
