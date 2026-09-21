@@ -11,7 +11,9 @@
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
-        <!-- liquid_glass_renderer only supports the Impeller renderer. -->
+        <!-- Impeller preferred: liquid_glass_easy tab bar renders best on Impeller.
+             The package also has Skia fallbacks; leave Impeller enabled unless
+             a device-specific issue requires turning it off. -->
         <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
             android:value="true" />

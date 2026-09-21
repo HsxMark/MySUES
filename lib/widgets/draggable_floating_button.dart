@@ -1,7 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:mysues/theme/glass_styles.dart';
 import '../services/theme_service.dart';
 
 /// A draggable floating action button for quick schedule navigation.
@@ -66,6 +64,44 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     }
   }
 
+  @override
+  void dispose() {
+    GlassBallAnchor.instance.report(null);
+    super.dispose();
+  }
+
+  /// Hands the ball's position **and state** to the overlay that paints its
+  /// glass.
+  ///
+  /// The glass itself cannot be drawn here: this button lives inside
+  /// `LiquidGlassScaffold`'s body, which the shell hands to `LiquidGlassView`
+  /// as the widget it captures, and a lens inside that capture renders
+  /// nothing. The overlay draws it above the shell instead.
+  ///
+  /// The rect is measured off the ball's own render box (see
+  /// [GlassStyles.ballKey]) after layout, so it cannot drift from the real
+  /// position the way reconstructing it from a parent origin did. `isAtHome`
+  /// rides along so the ball can colour itself the way this button's Material
+  /// fill would.
+  void _publishRect(bool isLiquidGlass) {
+    if (!isLiquidGlass) {
+      GlassBallAnchor.instance.report(null);
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = GlassStyles.ballKey.currentContext?.findRenderObject();
+      if (box is RenderBox && box.hasSize) {
+        GlassBallAnchor.instance.report(
+          GlassBallState(
+            rect: box.localToGlobal(Offset.zero) & box.size,
+            isAtHome: widget.isAtHome,
+          ),
+        );
+      }
+    });
+  }
+
   void _ensureInitialized(BoxConstraints constraints) {
     if (_initialized) {
       // Re-clamp on size changes
@@ -92,6 +128,7 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     return LayoutBuilder(
       builder: (context, constraints) {
         _ensureInitialized(constraints);
+        _publishRect(isLiquidGlass);
 
         return SizedBox(
           width: constraints.maxWidth,
@@ -103,6 +140,9 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
                 left: _dx,
                 top: _dy,
                 child: GestureDetector(
+                  // The glass visual is painted by the overlay, so the only
+                  // thing here is the target — it has to claim the touches.
+                  behavior: HitTestBehavior.opaque,
                   onPanStart: (_) {
                     _isDragging = false;
                   },
@@ -130,7 +170,10 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
                       widget.onTap();
                     }
                 },
-                child: _buildButton(theme, colorScheme, isLiquidGlass),
+                child: KeyedSubtree(
+                  key: GlassStyles.ballKey,
+                  child: _buildButton(theme, colorScheme, isLiquidGlass),
+                ),
               ),
             ),
           ],
@@ -161,24 +204,9 @@ class _DraggableFloatingButtonState extends State<DraggableFloatingButton> {
     );
 
     if (isLiquidGlass) {
-      final brightness = MediaQuery.platformBrightnessOf(context);
-      final isDark = brightness == Brightness.dark;
-      return LiquidGlassLayer(
-        settings: LiquidGlassSettings(
-          refractiveIndex: 1.21,
-          thickness: 30,
-          blur: 8,
-          saturation: 1.5,
-          lightIntensity: isDark ? .7 : 1,
-          ambientStrength: isDark ? .2 : .5,
-          lightAngle: math.pi / 4,
-          glassColor: bgColor.withValues(alpha: 0.6),
-        ),
-        child: LiquidGlass.grouped(
-          shape: const LiquidOval(),
-          child: GlassGlow(child: child),
-        ),
-      );
+      // The ball's glass, ring and icon are all painted by GlassBallOverlay
+      // above the shell — see [_publishRect]. This is just the hit area.
+      return const SizedBox(width: _buttonSize, height: _buttonSize);
     }
 
     return Container(
