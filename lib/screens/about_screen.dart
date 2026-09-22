@@ -3,7 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mysues/screens/about/user_agreement_screen.dart';
 import 'package:mysues/screens/about/privacy_policy_screen.dart';
-import 'package:mysues/screens/about/sponsor_screen.dart';
+import 'package:mysues/screens/about/author_screen.dart';
 import 'package:mysues/screens/about/acknowledgements_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
 import 'package:mysues/screens/about/egg_screen.dart';
@@ -151,7 +151,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 _buildOptionItem(
                   context,
                   context.l10n.author,
-                  const SponsorScreen(),
+                  const AuthorScreen(),
                 ),
                 const Divider(height: 1, indent: 16),
                 _buildOptionItem(
