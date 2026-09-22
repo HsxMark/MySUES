@@ -347,6 +347,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retrieveExams => 'Retrieve Exams';
 
   @override
+  String get extract => 'Extract';
+
+  @override
+  String get oneTapExtract => 'One-tap Extract';
+
+  @override
+  String get extractTaskSchedule => 'Latest Schedule';
+
+  @override
+  String get extractTaskScores => 'Grades';
+
+  @override
+  String get extractTaskProfile => 'Profile';
+
+  @override
+  String get extractTaskExams => 'Exams';
+
+  @override
+  String get extractPreparing => 'Connecting to the academic system…';
+
+  @override
+  String get extractCancelling => 'Cancelling…';
+
+  @override
+  String get extractNotSignedIn => 'Not signed in to the academic system';
+
+  @override
+  String get extractStatusPending => 'Pending';
+
+  @override
+  String get extractStatusRunning => 'Extracting…';
+
+  @override
+  String get extractStatusSuccess => 'Done';
+
+  @override
+  String get extractStatusFailed => 'Failed';
+
+  @override
+  String get extractStatusCancelled => 'Cancelled';
+
+  @override
+  String get extractSummaryTitle => 'Extraction Result';
+
+  @override
+  String extractSummaryCounts(int success, int failed) {
+    return '$success succeeded · $failed failed';
+  }
+
+  @override
+  String get extractRetryFailed => 'Retry Failed';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String extractResultSchedule(int count) {
+    return '$count course records';
+  }
+
+  @override
+  String extractResultScores(int count) {
+    return '$count score records';
+  }
+
+  @override
+  String get extractResultProfile => 'Profile updated';
+
+  @override
+  String extractResultExams(int count) {
+    return '$count exams';
+  }
+
+  @override
+  String extractConflictSummary(int count) {
+    return '$count schedule conflicts found. Review them in the schedule later.';
+  }
+
+  @override
+  String get extractCancelledRolledBack =>
+      'Extraction cancelled. Your data was restored.';
+
+  @override
   String get extractionFailedTryAgain => 'Extraction failed. Try again.';
 
   @override

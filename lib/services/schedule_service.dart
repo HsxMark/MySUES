@@ -49,6 +49,61 @@ class ScheduleDataService {
     await saveScheduleTables(tables);
   }
 
+  /// Returns the schedule table for [semesterName], reusing the most recently
+  /// imported table with that name (keeping its UI settings) or creating a new
+  /// one when the semester was never imported before.
+  static Future<ScheduleTable> upsertScheduleTable({
+    required String semesterName,
+    required String startDate,
+  }) async {
+    final tables = await loadScheduleTables();
+    final matches = tables.where((t) => t.tableName == semesterName).toList();
+
+    if (matches.isEmpty) {
+      final table = ScheduleTable(tableName: semesterName, startDate: startDate);
+      await addScheduleTable(table);
+      return table;
+    }
+
+    matches.sort((a, b) => a.id.compareTo(b.id));
+    final table = matches.last;
+    table.startDate = startDate;
+    await updateScheduleTable(table);
+    return table;
+  }
+
+  /// Replaces all courses and the semester catalog of [tableId] with freshly
+  /// imported data. Course ids stay globally unique.
+  static Future<void> replaceCoursesForTable({
+    required int tableId,
+    required List<Course> courses,
+    required SemesterCourseCatalog catalog,
+    bool makeCurrent = true,
+  }) async {
+    final allCourses = await loadCourses();
+    int maxId = 0;
+    if (allCourses.isNotEmpty) {
+      maxId = allCourses.map((e) => e.id).reduce((a, b) => a > b ? a : b);
+    }
+
+    allCourses.removeWhere((c) => c.tableId == tableId);
+    for (final course in courses) {
+      course.tableId = tableId;
+      course.id = ++maxId;
+      allCourses.add(course);
+    }
+    await saveCourses(allCourses);
+
+    final catalogs = await loadCourseCatalogs();
+    catalogs.removeWhere((c) => c.tableId == tableId);
+    catalogs.add(catalog.copyWith(tableId: tableId));
+    await saveCourseCatalogs(catalogs);
+
+    if (makeCurrent) {
+      await setCurrentTableId(tableId);
+    }
+  }
+
   static Future<void> updateScheduleTable(ScheduleTable table) async {
     final tables = await loadScheduleTables();
     final index = tables.indexWhere((t) => t.id == table.id);

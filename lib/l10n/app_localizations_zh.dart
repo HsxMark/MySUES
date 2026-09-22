@@ -339,6 +339,88 @@ class AppLocalizationsZh extends AppLocalizations {
   String get retrieveExams => '提取考试安排';
 
   @override
+  String get extract => '提取';
+
+  @override
+  String get oneTapExtract => '一键提取';
+
+  @override
+  String get extractTaskSchedule => '最新课表';
+
+  @override
+  String get extractTaskScores => '成绩';
+
+  @override
+  String get extractTaskProfile => '个人信息';
+
+  @override
+  String get extractTaskExams => '考试信息';
+
+  @override
+  String get extractPreparing => '正在连接教务系统…';
+
+  @override
+  String get extractCancelling => '正在取消…';
+
+  @override
+  String get extractNotSignedIn => '未检测到登录状态，请先登录教务系统';
+
+  @override
+  String get extractStatusPending => '待提取';
+
+  @override
+  String get extractStatusRunning => '提取中…';
+
+  @override
+  String get extractStatusSuccess => '已完成';
+
+  @override
+  String get extractStatusFailed => '失败';
+
+  @override
+  String get extractStatusCancelled => '已取消';
+
+  @override
+  String get extractSummaryTitle => '提取结果';
+
+  @override
+  String extractSummaryCounts(int success, int failed) {
+    return '成功 $success 项 · 失败 $failed 项';
+  }
+
+  @override
+  String get extractRetryFailed => '重试失败项';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String extractResultSchedule(int count) {
+    return '$count 条课程记录';
+  }
+
+  @override
+  String extractResultScores(int count) {
+    return '$count 条成绩';
+  }
+
+  @override
+  String get extractResultProfile => '已更新个人信息';
+
+  @override
+  String extractResultExams(int count) {
+    return '$count 场考试';
+  }
+
+  @override
+  String extractConflictSummary(int count) {
+    return '发现 $count 处课程时间冲突，可稍后在课表中处理';
+  }
+
+  @override
+  String get extractCancelledRolledBack => '已取消提取，数据已恢复原状';
+
+  @override
   String get extractionFailedTryAgain => '提取失败，请重试';
 
   @override
