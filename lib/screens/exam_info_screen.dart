@@ -184,7 +184,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       body: Column(
         children: [
           AppNoticeBanner(
-            message: context.l10n.examInformationMayNotBeCurrentAlwaysConfirmIt,
+            message: context.l10n.examInformationRequiresManualImport,
             kind: AppNoticeKind.warning,
           ),
 

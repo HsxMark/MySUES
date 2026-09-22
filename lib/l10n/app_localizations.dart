@@ -1789,11 +1789,11 @@ abstract class AppLocalizations {
   /// **'保存考试信息'**
   String get saveExam;
 
-  /// No description provided for @examInformationMayNotBeCurrentAlwaysConfirmIt.
+  /// No description provided for @examInformationRequiresManualImport.
   ///
   /// In zh, this message translates to:
-  /// **'考试信息非即时获取，仅供参考，请以教务系统提示为准！'**
-  String get examInformationMayNotBeCurrentAlwaysConfirmIt;
+  /// **'考试信息不会自动同步，必须手动导入后才会显示；导入内容也可能滞后，请以教务系统为准。'**
+  String get examInformationRequiresManualImport;
 
   /// No description provided for @noMatchingExams.
   ///

@@ -917,8 +917,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveExam => 'Save Exam';
 
   @override
-  String get examInformationMayNotBeCurrentAlwaysConfirmIt =>
-      'Exam information may not be current. Always confirm it in the official academic system.';
+  String get examInformationRequiresManualImport =>
+      'Exam information does not sync automatically — it only shows up after a manual import, and imported data may lag behind. Always refer to the academic system.';
 
   @override
   String get noMatchingExams => 'No matching exams';

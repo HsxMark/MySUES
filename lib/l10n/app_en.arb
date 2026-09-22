@@ -292,7 +292,7 @@
   "addExam": "Add Exam",
   "editExam": "Edit Exam",
   "saveExam": "Save Exam",
-  "examInformationMayNotBeCurrentAlwaysConfirmIt": "Exam information may not be current. Always confirm it in the official academic system.",
+  "examInformationRequiresManualImport": "Exam information does not sync automatically — it only shows up after a manual import, and imported data may lag behind. Always refer to the academic system.",
   "noMatchingExams": "No matching exams",
   "clearFinished": "Clear Finished",
   "allFinishedExamsWereCleared": "All finished exams were cleared",
