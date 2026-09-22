@@ -1,99 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/widgets/material_you.dart';
 
 class OpenSourceLicenseScreen extends StatelessWidget {
   const OpenSourceLicenseScreen({super.key});
 
+  static const _repositoryUrl = 'https://github.com/HsxMark/MySUES';
+
+  Future<void> _launchRepository() async {
+    final uri = Uri.parse(_repositoryUrl);
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        debugPrint('Could not open repository: $uri');
+      }
+    } catch (error) {
+      debugPrint('Could not open repository: $uri ($error)');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.openSource)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.projectInformation,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 0,
-              color: Theme.of(context).cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        children: [
+          AppCardSection(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: scheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(AppRadii.medium),
+                      ),
+                      child: Icon(
+                        Icons.code_rounded,
+                        color: scheme.onSecondaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              const Text(
-                                'MySUES',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                              Expanded(
+                                child: Text(
+                                  'MySUES',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
-                              SizedBox(height: 4),
-                              Text(
-                                context
-                                    .l10n
-                                    .contributionsAndBugReportsAreWelcome,
-                                style: TextStyle(fontSize: 13),
+                              const SizedBox(width: AppSpacing.sm),
+                              const AppStatusBadge(
+                                label: 'GPL-3.0',
+                                kind: AppStatusKind.info,
                               ),
                             ],
                           ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'GPL-3.0',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.green,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () => launchUrl(
-                        Uri.parse('https://github.com/HsxMark/MySUES'),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.open_in_new,
-                            size: 14,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          const SizedBox(width: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
-                            'github.com/HsxMark/MySUES',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).primaryColor,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Theme.of(context).primaryColor,
+                            context.l10n.contributionsAndBugReportsAreWelcome,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              height: 1.4,
                             ),
                           ),
                         ],
@@ -102,9 +88,28 @@ class OpenSourceLicenseScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                ),
+                leading: Icon(Icons.link_rounded, color: scheme.primary),
+                title: Text(
+                  'github.com/HsxMark/MySUES',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.open_in_new_rounded,
+                  size: 20,
+                  color: scheme.onSurfaceVariant,
+                ),
+                onTap: _launchRepository,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
