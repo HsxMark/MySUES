@@ -625,6 +625,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tapToSync => '点击开始同步';
 
   @override
+  String get startSync => '去同步';
+
+  @override
   String get signInToTheAcademicSystem => '请登录 教务系统';
 
   @override

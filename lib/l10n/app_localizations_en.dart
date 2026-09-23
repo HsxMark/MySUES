@@ -646,6 +646,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tapToSync => 'Tap to Sync';
 
   @override
+  String get startSync => 'Start Sync';
+
+  @override
   String get signInToTheAcademicSystem => 'Sign in to the Academic System';
 
   @override

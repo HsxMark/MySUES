@@ -13,7 +13,6 @@ import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/sync_disclaimer.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'dart:math' as math;
-import 'package:mysues/widgets/material_you.dart';
 import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/utils/profile_preference_keys.dart';
 
@@ -500,7 +499,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildConnectionStatusCard(BuildContext context) {
     return _GlassAwareCard(
-      onTap: _navigateToWebLogin,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -508,29 +506,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.sync_alt,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.academicSync,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.sync_alt,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          context.l10n.academicSync,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                AppStatusBadge(
-                  label: (_lastSyncTime != null)
-                      ? context.l10n.synced
-                      : context.l10n.notSynced,
-                  kind: (_lastSyncTime != null)
-                      ? AppStatusKind.success
-                      : AppStatusKind.warning,
+                const SizedBox(width: 12),
+                FilledButton.tonal(
+                  onPressed: _navigateToWebLogin,
+                  child: Text(context.l10n.startSync),
                 ),
               ],
             ),

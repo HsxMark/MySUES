@@ -1267,6 +1267,12 @@ abstract class AppLocalizations {
   /// **'点击开始同步'**
   String get tapToSync;
 
+  /// No description provided for @startSync.
+  ///
+  /// In zh, this message translates to:
+  /// **'去同步'**
+  String get startSync;
+
   /// No description provided for @signInToTheAcademicSystem.
   ///
   /// In zh, this message translates to:
