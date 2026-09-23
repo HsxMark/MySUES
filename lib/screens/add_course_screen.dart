@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/course.dart';
 import '../models/time_table.dart';
 import '../services/schedule_service.dart';
+import '../theme/course_palette.dart';
+import '../widgets/course_color_picker.dart';
 import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/l10n/localized_formatters.dart';
 
@@ -31,23 +33,10 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   int _startNode = 1;
   int _endNode = 2;
   int _type = 0; // 0: All, 1: Odd, 2: Even
-  Color _selectedColor = Colors.blue;
+  late String _selectedColorHex;
   CourseStudyType _studyType = CourseStudyType.normal;
   bool _isHidden = false;
   List<TimeDetail> _timeDetails = [];
-
-  final List<Color> _colors = [
-    Colors.blue,
-    Colors.red,
-    Colors.green,
-    Colors.orange,
-    Colors.purple,
-    Colors.teal,
-    Colors.pink,
-    Colors.indigo,
-    Colors.cyan,
-    Colors.brown,
-  ];
 
   @override
   void initState() {
@@ -73,7 +62,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       _startNode = c.startNode;
       _endNode = c.startNode + c.step - 1;
       _type = c.type;
-      _selectedColor = c.colorObj;
+      _selectedColorHex =
+          normalizeCourseColorHex(c.color) ?? CoursePalette.defaultHex;
       _studyType = c.studyType;
     } else {
       _nameController = TextEditingController();
@@ -83,7 +73,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       _endWeekController = TextEditingController(text: '16');
       _startTimeController = TextEditingController();
       _endTimeController = TextEditingController();
-      _selectedColor = _colors[0];
+      _selectedColorHex = CoursePalette.defaultHex;
       _startNode = 1;
       _endNode = 2;
     }
@@ -466,37 +456,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               ),
 
               const SizedBox(height: 24),
-              Text(
-                context.l10n.courseColor,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: _colors.map((color) {
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedColor = color),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: _selectedColor == color
-                            ? Border.all(color: Colors.grey, width: 3)
-                            : null,
-                      ),
-                      child: _selectedColor == color
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
+              CourseColorPicker(
+                selectedHex: _selectedColorHex,
+                onChanged: (hex) => setState(() => _selectedColorHex = hex),
               ),
               const SizedBox(height: 40),
 
@@ -549,8 +511,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       final startWeek = int.tryParse(_startWeekController.text) ?? 1;
       final endWeek = int.tryParse(_endWeekController.text) ?? 16;
 
-      final colorHex =
-          '#${_selectedColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+      final colorHex = _selectedColorHex;
 
       final step = _endNode - _startNode + 1;
 

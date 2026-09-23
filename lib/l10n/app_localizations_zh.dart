@@ -776,6 +776,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courseColor => '课程颜色';
 
   @override
+  String get classicColors => '经典';
+
+  @override
+  String get morandiColors => '莫兰迪';
+
+  @override
+  String get recentColors => '最近使用';
+
+  @override
+  String get customColor => '自定义';
+
+  @override
+  String get chooseColor => '选择颜色';
+
+  @override
+  String get hexColorCode => '十六进制色值';
+
+  @override
+  String get invalidHexColor => '请输入 6 位十六进制颜色，例如 #A8707A';
+
+  @override
+  String get hue => '色相';
+
+  @override
+  String get saturation => '饱和度';
+
+  @override
+  String get brightness => '明度';
+
+  @override
   String get studyStatus => '修读状态';
 
   @override

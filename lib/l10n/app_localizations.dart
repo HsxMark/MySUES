@@ -1567,6 +1567,66 @@ abstract class AppLocalizations {
   /// **'课程颜色'**
   String get courseColor;
 
+  /// No description provided for @classicColors.
+  ///
+  /// In zh, this message translates to:
+  /// **'经典'**
+  String get classicColors;
+
+  /// No description provided for @morandiColors.
+  ///
+  /// In zh, this message translates to:
+  /// **'莫兰迪'**
+  String get morandiColors;
+
+  /// No description provided for @recentColors.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近使用'**
+  String get recentColors;
+
+  /// No description provided for @customColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get customColor;
+
+  /// No description provided for @chooseColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择颜色'**
+  String get chooseColor;
+
+  /// No description provided for @hexColorCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'十六进制色值'**
+  String get hexColorCode;
+
+  /// No description provided for @invalidHexColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入 6 位十六进制颜色，例如 #A8707A'**
+  String get invalidHexColor;
+
+  /// No description provided for @hue.
+  ///
+  /// In zh, this message translates to:
+  /// **'色相'**
+  String get hue;
+
+  /// No description provided for @saturation.
+  ///
+  /// In zh, this message translates to:
+  /// **'饱和度'**
+  String get saturation;
+
+  /// No description provided for @brightness.
+  ///
+  /// In zh, this message translates to:
+  /// **'明度'**
+  String get brightness;
+
   /// No description provided for @studyStatus.
   ///
   /// In zh, this message translates to:

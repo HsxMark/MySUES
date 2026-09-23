@@ -804,6 +804,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courseColor => 'Course Color';
 
   @override
+  String get classicColors => 'Classic';
+
+  @override
+  String get morandiColors => 'Morandi';
+
+  @override
+  String get recentColors => 'Recently Used';
+
+  @override
+  String get customColor => 'Custom';
+
+  @override
+  String get chooseColor => 'Choose Color';
+
+  @override
+  String get hexColorCode => 'Hex Code';
+
+  @override
+  String get invalidHexColor => 'Enter a 6-digit hex color, e.g. #A8707A';
+
+  @override
+  String get hue => 'Hue';
+
+  @override
+  String get saturation => 'Saturation';
+
+  @override
+  String get brightness => 'Brightness';
+
+  @override
   String get studyStatus => 'Study Status';
 
   @override
