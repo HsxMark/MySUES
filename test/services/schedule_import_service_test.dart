@@ -100,11 +100,7 @@ void main() {
       tableId: second.id,
     );
 
-    expect(firstCourses.map((c) => c.courseName), [
-      '新课 1',
-      '新课 2',
-      '新课 3',
-    ]);
+    expect(firstCourses.map((c) => c.courseName), ['新课 1', '新课 2', '新课 3']);
     expect(firstCourses.every((c) => c.tableId == first.id), isTrue);
     expect(secondCourses.map((c) => c.courseName), ['B 课']);
 

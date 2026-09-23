@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mysues/l10n/app_localizations.dart';
@@ -11,6 +13,51 @@ Widget _wrap(Widget child) {
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
   );
+}
+
+/// A page with a dialog on top, mirroring the navigator shape the extraction
+/// flow uses (WebView page → extraction dialog).
+class _DialogHarness {
+  _DialogHarness(this.popped);
+
+  final Completer<void> popped;
+  late BuildContext dialogContext;
+
+  NavigatorState get navigator => Navigator.of(dialogContext);
+}
+
+Future<_DialogHarness> _pumpPageWithDialog(WidgetTester tester) async {
+  final harness = _DialogHarness(Completer<void>());
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (ctx) {
+                    harness.dialogContext = ctx;
+                    return const AlertDialog(title: Text('extract-dialog'));
+                  },
+                ).whenComplete(harness.popped.complete);
+              },
+              child: const Text('host-page'),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  await tester.tap(find.text('host-page'));
+  await tester.pumpAndSettle();
+  expect(find.text('extract-dialog'), findsOneWidget);
+
+  return harness;
 }
 
 void main() {
@@ -86,10 +133,7 @@ void main() {
           ),
         ],
         finished: true,
-        conflictDetails: [
-          '• 高等数学 (周三 第 3 - 4 节 )',
-          '• 大学物理 (周五 第 5 - 6 节 )',
-        ],
+        conflictDetails: ['• 高等数学 (周三 第 3 - 4 节 )', '• 大学物理 (周五 第 5 - 6 节 )'],
       ),
     );
     addTearDown(state.dispose);
@@ -193,5 +237,59 @@ void main() {
       find.widgetWithText(TextButton, '取消'),
     );
     expect(cancelButton.onPressed, isNull);
+  });
+
+  group('ExtractDialogGuard', () {
+    test('stays open until the dialog route future completes', () async {
+      final completer = Completer<void>();
+      final guard = ExtractDialogGuard(completer.future);
+
+      expect(guard.isOpen, isTrue);
+
+      completer.complete();
+      // `whenComplete` runs as a microtask, so the flag flips after a yield.
+      await Future<void>.delayed(Duration.zero);
+
+      expect(guard.isOpen, isFalse);
+    });
+  });
+
+  testWidgets('a guarded pop keeps the page below the dialog', (tester) async {
+    final harness = await _pumpPageWithDialog(tester);
+    final guard = ExtractDialogGuard(harness.popped.future);
+
+    // The back gesture pops the dialog route: its future resolves while the
+    // dialog widget is still mounted for the exit animation, and the dialog
+    // route is no longer "present", so a second pop would hit the host page.
+    harness.navigator.pop();
+    await tester.pump();
+
+    expect(guard.isOpen, isFalse);
+    expect(harness.dialogContext.mounted, isTrue);
+
+    // This is the check the extraction flow makes before popping.
+    if (guard.isOpen && harness.dialogContext.mounted) {
+      harness.navigator.pop();
+    }
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('host-page'), findsOneWidget);
+    expect(find.text('extract-dialog'), findsNothing);
+  });
+
+  testWidgets('without the guard the second pop takes the page below', (
+    tester,
+  ) async {
+    final harness = await _pumpPageWithDialog(tester);
+
+    harness.navigator.pop();
+    await tester.pump();
+    // The unguarded second pop that the guard exists to prevent.
+    harness.navigator.pop();
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('host-page'), findsNothing);
   });
 }

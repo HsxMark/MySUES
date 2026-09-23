@@ -219,27 +219,43 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         },
       );
       // Closing the dialog by any other means (e.g. the back gesture on the
-      // summary) behaves exactly like tapping "done".
+      // summary) behaves exactly like tapping "done". The guard keeps the run
+      // from popping the dialog a second time in that case.
+      final dialogGuard = ExtractDialogGuard(dialogFuture);
       dialogFuture.whenComplete(() => _completeAction(actionCompleter, false));
 
       var conflictDetails = <String>[];
       var anySuccess = false;
 
       while (true) {
-        await _runPendingSteps(
-          state,
-          targetBase: targetBase,
-          fixedSemester: fixedSemester,
-          isCancelled: () => cancelRequested,
-          onSuccess: (outcome) {
-            anySuccess = true;
-            if (outcome.conflictGroups.isNotEmpty) {
-              // The schedule is re-imported as a whole, so the previous
-              // conflict list is replaced instead of appended to.
-              conflictDetails = _formatConflictGroups(outcome.conflictGroups);
-            }
-          },
-        );
+        try {
+          await _runPendingSteps(
+            state,
+            targetBase: targetBase,
+            fixedSemester: fixedSemester,
+            isCancelled: () => cancelRequested,
+            onSuccess: (outcome) {
+              anySuccess = true;
+              if (outcome.conflictGroups.isNotEmpty) {
+                // The schedule is re-imported as a whole, so the previous
+                // conflict list is replaced instead of appended to.
+                conflictDetails = _formatConflictGroups(
+                  outcome.conflictGroups,
+                );
+              }
+            },
+          );
+        } catch (e) {
+          // An error outside the per-task handling (e.g. the WebView refusing
+          // to navigate) must still end in the ordinary summary: the dialog is
+          // modal and cannot be dismissed while a run is in flight, so letting
+          // the exception escape would leave the user stuck on it.
+          debugPrint('Academic extraction aborted: $e');
+          if (!mounted) return;
+          state.value = state.value.withUnfinishedAsFailed(
+            context.l10n.extractionFailedWithError('$e'),
+          );
+        }
 
         if (cancelRequested) break;
 
@@ -280,7 +296,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         }
       }
 
-      if (dialogContext != null && dialogContext!.mounted) {
+      if (dialogGuard.isOpen &&
+          dialogContext != null &&
+          dialogContext!.mounted) {
         Navigator.of(dialogContext!).pop();
       }
       await dialogFuture;
@@ -520,6 +538,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
   /// Picks the newest semester: the biggest numeric id, falling back to the
   /// first option of the page selector when ids are not numeric.
+  ///
+  /// The academic system hands out increasing numeric semester ids and lists
+  /// the selector newest first, so this matches what the user would pick.
   static String _pickLatestSemesterId(List<String> semesterIds) {
     final numericIds = semesterIds.map(int.tryParse).toList();
     if (numericIds.any((id) => id == null)) return semesterIds.first;
@@ -616,8 +637,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     ExtractTask task,
     _AcademicSession session, {
     required bool Function() isCancelled,
-  }
-  ) async {
+  }) async {
     try {
       return switch (task) {
         ExtractTask.schedule => await _runScheduleStep(

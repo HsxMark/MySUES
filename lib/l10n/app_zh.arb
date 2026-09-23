@@ -273,8 +273,6 @@
   "lastSync": "上次同步时间",
   "connectToTheAcademicSystemToSyncYourProfile": "请连接教务系统同步身份信息",
   "academicSync": "教务同步",
-  "synced": "已同步",
-  "notSynced": "未同步",
   "tapToSync": "点击开始同步",
   "startSync": "去同步",
   "signInToTheAcademicSystem": "请登录 教务系统",

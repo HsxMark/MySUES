@@ -230,7 +230,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
     _cachedPages[index] ??= switch (index) {
       0 => ScheduleViewContainer(key: ScheduleViewContainer.containerKey),
       1 => const TranscriptScreen(),
-      2 => ExamInfoScreen(key: ExamInfoScreen.screenKey),
+      2 => const ExamInfoScreen(),
       3 => const ProfileScreen(),
       _ => const SizedBox.shrink(),
     };
@@ -238,18 +238,9 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
   }
 
   void _selectTab(int index) {
-    // The exam tab is cached in an IndexedStack, so a page built before an
-    // import elsewhere would otherwise keep showing stale data.
-    final wasCached = _cachedPages[2] != null;
     setState(() {
       _currentIndex = index;
     });
-
-    if (index == 2 && wasCached) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ExamInfoScreen.screenKey.currentState?.refresh();
-      });
-    }
   }
 
   @override

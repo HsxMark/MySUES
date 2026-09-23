@@ -628,12 +628,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get academicSync => '教务同步';
 
   @override
-  String get synced => '已同步';
-
-  @override
-  String get notSynced => '未同步';
-
-  @override
   String get tapToSync => '点击开始同步';
 
   @override

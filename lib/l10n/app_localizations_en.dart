@@ -651,12 +651,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get academicSync => 'Academic Sync';
 
   @override
-  String get synced => 'Synced';
-
-  @override
-  String get notSynced => 'Not Synced';
-
-  @override
   String get tapToSync => 'Tap to Sync';
 
   @override

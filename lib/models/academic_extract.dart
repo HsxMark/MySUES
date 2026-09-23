@@ -81,8 +81,6 @@ class ExtractSummary {
   int get failedTotal => failureCount + cancelledCount;
 
   bool get hasFailures => failedTotal > 0;
-
-  int get totalCount => successCount + failedTotal;
 }
 
 /// Everything the extraction dialog needs to render itself.
@@ -125,6 +123,27 @@ class ExtractDialogState {
       cancelling: cancelling ?? this.cancelling,
       conflictDetails: conflictDetails ?? this.conflictDetails,
       statusText: clearStatusText ? null : (statusText ?? this.statusText),
+    );
+  }
+
+  /// Marks every task that is not in a terminal state as failed.
+  ///
+  /// Used when a run aborts outside the per-task error handling: the dialog
+  /// still shows the ordinary failure summary, so the user can retry instead of
+  /// being left with a checklist stuck on "running".
+  ExtractDialogState withUnfinishedAsFailed(String detail) {
+    return copyWith(
+      progress: progress
+          .map(
+            (item) => item.isTerminal
+                ? item
+                : item.copyWith(
+                    status: ExtractTaskStatus.failure,
+                    detail: detail,
+                  ),
+          )
+          .toList(),
+      clearStatusText: true,
     );
   }
 }

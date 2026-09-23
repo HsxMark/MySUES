@@ -4,6 +4,24 @@ import 'package:mysues/l10n/l10n.dart';
 
 import '../models/academic_extract.dart';
 
+/// Tracks whether the extraction dialog is still on screen.
+///
+/// `showDialog` resolves its future as soon as the pop starts (Flutter's
+/// `Route.didPop` → `didComplete`), while the route itself stays mounted
+/// through its exit animation. Popping the dialog again when the user already
+/// dismissed it with the back gesture would therefore take the route *below*
+/// the dialog off the navigator as well, so callers must check [isOpen] first.
+class ExtractDialogGuard {
+  ExtractDialogGuard(Future<void> dialogFuture) {
+    dialogFuture.whenComplete(() => _open = false);
+  }
+
+  bool _open = true;
+
+  /// False from the moment the dialog's route future completes.
+  bool get isOpen => _open;
+}
+
 /// Checklist style progress dialog used by the one-tap academic extraction.
 ///
 /// The dialog is stateless: the orchestrating screen owns a
@@ -193,10 +211,7 @@ class AcademicExtractDialog extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: subtitleColor,
-                  ),
+                  style: TextStyle(fontSize: 12, color: subtitleColor),
                 ),
               ],
             ),

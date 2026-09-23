@@ -1273,18 +1273,6 @@ abstract class AppLocalizations {
   /// **'教务同步'**
   String get academicSync;
 
-  /// No description provided for @synced.
-  ///
-  /// In zh, this message translates to:
-  /// **'已同步'**
-  String get synced;
-
-  /// No description provided for @notSynced.
-  ///
-  /// In zh, this message translates to:
-  /// **'未同步'**
-  String get notSynced;
-
   /// No description provided for @tapToSync.
   ///
   /// In zh, this message translates to:
