@@ -440,7 +440,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ? Padding(
                           padding: const EdgeInsets.all(4.0),
                           child: SvgPicture.asset(
-                            'assets/images/sues-single.svg',
+                            'assets/images/sanxuanyi.svg',
                             fit: BoxFit.contain,
                           ),
                         )

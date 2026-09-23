@@ -299,7 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: SvgPicture.asset(
-                            'assets/images/sues-single.svg',
+                            'assets/images/sanxuanyi.svg',
                             fit: BoxFit.contain,
                           ),
                         )
