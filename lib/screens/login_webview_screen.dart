@@ -5,8 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:mysues/l10n/l10n.dart';
+import 'package:mysues/l10n/localized_formatters.dart';
 
 import '../models/academic_extract.dart';
+import '../models/course.dart';
 import '../models/exam.dart';
 import '../services/academic_import_snapshot.dart';
 import '../services/exam_service.dart';
@@ -211,6 +213,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
             },
             onRetryFailed: () => _completeAction(actionCompleter, true),
             onDone: () => _completeAction(actionCompleter, false),
+            onShowConflictDetails: () =>
+                _showConflictDetails(state.value.conflictDetails),
           );
         },
       );
@@ -218,7 +222,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       // summary) behaves exactly like tapping "done".
       dialogFuture.whenComplete(() => _completeAction(actionCompleter, false));
 
-      var conflictCount = 0;
+      var conflictDetails = <String>[];
       var anySuccess = false;
 
       while (true) {
@@ -229,7 +233,11 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           isCancelled: () => cancelRequested,
           onSuccess: (outcome) {
             anySuccess = true;
-            conflictCount += outcome.conflictCount;
+            if (outcome.conflictGroups.isNotEmpty) {
+              // The schedule is re-imported as a whole, so the previous
+              // conflict list is replaced instead of appended to.
+              conflictDetails = _formatConflictGroups(outcome.conflictGroups);
+            }
           },
         );
 
@@ -237,7 +245,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
         state.value = state.value.copyWith(
           finished: true,
-          conflictCount: conflictCount,
+          conflictDetails: conflictDetails,
           clearStatusText: true,
         );
 
@@ -682,7 +690,66 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
     return _StepOutcome.success(
       l10n.extractResultSchedule(courses.length),
-      conflictCount: CourseConflictUtil.getConflictGroups(courses).length,
+      conflictGroups: CourseConflictUtil.getConflictGroups(courses),
+    );
+  }
+
+  /// Formats conflict groups the same way the previous confirmation dialog did,
+  /// e.g. `• 高等数学 (周三 第 3 - 4 节 )`.
+  List<String> _formatConflictGroups(Map<String, List<Course>> groups) {
+    final l10n = context.l10n;
+    return groups.values.map((group) {
+      return group
+          .map((course) {
+            final schedule = l10n.courseScheduleLine(
+              localizedWeekdayLabel(l10n, course.day),
+              l10n.periodRange(
+                course.startNode,
+                course.startNode + course.step - 1,
+              ),
+              '',
+            );
+            return '• ${course.courseName} ($schedule)';
+          })
+          .join('\n');
+    }).toList();
+  }
+
+  Future<void> _showConflictDetails(List<String> details) async {
+    if (details.isEmpty || !mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.warningCourseConflict),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.theFollowingCoursesOverlap),
+              const SizedBox(height: 8),
+              ...details.map(
+                (line) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    line,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(context.l10n.conflictDetailsSavedHint),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.l10n.gotIt),
+          ),
+        ],
+      ),
     );
   }
 
@@ -867,6 +934,12 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                   }),
                   secondary: Icon(_taskIcon(task)),
                   title: Text(_taskTitle(context, task)),
+                  subtitle: task == ExtractTask.schedule
+                      ? Text(
+                          context.l10n.extractScheduleSemesterHint,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        )
+                      : null,
                   controlAffinity: ListTileControlAffinity.trailing,
                   dense: true,
                 ),
@@ -1042,7 +1115,10 @@ class _AcademicSession {
 
 /// Result of a single extraction step.
 class _StepOutcome {
-  const _StepOutcome.success(this.detail, {this.conflictCount = 0})
+  const _StepOutcome.success(
+    this.detail, {
+    this.conflictGroups = const {},
+  })
     : success = true,
       cancelled = false,
       error = null;
@@ -1051,14 +1127,14 @@ class _StepOutcome {
     : success = false,
       cancelled = false,
       detail = null,
-      conflictCount = 0;
+      conflictGroups = const {};
 
   const _StepOutcome.cancelled()
     : success = false,
       cancelled = true,
       detail = null,
       error = null,
-      conflictCount = 0;
+      conflictGroups = const {};
 
   final bool success;
 
@@ -1066,5 +1142,8 @@ class _StepOutcome {
   final bool cancelled;
   final String? detail;
   final String? error;
-  final int conflictCount;
+
+  /// Conflicting course groups of the imported schedule, empty when there is
+  /// none. Only the schedule step fills this in.
+  final Map<String, List<Course>> conflictGroups;
 }

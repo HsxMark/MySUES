@@ -16,12 +16,16 @@ class AcademicExtractDialog extends StatelessWidget {
     required this.onCancel,
     required this.onRetryFailed,
     required this.onDone,
+    required this.onShowConflictDetails,
   });
 
   final ValueListenable<ExtractDialogState> state;
   final VoidCallback onCancel;
   final VoidCallback onRetryFailed;
   final VoidCallback onDone;
+
+  /// Opens the conflict breakdown; only called when conflicts were found.
+  final VoidCallback onShowConflictDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +78,13 @@ class AcademicExtractDialog extends StatelessWidget {
                         Text(
                           l10n.extractConflictSummary(value.conflictCount),
                           style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: onShowConflictDetails,
+                            child: Text(l10n.extractConflictDetails),
+                          ),
                         ),
                       ],
                     ],

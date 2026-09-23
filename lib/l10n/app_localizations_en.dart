@@ -350,10 +350,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get extract => 'Extract';
 
   @override
-  String get oneTapExtract => 'One-tap Extract';
+  String get oneTapExtract => 'Extract';
 
   @override
-  String get extractTaskSchedule => 'Latest Schedule';
+  String get extractTaskSchedule => 'Schedule';
 
   @override
   String get extractTaskScores => 'Grades';
@@ -424,6 +424,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String extractConflictSummary(int count) {
     return '$count schedule conflicts found. Review them in the schedule later.';
   }
+
+  @override
+  String get extractConflictDetails => 'View conflicts';
+
+  @override
+  String get conflictDetailsSavedHint =>
+      'These courses were imported. Review them in the schedule, or adjust their study status later.';
+
+  @override
+  String get extractScheduleSemesterHint =>
+      'Tick only this item to pick a semester, including past ones; combined runs use the latest semester';
+
+  @override
+  String get gotIt => 'Got it';
 
   @override
   String get extractCancelledRolledBack =>

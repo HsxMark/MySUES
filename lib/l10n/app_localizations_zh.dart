@@ -342,10 +342,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get extract => '提取';
 
   @override
-  String get oneTapExtract => '一键提取';
+  String get oneTapExtract => '提取内容';
 
   @override
-  String get extractTaskSchedule => '最新课表';
+  String get extractTaskSchedule => '课表';
 
   @override
   String get extractTaskScores => '成绩';
@@ -416,6 +416,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String extractConflictSummary(int count) {
     return '发现 $count 处课程时间冲突，可稍后在课表中处理';
   }
+
+  @override
+  String get extractConflictDetails => '查看冲突详情';
+
+  @override
+  String get conflictDetailsSavedHint => '这些课程已导入，可在课表中查看，或后续修改免听/重修状态。';
+
+  @override
+  String get extractScheduleSemesterHint => '只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期';
+
+  @override
+  String get gotIt => '知道了';
 
   @override
   String get extractCancelledRolledBack => '已取消提取，数据已恢复原状';

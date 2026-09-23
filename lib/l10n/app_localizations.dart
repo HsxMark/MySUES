@@ -730,13 +730,13 @@ abstract class AppLocalizations {
   /// No description provided for @oneTapExtract.
   ///
   /// In zh, this message translates to:
-  /// **'一键提取'**
+  /// **'提取内容'**
   String get oneTapExtract;
 
   /// No description provided for @extractTaskSchedule.
   ///
   /// In zh, this message translates to:
-  /// **'最新课表'**
+  /// **'课表'**
   String get extractTaskSchedule;
 
   /// No description provided for @extractTaskScores.
@@ -858,6 +858,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'发现 {count} 处课程时间冲突，可稍后在课表中处理'**
   String extractConflictSummary(int count);
+
+  /// No description provided for @extractConflictDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看冲突详情'**
+  String get extractConflictDetails;
+
+  /// No description provided for @conflictDetailsSavedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'这些课程已导入，可在课表中查看，或后续修改免听/重修状态。'**
+  String get conflictDetailsSavedHint;
+
+  /// No description provided for @extractScheduleSemesterHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期'**
+  String get extractScheduleSemesterHint;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In zh, this message translates to:
+  /// **'知道了'**
+  String get gotIt;
 
   /// No description provided for @extractCancelledRolledBack.
   ///

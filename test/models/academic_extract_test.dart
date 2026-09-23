@@ -93,11 +93,18 @@ void main() {
             status: ExtractTaskStatus.success,
           ),
         ],
-        conflictCount: 3,
+        conflictDetails: ['• 高等数学 (周三 第 3 - 4 节 )', '• 大学物理'],
       );
 
       expect(state.summary.successCount, 1);
-      expect(state.summary.conflictCount, 3);
+      expect(state.conflictCount, 2);
+      expect(state.summary.conflictCount, 2);
+    });
+
+    test('reports no conflicts when no details were recorded', () {
+      const state = ExtractDialogState();
+      expect(state.conflictCount, 0);
+      expect(state.conflictDetails, isEmpty);
     });
 
     test('tracks the cancelling flag', () {

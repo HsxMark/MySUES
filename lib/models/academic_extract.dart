@@ -91,7 +91,7 @@ class ExtractDialogState {
     this.progress = const [],
     this.finished = false,
     this.cancelling = false,
-    this.conflictCount = 0,
+    this.conflictDetails = const [],
     this.statusText,
   });
 
@@ -100,8 +100,13 @@ class ExtractDialogState {
 
   /// True from the moment the user taps cancel until the run is rolled back.
   final bool cancelling;
-  final int conflictCount;
+
+  /// Formatted conflict groups of the imported schedule, empty when there is
+  /// no conflict (the dialog then hides the conflict row completely).
+  final List<String> conflictDetails;
   final String? statusText;
+
+  int get conflictCount => conflictDetails.length;
 
   ExtractSummary get summary =>
       ExtractSummary.fromProgress(progress, conflictCount: conflictCount);
@@ -110,7 +115,7 @@ class ExtractDialogState {
     List<ExtractTaskProgress>? progress,
     bool? finished,
     bool? cancelling,
-    int? conflictCount,
+    List<String>? conflictDetails,
     String? statusText,
     bool clearStatusText = false,
   }) {
@@ -118,7 +123,7 @@ class ExtractDialogState {
       progress: progress ?? this.progress,
       finished: finished ?? this.finished,
       cancelling: cancelling ?? this.cancelling,
-      conflictCount: conflictCount ?? this.conflictCount,
+      conflictDetails: conflictDetails ?? this.conflictDetails,
       statusText: clearStatusText ? null : (statusText ?? this.statusText),
     );
   }

@@ -40,11 +40,12 @@ void main() {
           onCancel: () {},
           onRetryFailed: () {},
           onDone: () {},
+          onShowConflictDetails: () {},
         ),
       ),
     );
 
-    expect(find.text('最新课表'), findsOneWidget);
+    expect(find.text('课表'), findsOneWidget);
     expect(find.text('成绩'), findsOneWidget);
     expect(find.text('个人信息'), findsOneWidget);
     expect(find.text('考试信息'), findsOneWidget);
@@ -85,11 +86,15 @@ void main() {
           ),
         ],
         finished: true,
-        conflictCount: 2,
+        conflictDetails: [
+          '• 高等数学 (周三 第 3 - 4 节 )',
+          '• 大学物理 (周五 第 5 - 6 节 )',
+        ],
       ),
     );
     addTearDown(state.dispose);
 
+    var detailsRequested = 0;
     await tester.pumpWidget(
       _wrap(
         AcademicExtractDialog(
@@ -97,6 +102,7 @@ void main() {
           onCancel: () {},
           onRetryFailed: () {},
           onDone: () {},
+          onShowConflictDetails: () => detailsRequested++,
         ),
       ),
     );
@@ -106,9 +112,14 @@ void main() {
     expect(find.text('未获取到成绩'), findsOneWidget);
     expect(find.text('32 条课程记录'), findsOneWidget);
     expect(find.text('发现 2 处课程时间冲突，可稍后在课表中处理'), findsOneWidget);
+    expect(find.text('查看冲突详情'), findsOneWidget);
     expect(find.text('重试失败项'), findsOneWidget);
     expect(find.text('完成'), findsOneWidget);
     expect(find.text('取消'), findsNothing);
+
+    await tester.tap(find.text('查看冲突详情'));
+    await tester.pump();
+    expect(detailsRequested, 1);
 
     final progressBar = tester.widget<LinearProgressIndicator>(
       find.byType(LinearProgressIndicator),
@@ -139,11 +150,13 @@ void main() {
           onCancel: () {},
           onRetryFailed: () {},
           onDone: () {},
+          onShowConflictDetails: () {},
         ),
       ),
     );
 
     expect(find.text('重试失败项'), findsNothing);
+    expect(find.text('查看冲突详情'), findsNothing);
     expect(find.text('完成'), findsOneWidget);
   });
 
@@ -170,6 +183,7 @@ void main() {
           onCancel: () {},
           onRetryFailed: () {},
           onDone: () {},
+          onShowConflictDetails: () {},
         ),
       ),
     );
