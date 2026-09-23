@@ -9,7 +9,11 @@ class FetchCourseService {
   static const String _vpnSuffix = "vpn-12-o2-jxfw.sues.edu.cn";
 
   /// Helper: Executes async XHR request inside WebView (兼容 iOS WKWebView)
-  static Future<String?> _fetchWithXhr(WebViewController controller, String url) async {
+  static Future<String?> _fetchWithXhr(
+    WebViewController controller,
+    String url, {
+    bool Function()? isCancelled,
+  }) async {
     try {
       final safeUrl = url.replaceAll("'", "\\'");
       final key = '_fr_${DateTime.now().millisecondsSinceEpoch}';
@@ -44,6 +48,10 @@ class FetchCourseService {
       """);
 
       for (int i = 0; i < 100; i++) {
+        if (isCancelled?.call() ?? false) {
+          debugPrint("WebView XHR aborted by caller: $url");
+          return null;
+        }
         await Future.delayed(const Duration(milliseconds: 100));
         final done = await controller.runJavaScriptReturningResult("window['${key}_done']");
         if (done.toString() == 'true') {
@@ -82,7 +90,11 @@ class FetchCourseService {
   }
 
   /// 1. Extracts semester IDs from the page DOM
-  static Future<List<String>> fetchSemesterIds(WebViewController controller) async {
+  static Future<List<String>> fetchSemesterIds(
+    WebViewController controller, {
+    bool Function()? isCancelled,
+  }) async {
+    if (isCancelled?.call() ?? false) return [];
     const js = """
       (function() {
         var select = document.getElementById('add-drop-take-semesters');
@@ -101,6 +113,7 @@ class FetchCourseService {
     
     try {
       final result = await controller.runJavaScriptReturningResult(js);
+      if (isCancelled?.call() ?? false) return [];
       String jsonStr = result.toString();
       // Unquote if necessary (sometimes runJavaScriptReturningResult returns "[\"234\"]")
       if (jsonStr.startsWith('"') && jsonStr.endsWith('"')) {
@@ -119,12 +132,21 @@ class FetchCourseService {
 
   /// 2. Fetches detailed info for a semester
   static Future<Map<String, dynamic>?> fetchSemesterInfo(
-      WebViewController controller, String baseUrl, String semesterId) async {
+    WebViewController controller,
+    String baseUrl,
+    String semesterId, {
+    bool Function()? isCancelled,
+  }) async {
     // URL pattern from python script:
     // f"{BASE_URL}/student/ws/semester/get/{semester_id}?{VPN_SUFFIX}"
     final url = "$baseUrl/student/ws/semester/get/$semesterId?$_vpnSuffix";
     
-    final jsonStr = await _fetchWithXhr(controller, url);
+    final jsonStr = await _fetchWithXhr(
+      controller,
+      url,
+      isCancelled: isCancelled,
+    );
+    if (isCancelled?.call() ?? false) return null;
     if (jsonStr == null) return null;
     try {
       return jsonDecode(jsonStr) as Map<String, dynamic>;
@@ -136,12 +158,21 @@ class FetchCourseService {
 
   /// 3. Fetches course table data
   static Future<Map<String, dynamic>?> fetchCourseData(
-      WebViewController controller, String baseUrl, String semesterId) async {
+    WebViewController controller,
+    String baseUrl,
+    String semesterId, {
+    bool Function()? isCancelled,
+  }) async {
     // URL pattern from python script:
     // f"{BASE_URL}/student/for-std/course-table/semester/{semester_id}/print-data?{VPN_SUFFIX}&semesterId={semester_id}&hasExperiment=true"
     final url = "$baseUrl/student/for-std/course-table/semester/$semesterId/print-data?$_vpnSuffix&semesterId=$semesterId&hasExperiment=true";
     
-    final jsonStr = await _fetchWithXhr(controller, url);
+    final jsonStr = await _fetchWithXhr(
+      controller,
+      url,
+      isCancelled: isCancelled,
+    );
+    if (isCancelled?.call() ?? false) return null;
     if (jsonStr == null) return null;
     try {
       return jsonDecode(jsonStr) as Map<String, dynamic>;

@@ -146,4 +146,38 @@ void main() {
     expect(find.text('重试失败项'), findsNothing);
     expect(find.text('完成'), findsOneWidget);
   });
+
+  testWidgets('disables the cancel button while cancelling', (tester) async {
+    final state = ValueNotifier<ExtractDialogState>(
+      const ExtractDialogState(
+        progress: [
+          ExtractTaskProgress(
+            task: ExtractTask.schedule,
+            status: ExtractTaskStatus.running,
+          ),
+          ExtractTaskProgress(task: ExtractTask.scores),
+        ],
+        cancelling: true,
+        statusText: '正在取消…',
+      ),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _wrap(
+        AcademicExtractDialog(
+          state: state,
+          onCancel: () {},
+          onRetryFailed: () {},
+          onDone: () {},
+        ),
+      ),
+    );
+
+    expect(find.text('正在取消…'), findsOneWidget);
+    final cancelButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, '取消'),
+    );
+    expect(cancelButton.onPressed, isNull);
+  });
 }

@@ -12,9 +12,10 @@ class FetchExamService {
   static Future<List<Exam>> fetchExams(
     WebViewController controller, 
     String baseUrl, 
-    {String? studentId}
+    {String? studentId, bool Function()? isCancelled}
   ) async {
     try {
+      if (isCancelled?.call() ?? false) return const [];
       // 1. 如果没有提供 studentId，先获取
       if (studentId == null || studentId.isEmpty) {
         // 先尝试从本地读取 internal ID
@@ -23,7 +24,12 @@ class FetchExamService {
 
         // 如果本地没有，则联网获取
         if (studentId == null) {
-          final info = await FetchInfoService.fetchStudentInfo(controller, baseUrl);
+          final info = await FetchInfoService.fetchStudentInfo(
+            controller,
+            baseUrl,
+            isCancelled: isCancelled,
+          );
+          if (isCancelled?.call() ?? false) return const [];
           studentId = info?['id']; // 使用内部 ID (如 12345)，而不是学号
           
           if (studentId != null) {
@@ -43,7 +49,12 @@ class FetchExamService {
       debugPrint("FetchExamService: Fetching exams from $url");
 
       // 3. 获取 HTML 内容
-      final htmlString = await _fetchWithXhr(controller, url);
+      final htmlString = await _fetchWithXhr(
+        controller,
+        url,
+        isCancelled: isCancelled,
+      );
+      if (isCancelled?.call() ?? false) return const [];
       if (htmlString == null || htmlString.isEmpty) {
         debugPrint("FetchExamService: Empty response.");
         return [];
@@ -206,7 +217,11 @@ class FetchExamService {
   /// 通过异步 XHR 获取页面内容（兼容 iOS WKWebView，不使用同步 XHR）
   /// 注意：考试接口返回完整 HTML 页面，iOS WKWebView 的 JS 桥在传递大字符串时
   /// 可能截断或编码异常，因此在 JS 侧预提取 <table> 元素以减少传输数据量。
-  static Future<String?> _fetchWithXhr(WebViewController controller, String url) async {
+  static Future<String?> _fetchWithXhr(
+    WebViewController controller,
+    String url, {
+    bool Function()? isCancelled,
+  }) async {
     try {
       final safeUrl = url.replaceAll("'", "\\'");
       final key = '_fr_${DateTime.now().millisecondsSinceEpoch}';
@@ -253,6 +268,10 @@ class FetchExamService {
 
       // 轮询等待结果（最多 10 秒）
       for (int i = 0; i < 100; i++) {
+        if (isCancelled?.call() ?? false) {
+          debugPrint("WebView XHR aborted by caller: $url");
+          return null;
+        }
         await Future.delayed(const Duration(milliseconds: 100));
         final done = await controller.runJavaScriptReturningResult("window['${key}_done']");
         if (done.toString() == 'true') {

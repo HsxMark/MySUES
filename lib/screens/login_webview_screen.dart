@@ -205,6 +205,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
             onCancel: () {
               cancelRequested = true;
               state.value = state.value.copyWith(
+                cancelling: true,
                 statusText: context.l10n.extractCancelling,
               );
             },
@@ -340,15 +341,27 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       return;
     }
 
-    for (final task in pending) {
+    for (var index = 0; index < pending.length; index++) {
+      final task = pending[index];
       if (isCancelled()) {
-        _setTaskState(state, task, ExtractTaskStatus.cancelled);
-        continue;
+        _cancelRemaining(state, pending.sublist(index));
+        return;
       }
 
       _setTaskState(state, task, ExtractTaskStatus.running);
-      final outcome = await _runExtractTask(task, session);
+      final outcome = await _runExtractTask(
+        task,
+        session,
+        isCancelled: isCancelled,
+      );
       if (!mounted) return;
+
+      // A step that was interrupted by the cancel request must not be reported
+      // as a success; the remaining steps are cancelled as well.
+      if (outcome.cancelled || isCancelled()) {
+        _cancelRemaining(state, pending.sublist(index));
+        return;
+      }
 
       _setTaskState(
         state,
@@ -357,6 +370,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         detail: outcome.success ? outcome.detail : outcome.error,
       );
       if (outcome.success) onSuccess(outcome);
+    }
+  }
+
+  void _cancelRemaining(
+    ValueNotifier<ExtractDialogState> state,
+    List<ExtractTask> tasks,
+  ) {
+    for (final task in tasks) {
+      _setTaskState(state, task, ExtractTaskStatus.cancelled);
     }
   }
 
@@ -426,7 +448,11 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   }) async {
     var semesterIds = <String>[];
     for (var attempt = 0; attempt < attempts; attempt++) {
-      semesterIds = await FetchCourseService.fetchSemesterIds(_controller);
+      semesterIds = await FetchCourseService.fetchSemesterIds(
+        _controller,
+        isCancelled: isCancelled,
+      );
+      if (isCancelled?.call() ?? false) return const [];
       if (semesterIds.isNotEmpty) break;
       if (isCancelled?.call() ?? false) break;
       await Future.delayed(const Duration(seconds: 1));
@@ -468,7 +494,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       _controller,
       targetBase,
       latestSemesterId,
+      isCancelled: isCancelled,
     );
+    if (isCancelled?.call() ?? false) return null;
     final name = info?['nameZh']?.toString();
 
     return _AcademicSession(
@@ -578,14 +606,28 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
 
   Future<_StepOutcome> _runExtractTask(
     ExtractTask task,
-    _AcademicSession session,
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }
   ) async {
     try {
       return switch (task) {
-        ExtractTask.schedule => await _runScheduleStep(session),
-        ExtractTask.scores => await _runScoresStep(session),
-        ExtractTask.profile => await _runProfileStep(session),
-        ExtractTask.exams => await _runExamsStep(session),
+        ExtractTask.schedule => await _runScheduleStep(
+          session,
+          isCancelled: isCancelled,
+        ),
+        ExtractTask.scores => await _runScoresStep(
+          session,
+          isCancelled: isCancelled,
+        ),
+        ExtractTask.profile => await _runProfileStep(
+          session,
+          isCancelled: isCancelled,
+        ),
+        ExtractTask.exams => await _runExamsStep(
+          session,
+          isCancelled: isCancelled,
+        ),
       };
     } catch (e) {
       debugPrint('Extract $task failed: $e');
@@ -594,14 +636,19 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     }
   }
 
-  Future<_StepOutcome> _runScheduleStep(_AcademicSession session) async {
+  Future<_StepOutcome> _runScheduleStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
     final l10n = context.l10n;
     final courseData = await FetchCourseService.fetchCourseData(
       _controller,
       session.baseUrl,
       session.semesterId,
+      isCancelled: isCancelled,
     );
     if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
     if (courseData == null) {
       return _StepOutcome.failure(l10n.failedToRetrieveScheduleData);
     }
@@ -620,11 +667,13 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     // the score and exam endpoints, so cache it for the following steps.
     session.internalStudentId =
         await _cacheStudentIdentity(courseData) ?? session.internalStudentId;
+    if (isCancelled()) return const _StepOutcome.cancelled();
 
     final table = await ScheduleDataService.upsertScheduleTable(
       semesterName: session.semesterName,
       startDate: session.startDate,
     );
+    if (isCancelled()) return const _StepOutcome.cancelled();
     await ScheduleDataService.replaceCoursesForTable(
       tableId: table.id,
       courses: courses,
@@ -637,10 +686,17 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     );
   }
 
-  Future<_StepOutcome> _runScoresStep(_AcademicSession session) async {
+  Future<_StepOutcome> _runScoresStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
     final l10n = context.l10n;
-    final studentId = await _resolveInternalStudentId(session);
+    final studentId = await _resolveInternalStudentId(
+      session,
+      isCancelled: isCancelled,
+    );
     if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
     if (studentId == null) {
       return _StepOutcome.failure(l10n.unableToParseTheScheduleData);
     }
@@ -650,8 +706,10 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       session.baseUrl,
       studentId,
       session.semesterIds,
+      isCancelled: isCancelled,
     );
     if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
     if (scores.isEmpty) {
       return _StepOutcome.failure(
         l10n.noScoresForSemesters(session.semesterIds.length),
@@ -664,13 +722,18 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     return _StepOutcome.success(l10n.extractResultScores(scores.length));
   }
 
-  Future<_StepOutcome> _runProfileStep(_AcademicSession session) async {
+  Future<_StepOutcome> _runProfileStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
     final l10n = context.l10n;
     final info = await FetchInfoService.fetchStudentInfo(
       _controller,
       session.baseUrl,
+      isCancelled: isCancelled,
     );
     if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
     if (info == null || (info['name'] ?? '').isEmpty) {
       return _StepOutcome.failure(
         l10n.noValidProfileInformationCouldBeExtracted,
@@ -685,10 +748,17 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     return _StepOutcome.success(l10n.extractResultProfile);
   }
 
-  Future<_StepOutcome> _runExamsStep(_AcademicSession session) async {
+  Future<_StepOutcome> _runExamsStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
     final l10n = context.l10n;
-    final studentId = await _resolveInternalStudentId(session);
+    final studentId = await _resolveInternalStudentId(
+      session,
+      isCancelled: isCancelled,
+    );
     if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
     if (studentId == null || studentId.isEmpty) {
       return _StepOutcome.failure(
         l10n.unableToRetrieveStudentInformationTryAgain,
@@ -699,11 +769,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     // for the exam endpoint, so retry a couple of times.
     var exams = <Exam>[];
     for (var attempt = 1; attempt <= 3; attempt++) {
+      if (isCancelled()) return const _StepOutcome.cancelled();
       exams = await FetchExamService.fetchExams(
         _controller,
         session.baseUrl,
         studentId: studentId,
+        isCancelled: isCancelled,
       );
+      if (!mounted) return _StepOutcome.failure('');
+      if (isCancelled()) return const _StepOutcome.cancelled();
       if (exams.isNotEmpty) break;
       if (attempt < 3) {
         await Future.delayed(const Duration(seconds: 2));
@@ -711,6 +785,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     }
 
     if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
     if (exams.isEmpty) {
       return _StepOutcome.failure(l10n.noExamDataWasFound);
     }
@@ -720,14 +795,19 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     return _StepOutcome.success(l10n.extractResultExams(exams.length));
   }
 
-  Future<String?> _resolveInternalStudentId(_AcademicSession session) async {
+  Future<String?> _resolveInternalStudentId(
+    _AcademicSession session, {
+    bool Function()? isCancelled,
+  }) async {
     if (session.internalStudentId != null) return session.internalStudentId;
 
     final courseData = await FetchCourseService.fetchCourseData(
       _controller,
       session.baseUrl,
       session.semesterId,
+      isCancelled: isCancelled,
     );
+    if (isCancelled?.call() ?? false) return null;
     if (courseData == null) return null;
 
     session.internalStudentId = await _cacheStudentIdentity(courseData);
@@ -964,14 +1044,26 @@ class _AcademicSession {
 class _StepOutcome {
   const _StepOutcome.success(this.detail, {this.conflictCount = 0})
     : success = true,
+      cancelled = false,
       error = null;
 
   const _StepOutcome.failure(this.error)
     : success = false,
+      cancelled = false,
       detail = null,
       conflictCount = 0;
 
+  const _StepOutcome.cancelled()
+    : success = false,
+      cancelled = true,
+      detail = null,
+      error = null,
+      conflictCount = 0;
+
   final bool success;
+
+  /// True when the step stopped because the user cancelled the run.
+  final bool cancelled;
   final String? detail;
   final String? error;
   final int conflictCount;

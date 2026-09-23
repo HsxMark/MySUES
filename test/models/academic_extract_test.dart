@@ -99,5 +99,20 @@ void main() {
       expect(state.summary.successCount, 1);
       expect(state.summary.conflictCount, 3);
     });
+
+    test('tracks the cancelling flag', () {
+      const state = ExtractDialogState();
+      expect(state.cancelling, isFalse);
+
+      final cancelling = state.copyWith(
+        cancelling: true,
+        statusText: '正在取消…',
+      );
+      expect(cancelling.cancelling, isTrue);
+      expect(cancelling.statusText, '正在取消…');
+
+      // copyWith keeps the flag unless it is explicitly changed.
+      expect(cancelling.copyWith(finished: true).cancelling, isTrue);
+    });
   });
 }

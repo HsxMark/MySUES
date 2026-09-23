@@ -90,12 +90,16 @@ class ExtractDialogState {
   const ExtractDialogState({
     this.progress = const [],
     this.finished = false,
+    this.cancelling = false,
     this.conflictCount = 0,
     this.statusText,
   });
 
   final List<ExtractTaskProgress> progress;
   final bool finished;
+
+  /// True from the moment the user taps cancel until the run is rolled back.
+  final bool cancelling;
   final int conflictCount;
   final String? statusText;
 
@@ -105,6 +109,7 @@ class ExtractDialogState {
   ExtractDialogState copyWith({
     List<ExtractTaskProgress>? progress,
     bool? finished,
+    bool? cancelling,
     int? conflictCount,
     String? statusText,
     bool clearStatusText = false,
@@ -112,6 +117,7 @@ class ExtractDialogState {
     return ExtractDialogState(
       progress: progress ?? this.progress,
       finished: finished ?? this.finished,
+      cancelling: cancelling ?? this.cancelling,
       conflictCount: conflictCount ?? this.conflictCount,
       statusText: clearStatusText ? null : (statusText ?? this.statusText),
     );

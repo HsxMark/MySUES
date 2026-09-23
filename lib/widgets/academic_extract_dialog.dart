@@ -91,7 +91,10 @@ class AcademicExtractDialog extends StatelessWidget {
                     FilledButton(onPressed: onDone, child: Text(l10n.done)),
                   ]
                 : [
-                    TextButton(onPressed: onCancel, child: Text(l10n.cancel)),
+                    TextButton(
+                      onPressed: value.cancelling ? null : onCancel,
+                      child: Text(l10n.cancel),
+                    ),
                   ],
           ),
         );
