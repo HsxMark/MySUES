@@ -10,6 +10,7 @@ import '../models/academic_extract.dart';
 import '../models/exam.dart';
 import '../services/academic_import_snapshot.dart';
 import '../services/exam_service.dart';
+import '../services/notification_service.dart';
 import '../services/schedule_service.dart';
 import '../services/score_service.dart';
 import '../services/webvpn/fetch_course_service.dart';
@@ -288,6 +289,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       _isDataChanged = true;
       await _recordSyncTime();
       if (!mounted) return;
+      // Newly imported exams/courses should be reflected in the reminders that
+      // are already enabled, without waiting for the next app start.
+      unawaited(NotificationService().rescheduleAll());
       Navigator.pop(context, true);
     } finally {
       _isExtractRunning = false;

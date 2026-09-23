@@ -18,11 +18,15 @@ enum _ExamFilter { all, unfinished, finished }
 class ExamInfoScreen extends StatefulWidget {
   const ExamInfoScreen({super.key});
 
+  /// 全局 key，供外部（如底部导航切回考试页）触发刷新
+  static final GlobalKey<ExamInfoScreenState> screenKey =
+      GlobalKey<ExamInfoScreenState>();
+
   @override
-  State<ExamInfoScreen> createState() => _ExamInfoScreenState();
+  State<ExamInfoScreen> createState() => ExamInfoScreenState();
 }
 
-class _ExamInfoScreenState extends State<ExamInfoScreen> {
+class ExamInfoScreenState extends State<ExamInfoScreen> {
   // Data list
   List<Exam> _allExams = [];
 
@@ -30,7 +34,23 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   void initState() {
     super.initState();
     _loadExams();
+    // Listen for updates from other screens (e.g. the one-tap extraction flow).
+    ExamService.examsUpdateNotifier.addListener(_onExamsUpdated);
   }
+
+  @override
+  void dispose() {
+    ExamService.examsUpdateNotifier.removeListener(_onExamsUpdated);
+    super.dispose();
+  }
+
+  void _onExamsUpdated() {
+    _loadExams();
+  }
+
+  /// Public entry point so other screens can force a reload, e.g. when this
+  /// cached tab becomes visible again after an import happened elsewhere.
+  Future<void> refresh() => _loadExams();
 
   Future<void> _loadExams() async {
     final exams = await ExamService.loadExams();

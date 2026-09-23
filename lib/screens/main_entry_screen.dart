@@ -230,11 +230,26 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
     _cachedPages[index] ??= switch (index) {
       0 => ScheduleViewContainer(key: ScheduleViewContainer.containerKey),
       1 => const TranscriptScreen(),
-      2 => const ExamInfoScreen(),
+      2 => ExamInfoScreen(key: ExamInfoScreen.screenKey),
       3 => const ProfileScreen(),
       _ => const SizedBox.shrink(),
     };
     return _cachedPages[index]!;
+  }
+
+  void _selectTab(int index) {
+    // The exam tab is cached in an IndexedStack, so a page built before an
+    // import elsewhere would otherwise keep showing stale data.
+    final wasCached = _cachedPages[2] != null;
+    setState(() {
+      _currentIndex = index;
+    });
+
+    if (index == 2 && wasCached) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ExamInfoScreen.screenKey.currentState?.refresh();
+      });
+    }
   }
 
   @override
@@ -300,11 +315,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         bottom: false,
         child: NavigationRail(
           selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+          onDestinationSelected: _selectTab,
           labelType: NavigationRailLabelType.all,
           groupAlignment: -0.85,
           destinations: [
@@ -373,11 +384,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
               : (useLiquidGlass
                     ? LiquidGlassBottomBar(
                         selectedIndex: _currentIndex,
-                        onTabSelected: (index) {
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                        },
+                        onTabSelected: _selectTab,
                         tabs: [
                           LiquidGlassBottomBarTab(
                             icon: Icons.calendar_month,
@@ -399,11 +406,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                       )
                     : NavigationBar(
                         selectedIndex: _currentIndex,
-                        onDestinationSelected: (index) {
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                        },
+                        onDestinationSelected: _selectTab,
                         destinations: [
                           NavigationDestination(
                             icon: Icon(Icons.calendar_month_outlined),
