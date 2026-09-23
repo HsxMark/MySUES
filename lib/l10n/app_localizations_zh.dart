@@ -339,6 +339,100 @@ class AppLocalizationsZh extends AppLocalizations {
   String get retrieveExams => '提取考试安排';
 
   @override
+  String get extract => '提取';
+
+  @override
+  String get oneTapExtract => '提取内容';
+
+  @override
+  String get extractTaskSchedule => '课表';
+
+  @override
+  String get extractTaskScores => '成绩';
+
+  @override
+  String get extractTaskProfile => '个人信息';
+
+  @override
+  String get extractTaskExams => '考试信息';
+
+  @override
+  String get extractPreparing => '正在连接教务系统…';
+
+  @override
+  String get extractCancelling => '正在取消…';
+
+  @override
+  String get extractNotSignedIn => '未检测到登录状态，请先登录教务系统';
+
+  @override
+  String get extractStatusPending => '待提取';
+
+  @override
+  String get extractStatusRunning => '提取中…';
+
+  @override
+  String get extractStatusSuccess => '已完成';
+
+  @override
+  String get extractStatusFailed => '失败';
+
+  @override
+  String get extractStatusCancelled => '已取消';
+
+  @override
+  String get extractSummaryTitle => '提取结果';
+
+  @override
+  String extractSummaryCounts(int success, int failed) {
+    return '成功 $success 项 · 失败 $failed 项';
+  }
+
+  @override
+  String get extractRetryFailed => '重试失败项';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String extractResultSchedule(int count) {
+    return '$count 条课程记录';
+  }
+
+  @override
+  String extractResultScores(int count) {
+    return '$count 条成绩';
+  }
+
+  @override
+  String get extractResultProfile => '已更新个人信息';
+
+  @override
+  String extractResultExams(int count) {
+    return '$count 场考试';
+  }
+
+  @override
+  String extractConflictSummary(int count) {
+    return '发现 $count 处课程时间冲突，可稍后在课表中处理';
+  }
+
+  @override
+  String get extractConflictDetails => '查看冲突详情';
+
+  @override
+  String get conflictDetailsSavedHint => '这些课程已导入，可在课表中查看，或后续修改免听/重修状态。';
+
+  @override
+  String get extractScheduleSemesterHint => '只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期';
+
+  @override
+  String get gotIt => '知道了';
+
+  @override
+  String get extractCancelledRolledBack => '已取消提取，数据已恢复原状';
+
+  @override
   String get extractionFailedTryAgain => '提取失败，请重试';
 
   @override
@@ -534,13 +628,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get academicSync => '教务同步';
 
   @override
-  String get synced => '已同步';
-
-  @override
-  String get notSynced => '未同步';
-
-  @override
   String get tapToSync => '点击开始同步';
+
+  @override
+  String get startSync => '去同步';
 
   @override
   String get signInToTheAcademicSystem => '请登录 教务系统';
@@ -806,8 +897,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get saveExam => '保存考试信息';
 
   @override
-  String get examInformationMayNotBeCurrentAlwaysConfirmIt =>
-      '考试信息非即时获取，仅供参考，请以教务系统提示为准！';
+  String get examInformationRequiresManualImport =>
+      '考试信息不会自动同步，必须手动导入后才会显示；导入内容也可能滞后，请以教务系统为准。';
 
   @override
   String get noMatchingExams => '暂无符合条件的考试信息';

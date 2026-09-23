@@ -721,6 +721,174 @@ abstract class AppLocalizations {
   /// **'提取考试安排'**
   String get retrieveExams;
 
+  /// No description provided for @extract.
+  ///
+  /// In zh, this message translates to:
+  /// **'提取'**
+  String get extract;
+
+  /// No description provided for @oneTapExtract.
+  ///
+  /// In zh, this message translates to:
+  /// **'提取内容'**
+  String get oneTapExtract;
+
+  /// No description provided for @extractTaskSchedule.
+  ///
+  /// In zh, this message translates to:
+  /// **'课表'**
+  String get extractTaskSchedule;
+
+  /// No description provided for @extractTaskScores.
+  ///
+  /// In zh, this message translates to:
+  /// **'成绩'**
+  String get extractTaskScores;
+
+  /// No description provided for @extractTaskProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人信息'**
+  String get extractTaskProfile;
+
+  /// No description provided for @extractTaskExams.
+  ///
+  /// In zh, this message translates to:
+  /// **'考试信息'**
+  String get extractTaskExams;
+
+  /// No description provided for @extractPreparing.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在连接教务系统…'**
+  String get extractPreparing;
+
+  /// No description provided for @extractCancelling.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在取消…'**
+  String get extractCancelling;
+
+  /// No description provided for @extractNotSignedIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'未检测到登录状态，请先登录教务系统'**
+  String get extractNotSignedIn;
+
+  /// No description provided for @extractStatusPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'待提取'**
+  String get extractStatusPending;
+
+  /// No description provided for @extractStatusRunning.
+  ///
+  /// In zh, this message translates to:
+  /// **'提取中…'**
+  String get extractStatusRunning;
+
+  /// No description provided for @extractStatusSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已完成'**
+  String get extractStatusSuccess;
+
+  /// No description provided for @extractStatusFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'失败'**
+  String get extractStatusFailed;
+
+  /// No description provided for @extractStatusCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get extractStatusCancelled;
+
+  /// No description provided for @extractSummaryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'提取结果'**
+  String get extractSummaryTitle;
+
+  /// No description provided for @extractSummaryCounts.
+  ///
+  /// In zh, this message translates to:
+  /// **'成功 {success} 项 · 失败 {failed} 项'**
+  String extractSummaryCounts(int success, int failed);
+
+  /// No description provided for @extractRetryFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'重试失败项'**
+  String get extractRetryFailed;
+
+  /// No description provided for @done.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成'**
+  String get done;
+
+  /// No description provided for @extractResultSchedule.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条课程记录'**
+  String extractResultSchedule(int count);
+
+  /// No description provided for @extractResultScores.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条成绩'**
+  String extractResultScores(int count);
+
+  /// No description provided for @extractResultProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'已更新个人信息'**
+  String get extractResultProfile;
+
+  /// No description provided for @extractResultExams.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 场考试'**
+  String extractResultExams(int count);
+
+  /// No description provided for @extractConflictSummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现 {count} 处课程时间冲突，可稍后在课表中处理'**
+  String extractConflictSummary(int count);
+
+  /// No description provided for @extractConflictDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看冲突详情'**
+  String get extractConflictDetails;
+
+  /// No description provided for @conflictDetailsSavedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'这些课程已导入，可在课表中查看，或后续修改免听/重修状态。'**
+  String get conflictDetailsSavedHint;
+
+  /// No description provided for @extractScheduleSemesterHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期'**
+  String get extractScheduleSemesterHint;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In zh, this message translates to:
+  /// **'知道了'**
+  String get gotIt;
+
+  /// No description provided for @extractCancelledRolledBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消提取，数据已恢复原状'**
+  String get extractCancelledRolledBack;
+
   /// No description provided for @extractionFailedTryAgain.
   ///
   /// In zh, this message translates to:
@@ -1105,23 +1273,17 @@ abstract class AppLocalizations {
   /// **'教务同步'**
   String get academicSync;
 
-  /// No description provided for @synced.
-  ///
-  /// In zh, this message translates to:
-  /// **'已同步'**
-  String get synced;
-
-  /// No description provided for @notSynced.
-  ///
-  /// In zh, this message translates to:
-  /// **'未同步'**
-  String get notSynced;
-
   /// No description provided for @tapToSync.
   ///
   /// In zh, this message translates to:
   /// **'点击开始同步'**
   String get tapToSync;
+
+  /// No description provided for @startSync.
+  ///
+  /// In zh, this message translates to:
+  /// **'去同步'**
+  String get startSync;
 
   /// No description provided for @signInToTheAcademicSystem.
   ///
@@ -1645,11 +1807,11 @@ abstract class AppLocalizations {
   /// **'保存考试信息'**
   String get saveExam;
 
-  /// No description provided for @examInformationMayNotBeCurrentAlwaysConfirmIt.
+  /// No description provided for @examInformationRequiresManualImport.
   ///
   /// In zh, this message translates to:
-  /// **'考试信息非即时获取，仅供参考，请以教务系统提示为准！'**
-  String get examInformationMayNotBeCurrentAlwaysConfirmIt;
+  /// **'考试信息不会自动同步，必须手动导入后才会显示；导入内容也可能滞后，请以教务系统为准。'**
+  String get examInformationRequiresManualImport;
 
   /// No description provided for @noMatchingExams.
   ///

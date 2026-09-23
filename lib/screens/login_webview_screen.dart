@@ -1,21 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'dart:convert';
-import '../services/networking/academic_client.dart';
-import '../services/webvpn/fetch_course_service.dart';
-import '../services/webvpn/fetch_info_service.dart';
-import '../services/webvpn/fetch_score_service.dart';
-import '../services/webvpn/fetch_exam_service.dart';
-import '../models/exam.dart';
-import '../services/parsers/student_info_parser.dart';
-import '../models/schedule_table.dart';
-import '../services/schedule_service.dart';
-import '../services/score_service.dart';
-import '../services/exam_service.dart';
-import '../utils/course_conflict_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
 import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/l10n/localized_formatters.dart';
+
+import '../models/academic_extract.dart';
+import '../models/course.dart';
+import '../models/exam.dart';
+import '../services/academic_import_snapshot.dart';
+import '../services/exam_service.dart';
+import '../services/notification_service.dart';
+import '../services/schedule_service.dart';
+import '../services/score_service.dart';
+import '../services/webvpn/fetch_course_service.dart';
+import '../services/webvpn/fetch_exam_service.dart';
+import '../services/webvpn/fetch_info_service.dart';
+import '../services/webvpn/fetch_score_service.dart';
+import '../utils/course_conflict_util.dart';
+import '../widgets/academic_extract_dialog.dart';
 
 class LoginWebviewScreen extends StatefulWidget {
   const LoginWebviewScreen({super.key});
@@ -26,13 +31,10 @@ class LoginWebviewScreen extends StatefulWidget {
 
 class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   late final WebViewController _controller;
-  final AcademicClient _academicClient = AcademicClient();
 
   bool _isLoading = true;
-  bool _hasStartedAutoFetch = false;
   bool _isDataChanged = false;
-  // 区分当前是“抓取课表”还是“抓取个人信息”
-  bool _isFetchingInfo = false;
+  bool _isExtractRunning = false;
 
   String _currentStep = '';
 
@@ -43,6 +45,9 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
   // Decoded from: https://webvpn.sues.edu.cn/...203b -> jxfw.sues.edu.cn
   static const String _academicHex =
       '77726476706e69737468656265737421faef478b69237d556d468ca88d1b203b';
+
+  static const String _defaultVpnBase =
+      'https://webvpn.sues.edu.cn/https/$_academicHex';
 
   // Dynamic base URL detected from user navigation
   String? _detectedVpnBase;
@@ -154,675 +159,870 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
     }
   }
 
-  Future<String> _getCookieString() async {
-    // Only use document.cookie which is available via JS
-    // Note: This misses HttpOnly cookies, so for API calls that require session,
-    // we should use _fetchWithXhr to execute requests inside the WebView context.
-    try {
-      final String result =
-          await _controller.runJavaScriptReturningResult('document.cookie')
-              as String;
-      return _decodeJsString(result);
-    } catch (e) {
-      return "";
-    }
-  }
+  // --- One-tap extraction -------------------------------------------------
 
-  Future<void> _startAutoFetch() async {
-    // Prevent multiple triggers
-    if (_hasStartedAutoFetch) return;
-    _hasStartedAutoFetch = true;
+  /// Runs the ticked extraction tasks in the canonical order
+  /// (schedule → scores → profile → exams), showing a checklist dialog.
+  Future<void> _startExtract(Set<ExtractTask> tasks) async {
+    if (_isExtractRunning || tasks.isEmpty) return;
+    _isExtractRunning = true;
 
     try {
-      String targetBase =
-          _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
-
-      // 1. Navigate to course table page if not there
-      final currentUrl = await _controller.currentUrl();
-      if (currentUrl == null ||
-          !currentUrl.contains("student/for-std/course-table")) {
-        setState(() => _currentStep = context.l10n.openingTheSchedulePage);
-        final courseUrl = "$targetBase/student/for-std/course-table";
-        await _controller.loadRequest(Uri.parse(courseUrl));
-
-        // Wait for page load (simple delay loop)
-        int retries = 0;
-        while (retries < 10) {
-          await Future.delayed(const Duration(seconds: 1));
-          final url = await _controller.currentUrl();
-          if (url != null && url.contains("course-table")) break;
-          retries++;
-        }
-      }
-
-      setState(() => _currentStep = context.l10n.retrievingSemesters);
-
-      // 2. Wait for semester selector (handled by repeated fetch attempts)
-      List<String> semesterIds = [];
-      int retryCount = 0;
-      while (retryCount < 15) {
-        semesterIds = await FetchCourseService.fetchSemesterIds(_controller);
-        if (semesterIds.isNotEmpty) break;
-        await Future.delayed(const Duration(seconds: 1));
-        retryCount++;
-      }
-
-      if (semesterIds.isEmpty) {
-        _showSnack(context.l10n.noSemesterListWasFoundTryAgain);
-        setState(() {
-          _currentStep = context.l10n.requestFailedTryAgain;
-          _hasStartedAutoFetch = false; // Allow retry
-        });
-        return;
-      }
-
-      // 3. Branch logic based on user intent
-      // Fetch Info OR Fetch Schedule
-      if (_isFetchingInfo) {
-        // --- Auto Fetch Info Logic ---
-        setState(() => _currentStep = context.l10n.retrievingProfile);
-        final info = await FetchInfoService.fetchStudentInfo(
-          _controller,
-          targetBase,
-        );
-
-        if (info != null && info.isNotEmpty) {
-          await FetchInfoService.saveStudentInfo(info);
-          if (!mounted) return;
-          final code = info['code'] == null ? '' : ' (${info['code']})';
-          final msg = context.l10n.updatedProfile(
-            info['name']?.toString() ?? '',
-            code,
-          );
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(msg)));
-          _recordSyncTime();
-        } else {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.noValidProfileInformationCouldBeExtracted,
-              ),
-            ),
-          );
-        }
-
-        // Cleanup & Exit
-        // await _controller.clearCache();
-        // await _controller.clearLocalStorage();
-        // final cookieManager = WebViewCookieManager();
-        // await cookieManager.clearCookies();
-        if (!mounted) return;
-        Navigator.pop(context, true);
-        return;
-      }
-      // --- END Info Logic ---
-
+      final snapshot = await AcademicImportSnapshot.capture();
       if (!mounted) return;
+      final orderedTasks =
+          ExtractTask.values.where(tasks.contains).toList(growable: false);
+      final targetBase = _detectedVpnBase ?? _defaultVpnBase;
 
-      // Fetch details for display (nameZh) - Optional, mimicking python
-      // Python: build_semester_list -> fetches info for EACH id.
-      // This might be slow if many IDs. Python does it. I will do it.
-      setState(
-        () => _currentStep = context.l10n.parsingSemesterInformation(
-          semesterIds.length,
+      // Importing only the schedule keeps the semester picker so an older
+      // semester can still be imported. Combined runs always use the latest
+      // semester to stay truly one-tap.
+      Map<String, dynamic>? fixedSemester;
+      if (orderedTasks.length == 1 &&
+          orderedTasks.first == ExtractTask.schedule) {
+        fixedSemester = await _pickSemesterForImport(targetBase);
+        if (fixedSemester == null || !mounted) return;
+      }
+
+      final state = ValueNotifier<ExtractDialogState>(
+        ExtractDialogState(
+          progress: orderedTasks
+              .map((task) => ExtractTaskProgress(task: task))
+              .toList(),
+          statusText: context.l10n.extractPreparing,
         ),
       );
 
-      List<Map<String, dynamic>> semesterOptions = [];
-      for (var id in semesterIds) {
-        final info = await FetchCourseService.fetchSemesterInfo(
-          _controller,
-          targetBase,
-          id,
-        );
-        if (info != null) {
-          semesterOptions.add({
-            'id': id,
-            'name': info['nameZh'] ?? context.l10n.unknownSemester,
-            'info': info,
-          });
-        } else {
-          semesterOptions.add({
-            'id': id,
-            'name': context.l10n.semesterFallbackName(id),
-            'info': {},
-          });
-        }
-      }
+      var cancelRequested = false;
+      var actionCompleter = Completer<bool>();
+      BuildContext? dialogContext;
 
-      if (!mounted) return;
-
-      final selectedMap = await showDialog<Map<String, dynamic>>(
+      final dialogFuture = showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          title: Text(context.l10n.chooseASemesterToImport),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: semesterOptions.length,
-              itemBuilder: (ctx, index) {
-                final item = semesterOptions[index];
-                return ListTile(
-                  title: Text(item['name']),
-                  subtitle: Text("ID: ${item['id']}"),
-                  onTap: () => Navigator.pop(ctx, item),
+        builder: (ctx) {
+          dialogContext = ctx;
+          return AcademicExtractDialog(
+            state: state,
+            onCancel: () {
+              cancelRequested = true;
+              state.value = state.value.copyWith(
+                cancelling: true,
+                statusText: context.l10n.extractCancelling,
+              );
+            },
+            onRetryFailed: () => _completeAction(actionCompleter, true),
+            onDone: () => _completeAction(actionCompleter, false),
+            onShowConflictDetails: () =>
+                _showConflictDetails(state.value.conflictDetails),
+          );
+        },
+      );
+      // Closing the dialog by any other means (e.g. the back gesture on the
+      // summary) behaves exactly like tapping "done". The guard keeps the run
+      // from popping the dialog a second time in that case.
+      final dialogGuard = ExtractDialogGuard(dialogFuture);
+      dialogFuture.whenComplete(() => _completeAction(actionCompleter, false));
+
+      var conflictDetails = <String>[];
+      var anySuccess = false;
+
+      while (true) {
+        try {
+          await _runPendingSteps(
+            state,
+            targetBase: targetBase,
+            fixedSemester: fixedSemester,
+            isCancelled: () => cancelRequested,
+            onSuccess: (outcome) {
+              anySuccess = true;
+              if (outcome.conflictGroups.isNotEmpty) {
+                // The schedule is re-imported as a whole, so the previous
+                // conflict list is replaced instead of appended to.
+                conflictDetails = _formatConflictGroups(
+                  outcome.conflictGroups,
                 );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, null),
-              child: Text(context.l10n.cancel),
-            ),
-          ],
-        ),
-      );
-
-      if (selectedMap == null) {
-        setState(() {
-          _currentStep = context.l10n.operationCancelled;
-          _hasStartedAutoFetch = false;
-        });
-        return;
-      }
-
-      final semesterId = selectedMap['id'] as String;
-      final info = selectedMap['info'] as Map<String, dynamic>;
-      final semesterName = selectedMap['name'] as String;
-
-      setState(
-        () =>
-            _currentStep = context.l10n.fetchingSemesterSchedule(semesterName),
-      );
-
-      // 4. Fetch Course Data
-      final courseData = await FetchCourseService.fetchCourseData(
-        _controller,
-        targetBase,
-        semesterId,
-      );
-      if (courseData == null) {
-        _showSnack(context.l10n.failedToRetrieveScheduleData);
-        setState(() => _hasStartedAutoFetch = false);
-        return;
-      }
-
-      // 5. Prepare the schedule table and both kinds of course data. The table
-      // is not persisted until the user accepts any conflict warning.
-      final startDateStr = info['startDate'] as String? ?? "2024-09-01";
-      final table = ScheduleTable(
-        tableName: semesterName,
-        nodes: 15,
-        startDate: startDateStr,
-      );
-
-      setState(() => _currentStep = context.l10n.savingCourseData);
-      final courses = FetchCourseService.parseCourseData(courseData, 0);
-      var courseCatalog = FetchCourseService.parseCourseCatalog(
-        courseData,
-        0,
-        semesterName,
-      );
-
-      if (courses.isEmpty && courseCatalog.courses.isEmpty) {
-        _showSnack(context.l10n.noCoursesCouldBeParsed);
-        setState(() => _hasStartedAutoFetch = false);
-        return;
-      } else {
-        // Detect conflicts
-        bool saveAgreed = true;
-        var conflictGroups = CourseConflictUtil.getConflictGroups(courses);
-        if (conflictGroups.isNotEmpty && mounted) {
-          saveAgreed =
-              await showDialog<bool>(
-                context: context,
-                builder: (ctx) {
-                  return AlertDialog(
-                    title: Text(context.l10n.warningCourseConflict),
-                    content: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(context.l10n.theFollowingCoursesOverlap),
-                          const SizedBox(height: 8),
-                          ...conflictGroups.values.map((group) {
-                            final names = group
-                                .map((course) {
-                                  final schedule = context.l10n
-                                      .courseScheduleLine(
-                                        localizedWeekdayLabel(
-                                          context.l10n,
-                                          course.day,
-                                        ),
-                                        context.l10n.periodRange(
-                                          course.startNode,
-                                          course.startNode + course.step - 1,
-                                        ),
-                                        '',
-                                      );
-                                  return '• ${course.courseName} ($schedule)';
-                                })
-                                .join('\n');
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Text(
-                                names,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            );
-                          }),
-                          const SizedBox(height: 8),
-                          Text(
-                            context.l10n.saveAnywayYouCanViewThemInTheSchedule,
-                          ),
-                        ],
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(false),
-                        child: Text(context.l10n.cancelImport),
-                      ),
-                      FilledButton(
-                        onPressed: () => Navigator.of(ctx).pop(true),
-                        child: Text(context.l10n.saveAnyway),
-                      ),
-                    ],
-                  );
-                },
-              ) ??
-              false;
-        }
-
-        if (saveAgreed) {
-          await ScheduleDataService.addScheduleTable(table);
-          for (final course in courses) {
-            course.tableId = table.id;
-          }
-          courseCatalog = courseCatalog.copyWith(tableId: table.id);
-
-          final allCourses = await ScheduleDataService.loadCourses();
-          int maxId = 0;
-          if (allCourses.isNotEmpty) {
-            maxId = allCourses.map((e) => e.id).reduce((a, b) => a > b ? a : b);
-          }
-          for (final course in courses) {
-            course.id = ++maxId;
-            allCourses.add(course);
-          }
-
-          await ScheduleDataService.saveCourses(allCourses);
-          await ScheduleDataService.saveCourseCatalog(courseCatalog);
-        } else {
+              }
+            },
+          );
+        } catch (e) {
+          // An error outside the per-task handling (e.g. the WebView refusing
+          // to navigate) must still end in the ordinary summary: the dialog is
+          // modal and cannot be dismissed while a run is in flight, so letting
+          // the exception escape would leave the user stuck on it.
+          debugPrint('Academic extraction aborted: $e');
           if (!mounted) return;
-          final l10n = context.l10n;
-          setState(() {
-            _currentStep = l10n.operationCancelled;
-            _hasStartedAutoFetch = false;
-          });
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.importCancelled)));
-          return;
+          state.value = state.value.withUnfinishedAsFailed(
+            context.l10n.extractionFailedWithError('$e'),
+          );
         }
 
-        // Set as current table
-        await ScheduleDataService.setCurrentTableId(table.id);
+        if (cancelRequested) break;
 
-        // 统计实际课程门数（去重）
-        final uniqueCount = courseCatalog.courses.isNotEmpty
-            ? courseCatalog.courses.length
-            : courses.map((course) => course.courseName).toSet().length;
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.importedCourses(uniqueCount, courses.length),
-            ),
-          ),
+        state.value = state.value.copyWith(
+          finished: true,
+          conflictDetails: conflictDetails,
+          clearStatusText: true,
         );
-        _recordSyncTime();
 
-        // Cleanup: Clear WebView cache and cookies to protect privacy and ensure fresh state next time
-        // await _controller.clearCache();
-        // await _controller.clearLocalStorage();
-        // final cookieManager = WebViewCookieManager();
-        // await cookieManager.clearCookies();
+        final retry = await actionCompleter.future;
+        if (!retry) break;
+        if (!mounted) break;
 
-        Navigator.pop(context, true); // Return success
+        actionCompleter = Completer<bool>();
+        state.value = state.value.copyWith(
+          finished: false,
+          statusText: context.l10n.extractPreparing,
+          progress: state.value.progress
+              .map(
+                (item) =>
+                    item.status == ExtractTaskStatus.failure ||
+                        item.status == ExtractTaskStatus.cancelled
+                    ? item.copyWith(
+                        status: ExtractTaskStatus.pending,
+                        clearDetail: true,
+                      )
+                    : item,
+              )
+              .toList(),
+        );
       }
-    } catch (e) {
-      debugPrint("Auto fetch error: $e");
-      if (mounted) _showSnack(context.l10n.genericErrorWithDetail('$e'));
-      setState(() => _hasStartedAutoFetch = false);
+
+      if (cancelRequested) {
+        try {
+          await snapshot.restore();
+        } catch (e) {
+          debugPrint('Failed to roll back the cancelled extraction: $e');
+        }
+      }
+
+      if (dialogGuard.isOpen &&
+          dialogContext != null &&
+          dialogContext!.mounted) {
+        Navigator.of(dialogContext!).pop();
+      }
+      await dialogFuture;
+
+      if (!mounted) return;
+
+      if (cancelRequested) {
+        _showSnack(context.l10n.extractCancelledRolledBack);
+        return;
+      }
+
+      // Nothing was stored, so there is no reason to leave the page.
+      if (!anySuccess) return;
+
+      _isDataChanged = true;
+      await _recordSyncTime();
+      if (!mounted) return;
+      // Newly imported exams/courses should be reflected in the reminders that
+      // are already enabled, without waiting for the next app start.
+      unawaited(NotificationService().rescheduleAll());
+      Navigator.pop(context, true);
+    } finally {
+      _isExtractRunning = false;
     }
   }
 
-  Future<void> _extractScore() async {
-    try {
-      String targetBase =
-          _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
+  Future<void> _runPendingSteps(
+    ValueNotifier<ExtractDialogState> state, {
+    required String targetBase,
+    required Map<String, dynamic>? fixedSemester,
+    required bool Function() isCancelled,
+    required void Function(_StepOutcome outcome) onSuccess,
+  }) async {
+    final pending = state.value.progress
+        .where((item) => item.status == ExtractTaskStatus.pending)
+        .map((item) => item.task)
+        .toList();
+    if (pending.isEmpty) return;
 
-      _showSnack(context.l10n.retrievingBasicData);
-
-      // 1. Ensure we are on the course table page to get semester IDs
-      final currentUrl = await _controller.currentUrl();
-      if (currentUrl == null ||
-          !currentUrl.contains("student/for-std/course-table")) {
-        _showSnack(context.l10n.openingTheSchedulePageToRetrieveData);
-        String courseUrl = "$targetBase/student/for-std/course-table";
-        await _controller.loadRequest(Uri.parse(courseUrl));
-
-        // Wait for page load
-        int retries = 0;
-        while (retries < 15) {
-          await Future.delayed(const Duration(milliseconds: 1000));
-          final url = await _controller.currentUrl();
-          if (url != null && url.contains("course-table")) break;
-          retries++;
-        }
+    if (isCancelled()) {
+      for (final task in pending) {
+        _setTaskState(state, task, ExtractTaskStatus.cancelled);
       }
+      return;
+    }
 
-      // 2. Fetch semester IDs (needed for both ID extraction and Score fetching)
-      List<String> semesterIds = [];
-      int retryCount = 0;
-      while (retryCount < 10) {
-        semesterIds = await FetchCourseService.fetchSemesterIds(_controller);
-        if (semesterIds.isNotEmpty) break;
-        await Future.delayed(const Duration(milliseconds: 500));
-        retryCount++;
+    final session = await _prepareSession(
+      targetBase,
+      fixedSemester: fixedSemester,
+      isCancelled: isCancelled,
+    );
+    if (!mounted) return;
+
+    if (isCancelled()) {
+      for (final task in pending) {
+        _setTaskState(state, task, ExtractTaskStatus.cancelled);
       }
+      return;
+    }
 
-      if (semesterIds.isEmpty) {
-        throw StateError(context.l10n.unableToRetrieveSemestersTryAgain);
+    if (session == null) {
+      final message = context.l10n.extractNotSignedIn;
+      for (final task in pending) {
+        _setTaskState(state, task, ExtractTaskStatus.failure, detail: message);
       }
+      return;
+    }
 
-      // 3. Always parse Student ID from course data (ignoring local cache)
-      String? studentId;
-      _showSnack(context.l10n.parsing);
-
-      // Use the first (usually latest) semester to fetch course table data which contains the ID
-      final latestSemester = semesterIds.first;
-      final courseData = await FetchCourseService.fetchCourseData(
-        _controller,
-        targetBase,
-        latestSemester,
-      );
-
-      if (courseData != null && courseData['studentTableVms'] != null) {
-        final vms = courseData['studentTableVms'] as List;
-        if (vms.isNotEmpty) {
-          final vm = vms[0];
-          if (vm['id'] != null) {
-            studentId = vm['id'].toString(); // 内部 ID，用于成绩查询等 API
-
-            // Sync to cache for other uses
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('user_internal_id', studentId);
-            // code 才是真正的学号
-            if (vm['code'] != null) {
-              await prefs.setString('student_id', vm['code'].toString());
-            }
-            if (vm['name'] != null) {
-              await prefs.setString('user_nickname', vm['name'].toString());
-            }
-          }
-        }
-      }
-
-      if (studentId == null) {
-        throw StateError(context.l10n.unableToParseTheScheduleData);
-      }
-
-      _showSnack(context.l10n.retrievingScoresForSemesters(semesterIds.length));
-
-      // 4. Fetch Scores
-      final scores = await FetchScoreService.fetchAllScores(
-        _controller,
-        targetBase,
-        studentId,
-        semesterIds,
-      );
-
-      if (scores.isEmpty) {
-        final msg = context.l10n.noScoresForSemesters(semesterIds.length);
-        debugPrint(msg);
-        _showSnack(msg);
+    for (var index = 0; index < pending.length; index++) {
+      final task = pending[index];
+      if (isCancelled()) {
+        _cancelRemaining(state, pending.sublist(index));
         return;
       }
 
-      await ScoreService.saveScores(scores);
-
-      final now = DateTime.now();
-      final timeStr =
-          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
-      await ScoreService.saveLastImportTime(timeStr);
-
-      _showSnack(context.l10n.importedScoreRecords(scores.length));
-      _isDataChanged = true;
-      _recordSyncTime();
+      _setTaskState(state, task, ExtractTaskStatus.running);
+      final outcome = await _runExtractTask(
+        task,
+        session,
+        isCancelled: isCancelled,
+      );
       if (!mounted) return;
-      Navigator.pop(context, true);
-    } catch (e) {
-      debugPrint("Extract score error: $e");
-      _showSnack(context.l10n.extractionFailedWithError('$e'));
+
+      // A step that was interrupted by the cancel request must not be reported
+      // as a success; the remaining steps are cancelled as well.
+      if (outcome.cancelled || isCancelled()) {
+        _cancelRemaining(state, pending.sublist(index));
+        return;
+      }
+
+      _setTaskState(
+        state,
+        task,
+        outcome.success ? ExtractTaskStatus.success : ExtractTaskStatus.failure,
+        detail: outcome.success ? outcome.detail : outcome.error,
+      );
+      if (outcome.success) onSuccess(outcome);
     }
+  }
+
+  void _cancelRemaining(
+    ValueNotifier<ExtractDialogState> state,
+    List<ExtractTask> tasks,
+  ) {
+    for (final task in tasks) {
+      _setTaskState(state, task, ExtractTaskStatus.cancelled);
+    }
+  }
+
+  void _setTaskState(
+    ValueNotifier<ExtractDialogState> state,
+    ExtractTask task,
+    ExtractTaskStatus status, {
+    String? detail,
+  }) {
+    final progress = state.value.progress
+        .map(
+          (item) => item.task == task
+              ? item.copyWith(
+                  status: status,
+                  detail: detail,
+                  clearDetail: detail == null,
+                )
+              : item,
+        )
+        .toList();
+
+    final runningText =
+        '${_taskTitle(context, task)} · ${context.l10n.extractStatusRunning}';
+    final statusText = status == ExtractTaskStatus.running
+        ? runningText
+        : state.value.statusText;
+
+    state.value = state.value.copyWith(
+      progress: progress,
+      statusText: statusText,
+    );
+
+    if (status == ExtractTaskStatus.running) {
+      _updateStep(runningText);
+    }
+  }
+
+  /// Ensures the WebView sits on the course table page so XHR requests share
+  /// the academic system session.
+  Future<void> _ensureCourseTablePage(
+    String targetBase, {
+    bool Function()? isCancelled,
+  }) async {
+    final l10n = context.l10n;
+    final currentUrl = await _controller.currentUrl();
+    if (currentUrl != null &&
+        currentUrl.contains('student/for-std/course-table')) {
+      return;
+    }
+
+    _updateStep(l10n.openingTheSchedulePage);
+    await _controller.loadRequest(
+      Uri.parse('$targetBase/student/for-std/course-table'),
+    );
+
+    for (var retry = 0; retry < 15; retry++) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (isCancelled?.call() ?? false) return;
+      final url = await _controller.currentUrl();
+      if (url != null && url.contains('course-table')) return;
+    }
+  }
+
+  Future<List<String>> _fetchSemesterIdsWithRetry({
+    int attempts = 15,
+    bool Function()? isCancelled,
+  }) async {
+    var semesterIds = <String>[];
+    for (var attempt = 0; attempt < attempts; attempt++) {
+      semesterIds = await FetchCourseService.fetchSemesterIds(
+        _controller,
+        isCancelled: isCancelled,
+      );
+      if (isCancelled?.call() ?? false) return const [];
+      if (semesterIds.isNotEmpty) break;
+      if (isCancelled?.call() ?? false) break;
+      await Future.delayed(const Duration(seconds: 1));
+      if (isCancelled?.call() ?? false) break;
+    }
+    return semesterIds;
+  }
+
+  Future<_AcademicSession?> _prepareSession(
+    String targetBase, {
+    Map<String, dynamic>? fixedSemester,
+    bool Function()? isCancelled,
+  }) async {
+    final l10n = context.l10n;
+
+    _updateStep(l10n.retrievingSemesters);
+    await _ensureCourseTablePage(targetBase, isCancelled: isCancelled);
+    if (isCancelled?.call() ?? false) return null;
+    if (!mounted) return null;
+
+    final semesterIds = await _fetchSemesterIdsWithRetry(
+      isCancelled: isCancelled,
+    );
+    if (semesterIds.isEmpty) return null;
+    if (isCancelled?.call() ?? false) return null;
+
+    if (fixedSemester != null) {
+      return _AcademicSession(
+        baseUrl: targetBase,
+        semesterIds: semesterIds,
+        semesterId: fixedSemester['id'] as String,
+        semesterName: fixedSemester['name'] as String,
+        startDate: (fixedSemester['startDate'] as String?) ?? '2024-09-01',
+      );
+    }
+
+    final latestSemesterId = _pickLatestSemesterId(semesterIds);
+    final info = await FetchCourseService.fetchSemesterInfo(
+      _controller,
+      targetBase,
+      latestSemesterId,
+      isCancelled: isCancelled,
+    );
+    if (isCancelled?.call() ?? false) return null;
+    final name = info?['nameZh']?.toString();
+
+    return _AcademicSession(
+      baseUrl: targetBase,
+      semesterIds: semesterIds,
+      semesterId: latestSemesterId,
+      semesterName: (name == null || name.isEmpty)
+          ? l10n.semesterFallbackName(latestSemesterId)
+          : name,
+      startDate: info?['startDate']?.toString() ?? '2024-09-01',
+    );
+  }
+
+  /// Picks the newest semester: the biggest numeric id, falling back to the
+  /// first option of the page selector when ids are not numeric.
+  ///
+  /// The academic system hands out increasing numeric semester ids and lists
+  /// the selector newest first, so this matches what the user would pick.
+  static String _pickLatestSemesterId(List<String> semesterIds) {
+    final numericIds = semesterIds.map(int.tryParse).toList();
+    if (numericIds.any((id) => id == null)) return semesterIds.first;
+
+    var latestIndex = 0;
+    for (var index = 1; index < numericIds.length; index++) {
+      if (numericIds[index]! > numericIds[latestIndex]!) {
+        latestIndex = index;
+      }
+    }
+    return semesterIds[latestIndex];
+  }
+
+  /// Lets the user pick any semester, with the latest one on top. Only used
+  /// when the schedule is the single ticked item.
+  Future<Map<String, dynamic>?> _pickSemesterForImport(
+    String targetBase,
+  ) async {
+    final l10n = context.l10n;
+
+    await _ensureCourseTablePage(targetBase);
+    if (!mounted) return null;
+
+    final semesterIds = await _fetchSemesterIdsWithRetry();
+    if (!mounted) return null;
+    if (semesterIds.isEmpty) {
+      _showSnack(l10n.unableToRetrieveSemestersTryAgain);
+      return null;
+    }
+
+    _updateStep(l10n.parsingSemesterInformation(semesterIds.length));
+
+    final options = <Map<String, dynamic>>[];
+    for (final id in semesterIds) {
+      final info = await FetchCourseService.fetchSemesterInfo(
+        _controller,
+        targetBase,
+        id,
+      );
+      if (!mounted) return null;
+      final name = info?['nameZh']?.toString();
+      options.add({
+        'id': id,
+        'name': (name == null || name.isEmpty)
+            ? l10n.semesterFallbackName(id)
+            : name,
+        'startDate': info?['startDate']?.toString() ?? '2024-09-01',
+      });
+    }
+
+    final latestSemesterId = _pickLatestSemesterId(semesterIds);
+    final latestIndex = options.indexWhere(
+      (option) => option['id'] == latestSemesterId,
+    );
+    if (latestIndex > 0) {
+      options.insert(0, options.removeAt(latestIndex));
+    }
+
+    if (!mounted) return null;
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.chooseASemesterToImport),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: options.length,
+            itemBuilder: (ctx, index) {
+              final item = options[index];
+              final isLatest = item['id'] == latestSemesterId;
+              return ListTile(
+                selected: isLatest,
+                title: Text(item['name'] as String),
+                subtitle: Text('ID: ${item['id']}'),
+                trailing: isLatest ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.pop(ctx, item),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: Text(context.l10n.cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<_StepOutcome> _runExtractTask(
+    ExtractTask task,
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
+    try {
+      return switch (task) {
+        ExtractTask.schedule => await _runScheduleStep(
+          session,
+          isCancelled: isCancelled,
+        ),
+        ExtractTask.scores => await _runScoresStep(
+          session,
+          isCancelled: isCancelled,
+        ),
+        ExtractTask.profile => await _runProfileStep(
+          session,
+          isCancelled: isCancelled,
+        ),
+        ExtractTask.exams => await _runExamsStep(
+          session,
+          isCancelled: isCancelled,
+        ),
+      };
+    } catch (e) {
+      debugPrint('Extract $task failed: $e');
+      if (!mounted) return _StepOutcome.failure('$e');
+      return _StepOutcome.failure(context.l10n.extractionFailedWithError('$e'));
+    }
+  }
+
+  Future<_StepOutcome> _runScheduleStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
+    final l10n = context.l10n;
+    final courseData = await FetchCourseService.fetchCourseData(
+      _controller,
+      session.baseUrl,
+      session.semesterId,
+      isCancelled: isCancelled,
+    );
+    if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
+    if (courseData == null) {
+      return _StepOutcome.failure(l10n.failedToRetrieveScheduleData);
+    }
+
+    final courses = FetchCourseService.parseCourseData(courseData, 0);
+    final catalog = FetchCourseService.parseCourseCatalog(
+      courseData,
+      0,
+      session.semesterName,
+    );
+    if (courses.isEmpty && catalog.courses.isEmpty) {
+      return _StepOutcome.failure(l10n.noCoursesCouldBeParsed);
+    }
+
+    // The course table payload also carries the internal student id needed by
+    // the score and exam endpoints, so cache it for the following steps.
+    session.internalStudentId =
+        await _cacheStudentIdentity(courseData) ?? session.internalStudentId;
+    if (isCancelled()) return const _StepOutcome.cancelled();
+
+    final table = await ScheduleDataService.upsertScheduleTable(
+      semesterName: session.semesterName,
+      startDate: session.startDate,
+    );
+    if (isCancelled()) return const _StepOutcome.cancelled();
+    await ScheduleDataService.replaceCoursesForTable(
+      tableId: table.id,
+      courses: courses,
+      catalog: catalog,
+    );
+
+    return _StepOutcome.success(
+      l10n.extractResultSchedule(courses.length),
+      conflictGroups: CourseConflictUtil.getConflictGroups(courses),
+    );
+  }
+
+  /// Formats conflict groups the same way the previous confirmation dialog did,
+  /// e.g. `• 高等数学 (周三 第 3 - 4 节 )`.
+  List<String> _formatConflictGroups(Map<String, List<Course>> groups) {
+    final l10n = context.l10n;
+    return groups.values.map((group) {
+      return group
+          .map((course) {
+            final schedule = l10n.courseScheduleLine(
+              localizedWeekdayLabel(l10n, course.day),
+              l10n.periodRange(
+                course.startNode,
+                course.startNode + course.step - 1,
+              ),
+              '',
+            );
+            return '• ${course.courseName} ($schedule)';
+          })
+          .join('\n');
+    }).toList();
+  }
+
+  Future<void> _showConflictDetails(List<String> details) async {
+    if (details.isEmpty || !mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.warningCourseConflict),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.theFollowingCoursesOverlap),
+              const SizedBox(height: 8),
+              ...details.map(
+                (line) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    line,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(context.l10n.conflictDetailsSavedHint),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.l10n.gotIt),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<_StepOutcome> _runScoresStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
+    final l10n = context.l10n;
+    final studentId = await _resolveInternalStudentId(
+      session,
+      isCancelled: isCancelled,
+    );
+    if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
+    if (studentId == null) {
+      return _StepOutcome.failure(l10n.unableToParseTheScheduleData);
+    }
+
+    final scores = await FetchScoreService.fetchAllScores(
+      _controller,
+      session.baseUrl,
+      studentId,
+      session.semesterIds,
+      isCancelled: isCancelled,
+    );
+    if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
+    if (scores.isEmpty) {
+      return _StepOutcome.failure(
+        l10n.noScoresForSemesters(session.semesterIds.length),
+      );
+    }
+
+    await ScoreService.saveScores(scores);
+    await ScoreService.saveLastImportTime(_timestamp());
+    if (!mounted) return _StepOutcome.failure('');
+    return _StepOutcome.success(l10n.extractResultScores(scores.length));
+  }
+
+  Future<_StepOutcome> _runProfileStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
+    final l10n = context.l10n;
+    final info = await FetchInfoService.fetchStudentInfo(
+      _controller,
+      session.baseUrl,
+      isCancelled: isCancelled,
+    );
+    if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
+    if (info == null || (info['name'] ?? '').isEmpty) {
+      return _StepOutcome.failure(
+        l10n.noValidProfileInformationCouldBeExtracted,
+      );
+    }
+
+    await FetchInfoService.saveStudentInfo(info);
+    if ((info['id'] ?? '').isNotEmpty) {
+      session.internalStudentId = info['id'];
+    }
+    if (!mounted) return _StepOutcome.failure('');
+    return _StepOutcome.success(l10n.extractResultProfile);
+  }
+
+  Future<_StepOutcome> _runExamsStep(
+    _AcademicSession session, {
+    required bool Function() isCancelled,
+  }) async {
+    final l10n = context.l10n;
+    final studentId = await _resolveInternalStudentId(
+      session,
+      isCancelled: isCancelled,
+    );
+    if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
+    if (studentId == null || studentId.isEmpty) {
+      return _StepOutcome.failure(
+        l10n.unableToRetrieveStudentInformationTryAgain,
+      );
+    }
+
+    // iOS WKWebView may need a moment before the session cookie is available
+    // for the exam endpoint, so retry a couple of times.
+    var exams = <Exam>[];
+    for (var attempt = 1; attempt <= 3; attempt++) {
+      if (isCancelled()) return const _StepOutcome.cancelled();
+      exams = await FetchExamService.fetchExams(
+        _controller,
+        session.baseUrl,
+        studentId: studentId,
+        isCancelled: isCancelled,
+      );
+      if (!mounted) return _StepOutcome.failure('');
+      if (isCancelled()) return const _StepOutcome.cancelled();
+      if (exams.isNotEmpty) break;
+      if (attempt < 3) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+
+    if (!mounted) return _StepOutcome.failure('');
+    if (isCancelled()) return const _StepOutcome.cancelled();
+    if (exams.isEmpty) {
+      return _StepOutcome.failure(l10n.noExamDataWasFound);
+    }
+
+    await ExamService.saveExams(exams);
+    if (!mounted) return _StepOutcome.failure('');
+    return _StepOutcome.success(l10n.extractResultExams(exams.length));
+  }
+
+  Future<String?> _resolveInternalStudentId(
+    _AcademicSession session, {
+    bool Function()? isCancelled,
+  }) async {
+    if (session.internalStudentId != null) return session.internalStudentId;
+
+    final courseData = await FetchCourseService.fetchCourseData(
+      _controller,
+      session.baseUrl,
+      session.semesterId,
+      isCancelled: isCancelled,
+    );
+    if (isCancelled?.call() ?? false) return null;
+    if (courseData == null) return null;
+
+    session.internalStudentId = await _cacheStudentIdentity(courseData);
+    return session.internalStudentId;
+  }
+
+  Future<String?> _cacheStudentIdentity(Map<String, dynamic> courseData) async {
+    final vms = courseData['studentTableVms'];
+    if (vms is! List || vms.isEmpty || vms.first is! Map) return null;
+
+    final vm = Map<String, dynamic>.from(vms.first as Map);
+    final internalId = vm['id']?.toString();
+    if (internalId == null || internalId.isEmpty) return null;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_internal_id', internalId);
+    if (vm['code'] != null) {
+      await prefs.setString('student_id', vm['code'].toString());
+    }
+    if (vm['name'] != null) {
+      await prefs.setString('user_nickname', vm['name'].toString());
+    }
+    return internalId;
+  }
+
+  void _showExtractSheet() {
+    final selected = ExtractTask.values.toSet();
+
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Text(
+                context.l10n.chooseTheDataToRetrieve,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              for (final task in ExtractTask.values)
+                CheckboxListTile(
+                  value: selected.contains(task),
+                  onChanged: (value) => setSheetState(() {
+                    if (value == true) {
+                      selected.add(task);
+                    } else {
+                      selected.remove(task);
+                    }
+                  }),
+                  secondary: Icon(_taskIcon(task)),
+                  title: Text(_taskTitle(context, task)),
+                  subtitle: task == ExtractTask.schedule
+                      ? Text(
+                          context.l10n.extractScheduleSemesterHint,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        )
+                      : null,
+                  controlAffinity: ListTileControlAffinity.trailing,
+                  dense: true,
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: selected.isEmpty
+                        ? null
+                        : () {
+                            final tasks = Set<ExtractTask>.of(selected);
+                            Navigator.pop(sheetContext);
+                            _startExtract(tasks);
+                          },
+                    icon: const Icon(Icons.download_done),
+                    label: Text(context.l10n.oneTapExtract),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _taskIcon(ExtractTask task) {
+    return switch (task) {
+      ExtractTask.schedule => Icons.calendar_month,
+      ExtractTask.scores => Icons.score,
+      ExtractTask.profile => Icons.person,
+      ExtractTask.exams => Icons.assignment,
+    };
+  }
+
+  String _taskTitle(BuildContext context, ExtractTask task) {
+    final l10n = context.l10n;
+    return switch (task) {
+      ExtractTask.schedule => l10n.extractTaskSchedule,
+      ExtractTask.scores => l10n.extractTaskScores,
+      ExtractTask.profile => l10n.extractTaskProfile,
+      ExtractTask.exams => l10n.extractTaskExams,
+    };
+  }
+
+  void _completeAction(Completer<bool> completer, bool value) {
+    if (!completer.isCompleted) {
+      completer.complete(value);
+    }
+  }
+
+  String _timestamp() {
+    final now = DateTime.now();
+    return "${now.year}-${now.month.toString().padLeft(2, '0')}"
+        "-${now.day.toString().padLeft(2, '0')} "
+        "${now.hour.toString().padLeft(2, '0')}"
+        ":${now.minute.toString().padLeft(2, '0')}";
   }
 
   void _updateStep(String step) {
     if (!mounted) return;
     setState(() => _currentStep = step);
-  }
-
-  Future<void> _extractExam() async {
-    try {
-      String targetBase =
-          _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
-
-      // 1. 确保 WebView 已导航到课表页面（建立 session 上下文）
-      final currentUrl = await _controller.currentUrl();
-      if (!mounted) return;
-      if (currentUrl == null ||
-          !currentUrl.contains("student/for-std/course-table")) {
-        _updateStep(context.l10n.openingTheAcademicSystem);
-        String courseUrl = "$targetBase/student/for-std/course-table";
-        await _controller.loadRequest(Uri.parse(courseUrl));
-        if (!mounted) return;
-
-        int retries = 0;
-        while (retries < 15) {
-          await Future.delayed(const Duration(milliseconds: 1000));
-          if (!mounted) return;
-          final url = await _controller.currentUrl();
-          if (!mounted) return;
-          if (url != null && url.contains("course-table")) break;
-          retries++;
-        }
-      }
-
-      // 2. 等待学期列表加载完成（确认页面会话已就绪，最多30秒）
-      _updateStep(context.l10n.waitingForThePageToLoad);
-      List<String> semesterIds = [];
-      int retryCount = 0;
-      while (retryCount < 30) {
-        semesterIds = await FetchCourseService.fetchSemesterIds(_controller);
-        if (!mounted) return;
-        if (semesterIds.isNotEmpty) break;
-        await Future.delayed(const Duration(milliseconds: 1000));
-        if (!mounted) return;
-        retryCount++;
-      }
-
-      if (semesterIds.isEmpty) {
-        _showSnack(context.l10n.thePageIsNotReadyTryAgain);
-        _updateStep(context.l10n.pageLoadingTimedOutTryAgain);
-        return;
-      }
-
-      // 3. 从课表数据中提取 studentId（与成绩提取相同的可靠方式）
-      _updateStep(context.l10n.parsingStudentInformation);
-      String? studentId;
-      final prefs = await SharedPreferences.getInstance();
-      if (!mounted) return;
-      studentId = prefs.getString('user_internal_id');
-
-      if (studentId == null || studentId.isEmpty) {
-        final latestSemester = semesterIds.first;
-        final courseData = await FetchCourseService.fetchCourseData(
-          _controller,
-          targetBase,
-          latestSemester,
-        );
-        if (!mounted) return;
-
-        if (courseData != null && courseData['studentTableVms'] != null) {
-          final vms = courseData['studentTableVms'] as List;
-          if (vms.isNotEmpty) {
-            final vm = vms[0];
-            if (vm['id'] != null) {
-              studentId = vm['id'].toString();
-              await prefs.setString('user_internal_id', studentId);
-              if (!mounted) return;
-              if (vm['code'] != null) {
-                await prefs.setString('student_id', vm['code'].toString());
-                if (!mounted) return;
-              }
-              if (vm['name'] != null) {
-                await prefs.setString('user_nickname', vm['name'].toString());
-                if (!mounted) return;
-              }
-            }
-          }
-        }
-      }
-
-      if (studentId == null || studentId.isEmpty) {
-        _showSnack(context.l10n.unableToRetrieveStudentInformationTryAgain);
-        _updateStep(context.l10n.failedToRetrieveStudentInformation);
-        return;
-      }
-
-      // 4. 提取考试数据（带重试，iOS WKWebView 首次 XHR 可能因 session cookie 延迟而失败）
-      List<Exam> exams = [];
-      for (int attempt = 1; attempt <= 3; attempt++) {
-        _updateStep(
-          attempt == 1
-              ? context.l10n.retrievingExams
-              : context.l10n.retrievingExamsAttempt(attempt),
-        );
-        exams = await FetchExamService.fetchExams(
-          _controller,
-          targetBase,
-          studentId: studentId,
-        );
-        if (!mounted) return;
-        if (exams.isNotEmpty) break;
-        if (attempt < 3) {
-          _updateStep(context.l10n.noDataReceivedWaitingToRetry);
-          await Future.delayed(const Duration(seconds: 2));
-          if (!mounted) return;
-        }
-      }
-
-      if (exams.isEmpty) {
-        _showSnack(context.l10n.noExamDataWasFound);
-        _updateStep(context.l10n.noExamDataWasFound2);
-        return;
-      }
-
-      await ExamService.saveExams(exams);
-      if (!mounted) return;
-
-      _isDataChanged = true;
-      await _recordSyncTime();
-      if (!mounted) return;
-      Navigator.pop(context, true);
-    } catch (e) {
-      debugPrint("Extract Exam Error: $e");
-      _showSnack(context.l10n.extractionFailedWithError('$e'));
-      _updateStep(context.l10n.extractionFailedTryAgain);
-    }
-  }
-
-  Future<void> _extractInfo() async {
-    // Info is usually on the home page or specific page.
-    // CourseAdapter might not have a dedicated info parser or uses one of the pages.
-    // We'll try fetching the home page or student info page.
-    try {
-      String targetBase =
-          _detectedVpnBase ?? "https://webvpn.sues.edu.cn/https/$_academicHex";
-
-      // Try fetching the user detail page or just header info from course page
-      // Let's reuse course page as it usually contains student info in header
-      final cookie = await _getCookieString();
-      final html = await _academicClient.fetchHtmlWithCookie(
-        "$targetBase/eams/courseTableForStd.action",
-        cookie,
-      );
-
-      if (html == null) throw "Network Error";
-
-      final parser = StudentInfoParser();
-      final info = parser.parse(html);
-
-      if (info.isEmpty || info['name'] == null) {
-        _showSnack(context.l10n.noProfileInformationWasFound);
-        return;
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-      if (info['name'] != null) {
-        await prefs.setString('user_nickname', info['name']!);
-      }
-      if (info['studentId'] != null) {
-        await prefs.setString('student_id', info['studentId']!);
-      }
-      if (info['major'] != null) {
-        await prefs.setString('user_major', info['major']!);
-      }
-      if (info['college'] != null) {
-        await prefs.setString('user_college', info['college']!);
-      }
-
-      final studentId = info['studentId'] == null
-          ? ''
-          : ' (${info['studentId']})';
-      final msg = context.l10n.updatedProfileInformation(
-        info['name'] ?? '',
-        studentId,
-      );
-      _showSnack(msg);
-      _recordSyncTime();
-    } catch (e) {
-      _showSnack(context.l10n.extractionFailedWithError('$e'));
-    }
-  }
-
-  String _decodeJsString(String jsInfo) {
-    try {
-      // webview_flutter returns a JSON string representation
-      return jsonDecode(jsInfo).toString();
-    } catch (e) {
-      debugPrint("JSON Decode error: $e");
-      // Fallback manual decode if jsonDecode fails
-      if (jsInfo.startsWith('"') && jsInfo.endsWith('"')) {
-        return jsInfo
-            .substring(1, jsInfo.length - 1)
-            .replaceAll(r'\"', '"')
-            .replaceAll(r'\\', r'\');
-      }
-      return jsInfo;
-    }
   }
 
   Future<void> _recordSyncTime() async {
@@ -889,89 +1089,81 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
           ],
         ),
         bottomNavigationBar: BottomAppBar(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: SizedBox(
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(16),
-                      ),
-                    ),
-                    builder: (context) => SafeArea(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 12),
-                          Text(
-                            context.l10n.chooseTheDataToRetrieve,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          ListTile(
-                            leading: const Icon(Icons.person),
-                            title: Text(context.l10n.retrieveProfile),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _isFetchingInfo = true;
-                              _startAutoFetch();
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.calendar_month),
-                            title: Text(context.l10n.retrieveSchedule),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _isFetchingInfo = false;
-                              _startAutoFetch();
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.score),
-                            title: Text(context.l10n.retrieveGrades),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _extractScore();
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.assignment),
-                            title: Text(context.l10n.retrieveExams),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _extractExam();
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                icon: const Icon(Icons.menu_open),
-                label: Text(
-                  context.l10n.importMenu,
-                  style: TextStyle(fontSize: 16),
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: _showExtractSheet,
+                icon: const Icon(Icons.download_done, size: 18),
+                label: Text(context.l10n.extract),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
+}
+
+/// Session context shared by all extraction steps of a single run.
+class _AcademicSession {
+  _AcademicSession({
+    required this.baseUrl,
+    required this.semesterIds,
+    required this.semesterId,
+    required this.semesterName,
+    required this.startDate,
+  });
+
+  final String baseUrl;
+  final List<String> semesterIds;
+  final String semesterId;
+  final String semesterName;
+  final String startDate;
+
+  /// Internal student id (not the student number), resolved lazily.
+  String? internalStudentId;
+}
+
+/// Result of a single extraction step.
+class _StepOutcome {
+  const _StepOutcome.success(
+    this.detail, {
+    this.conflictGroups = const {},
+  })
+    : success = true,
+      cancelled = false,
+      error = null;
+
+  const _StepOutcome.failure(this.error)
+    : success = false,
+      cancelled = false,
+      detail = null,
+      conflictGroups = const {};
+
+  const _StepOutcome.cancelled()
+    : success = false,
+      cancelled = true,
+      detail = null,
+      error = null,
+      conflictGroups = const {};
+
+  final bool success;
+
+  /// True when the step stopped because the user cancelled the run.
+  final bool cancelled;
+  final String? detail;
+  final String? error;
+
+  /// Conflicting course groups of the imported schedule, empty when there is
+  /// none. Only the schedule step fills this in.
+  final Map<String, List<Course>> conflictGroups;
 }

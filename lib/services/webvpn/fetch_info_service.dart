@@ -12,11 +12,21 @@ class FetchInfoService {
   /// - 先尝试自动寻找一个当前可用的 Semester ID
   /// - 使用该 ID 请求 print-data 接口 (与课表抓取同一个接口)
   /// - 如果接口返回数据，从中解析 studentTableVms -> 第一个对象 -> 基础信息
-  static Future<Map<String, String>?> fetchStudentInfo(WebViewController controller, String baseUrl) async {
+  static Future<Map<String, String>?> fetchStudentInfo(
+    WebViewController controller,
+    String baseUrl, {
+    bool Function()? isCancelled,
+  }) async {
     try {
+      if (isCancelled?.call() ?? false) return null;
       // 步骤 1: 获取 Semester IDs
       // 改用 XHR 请求课表页面解析，不再依赖当前页面 DOM
-      final ids = await _fetchSemesterIds(controller, baseUrl);
+      final ids = await _fetchSemesterIds(
+        controller,
+        baseUrl,
+        isCancelled: isCancelled,
+      );
+      if (isCancelled?.call() ?? false) return null;
       if (ids.isEmpty) {
         debugPrint("FetchInfoService: No semester IDs found.");
         return null;
@@ -36,7 +46,12 @@ class FetchInfoService {
       // 步骤 3: 请求数据
       final url = "$baseUrl/student/for-std/course-table/semester/$targetId/print-data?$_vpnSuffix&semesterId=$targetId&hasExperiment=true";
       
-      final jsonStr = await _fetchWithXhr(controller, url);
+      final jsonStr = await _fetchWithXhr(
+        controller,
+        url,
+        isCancelled: isCancelled,
+      );
+      if (isCancelled?.call() ?? false) return null;
       if (jsonStr == null || !jsonStr.trim().startsWith('{')) {
           debugPrint("FetchInfoService: Invalid JSON response.");
           return null;
@@ -78,13 +93,22 @@ class FetchInfoService {
 
   // --- Helpers ---
 
-  static Future<List<String>> _fetchSemesterIds(WebViewController controller, String baseUrl) async {
+  static Future<List<String>> _fetchSemesterIds(
+    WebViewController controller,
+    String baseUrl, {
+    bool Function()? isCancelled,
+  }) async {
     const relativeUrl = "/student/for-std/course-table";
     final url = "$baseUrl$relativeUrl";
     
     try {
       // 1. 获取课表页面 HTML
-      final html = await _fetchWithXhr(controller, url);
+      final html = await _fetchWithXhr(
+        controller,
+        url,
+        isCancelled: isCancelled,
+      );
+      if (isCancelled?.call() ?? false) return [];
       if (html == null || html.isEmpty) return [];
 
       // 2. 解析 HTML 寻找 <select id="add-drop-take-semesters">
@@ -107,7 +131,11 @@ class FetchInfoService {
     }
   }
 
-  static Future<String?> _fetchWithXhr(WebViewController controller, String url) async {
+  static Future<String?> _fetchWithXhr(
+    WebViewController controller,
+    String url, {
+    bool Function()? isCancelled,
+  }) async {
     try {
       final safeUrl = url.replaceAll("'", "\\'");
       final key = '_fr_${DateTime.now().millisecondsSinceEpoch}';
@@ -142,6 +170,10 @@ class FetchInfoService {
       """);
 
       for (int i = 0; i < 100; i++) {
+        if (isCancelled?.call() ?? false) {
+          debugPrint("WebView XHR aborted by caller: $url");
+          return null;
+        }
         await Future.delayed(const Duration(milliseconds: 100));
         final done = await controller.runJavaScriptReturningResult("window['${key}_done']");
         if (done.toString() == 'true') {

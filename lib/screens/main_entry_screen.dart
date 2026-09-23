@@ -237,6 +237,12 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
     return _cachedPages[index]!;
   }
 
+  void _selectTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -300,11 +306,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         bottom: false,
         child: NavigationRail(
           selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+          onDestinationSelected: _selectTab,
           labelType: NavigationRailLabelType.all,
           groupAlignment: -0.85,
           destinations: [
@@ -373,11 +375,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
               : (useLiquidGlass
                     ? LiquidGlassBottomBar(
                         selectedIndex: _currentIndex,
-                        onTabSelected: (index) {
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                        },
+                        onTabSelected: _selectTab,
                         tabs: [
                           LiquidGlassBottomBarTab(
                             icon: Icons.calendar_month,
@@ -399,11 +397,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                       )
                     : NavigationBar(
                         selectedIndex: _currentIndex,
-                        onDestinationSelected: (index) {
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                        },
+                        onDestinationSelected: _selectTab,
                         destinations: [
                           NavigationDestination(
                             icon: Icon(Icons.calendar_month_outlined),

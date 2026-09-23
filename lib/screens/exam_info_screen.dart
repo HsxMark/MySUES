@@ -30,6 +30,18 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
   void initState() {
     super.initState();
     _loadExams();
+    // Listen for updates from other screens (e.g. the one-tap extraction flow).
+    ExamService.examsUpdateNotifier.addListener(_onExamsUpdated);
+  }
+
+  @override
+  void dispose() {
+    ExamService.examsUpdateNotifier.removeListener(_onExamsUpdated);
+    super.dispose();
+  }
+
+  void _onExamsUpdated() {
+    _loadExams();
   }
 
   Future<void> _loadExams() async {
@@ -184,7 +196,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
       body: Column(
         children: [
           AppNoticeBanner(
-            message: context.l10n.examInformationMayNotBeCurrentAlwaysConfirmIt,
+            message: context.l10n.examInformationRequiresManualImport,
             kind: AppNoticeKind.warning,
           ),
 

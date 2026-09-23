@@ -7,7 +7,11 @@ class FetchScoreService {
   static const String _vpnSuffix = "vpn-12-o2-jxfw.sues.edu.cn";
 
   /// 异步 XHR 获取页面内容（兼容 iOS WKWebView）
-  static Future<String?> _fetchWithXhr(WebViewController controller, String url) async {
+  static Future<String?> _fetchWithXhr(
+    WebViewController controller,
+    String url, {
+    bool Function()? isCancelled,
+  }) async {
     try {
       final safeUrl = url.replaceAll("'", "\\'");
       final key = '_fr_${DateTime.now().millisecondsSinceEpoch}';
@@ -42,6 +46,10 @@ class FetchScoreService {
       """);
 
       for (int i = 0; i < 100; i++) {
+        if (isCancelled?.call() ?? false) {
+          debugPrint("WebView XHR aborted by caller: $url");
+          return null;
+        }
         await Future.delayed(const Duration(milliseconds: 100));
         final done = await controller.runJavaScriptReturningResult("window['${key}_done']");
         if (done.toString() == 'true') {
@@ -81,11 +89,22 @@ class FetchScoreService {
 
   /// 获取单个学期的成绩
   static Future<List<Score>> fetchSemesterScores(
-      WebViewController controller, String baseUrl, String studentId, String semesterId) async {
+    WebViewController controller,
+    String baseUrl,
+    String studentId,
+    String semesterId, {
+    bool Function()? isCancelled,
+  }) async {
+    if (isCancelled?.call() ?? false) return [];
     // API format: /student/for-std/grade/sheet/info/{studentId}?{VPN_SUFFIX}&semester={semesterId}
     final url = "$baseUrl/student/for-std/grade/sheet/info/$studentId?$_vpnSuffix&semester=$semesterId";
-    
-    final jsonStr = await _fetchWithXhr(controller, url);
+
+    final jsonStr = await _fetchWithXhr(
+      controller,
+      url,
+      isCancelled: isCancelled,
+    );
+    if (isCancelled?.call() ?? false) return [];
     if (jsonStr == null) return [];
 
     try {
@@ -146,19 +165,35 @@ class FetchScoreService {
   }
 
   /// 批量获取所有学期成绩
+  ///
+  /// Returns an empty list as soon as [isCancelled] reports true, so a
+  /// cancelled run never hands partial score data to the caller.
   static Future<List<Score>> fetchAllScores(
-      WebViewController controller, String baseUrl, String studentId, List<String> semesterIds) async {
+    WebViewController controller,
+    String baseUrl,
+    String studentId,
+    List<String> semesterIds, {
+    bool Function()? isCancelled,
+  }) async {
     List<Score> allScores = [];
-    
+
     // 倒序遍历，或者全部获取
     for (var semId in semesterIds) {
+      if (isCancelled?.call() ?? false) return const [];
       debugPrint("Fetching scores for semester $semId...");
-      final scores = await fetchSemesterScores(controller, baseUrl, studentId, semId);
+      final scores = await fetchSemesterScores(
+        controller,
+        baseUrl,
+        studentId,
+        semId,
+        isCancelled: isCancelled,
+      );
+      if (isCancelled?.call() ?? false) return const [];
       allScores.addAll(scores);
       // Optional: Add delay if needed to avoid spamming
       await Future.delayed(const Duration(milliseconds: 200));
     }
-    
+
     return allScores;
   }
 }
