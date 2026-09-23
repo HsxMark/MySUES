@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:mysues/theme/glass_styles.dart';
 import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart';
@@ -533,20 +533,11 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
         );
 
         if (isLiquidGlass) {
-          final brightness = MediaQuery.platformBrightnessOf(context);
-          final isDark = brightness == Brightness.dark;
-          sheet = LiquidGlass.withOwnLayer(
-            settings: LiquidGlassSettings.figma(
-              depth: 50,
-              refraction: 100,
-              dispersion: 4,
-              frost: 2,
-              lightAngle: math.pi / 4,
-              glassColor: theme.colorScheme.surface.withValues(alpha: 0.8),
-              lightIntensity: isDark ? 70 : 50,
-            ),
-            shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-            child: Material(color: Colors.transparent, child: sheet),
+          sheet = GlassStyles.lens(
+            context,
+            radius: 20,
+            sheet: true,
+            child: sheet,
           );
         }
 
@@ -1177,20 +1168,11 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
         );
 
         if (isLiquidGlass) {
-          final brightness = MediaQuery.platformBrightnessOf(context);
-          final isDark = brightness == Brightness.dark;
-          sheet = LiquidGlass.withOwnLayer(
-            settings: LiquidGlassSettings.figma(
-              depth: 50,
-              refraction: 100,
-              dispersion: 4,
-              frost: 2,
-              lightAngle: math.pi / 4,
-              glassColor: theme.colorScheme.surface.withValues(alpha: 0.8),
-              lightIntensity: isDark ? 70 : 50,
-            ),
-            shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-            child: Material(color: Colors.transparent, child: sheet),
+          sheet = GlassStyles.lens(
+            context,
+            radius: 20,
+            sheet: true,
+            child: sheet,
           );
         }
 
@@ -1439,9 +1421,6 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
 
   void _showLiquidGlassMenu(BuildContext context) {
     final theme = Theme.of(context);
-    final brightness = MediaQuery.platformBrightnessOf(context);
-    final isDark = brightness == Brightness.dark;
-    final baseColor = theme.colorScheme.surface;
 
     showGeneralDialog(
       context: context,
@@ -1455,28 +1434,17 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
             alignment: Alignment.topRight,
             child: Padding(
               padding: const EdgeInsets.only(top: kToolbarHeight, right: 8),
-              child: LiquidGlass.withOwnLayer(
-                settings: LiquidGlassSettings(
-                  refractiveIndex: 1.21,
-                  thickness: 30,
-                  blur: 8,
-                  saturation: 1.5,
-                  lightIntensity: isDark ? .7 : 1,
-                  ambientStrength: isDark ? .2 : .5,
-                  lightAngle: math.pi / 4,
-                  glassColor: baseColor.withValues(alpha: 0.6),
-                ),
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                child: Material(
-                  color: Colors.transparent,
-                  child: IntrinsicWidth(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 180),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildLiquidGlassMenuItem(
+              child: GlassStyles.lens(
+                dialogContext,
+                radius: 16,
+                child: IntrinsicWidth(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 180),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildLiquidGlassMenuItem(
                             context: dialogContext,
                             icon: Icons.sync_alt,
                             label: context.l10n.syncSchedule,
@@ -1564,8 +1532,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                 ),
               ),
             ),
-          ),
-        );
+          );
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(

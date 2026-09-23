@@ -11,8 +11,7 @@ import 'package:mysues/screens/login_webview_screen.dart'; // Import this
 import 'package:mysues/services/schedule_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/sync_disclaimer.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import 'dart:math' as math;
+import 'package:mysues/theme/glass_styles.dart';
 import 'package:mysues/widgets/material_you.dart';
 import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/utils/profile_preference_keys.dart';
@@ -211,8 +210,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       listenable: ThemeService(),
       builder: (context, child) {
         final useLiquidGlass = ThemeService().liquidGlassEnabled;
-        final brightness = Theme.of(context).brightness;
-        final isDark = brightness == Brightness.dark;
 
         Widget content = ListView(
           padding: const EdgeInsets.all(16.0),
@@ -233,23 +230,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
           ],
         );
-
+        // Frosted cards live in this list; the stretch overscroll would
+        // blind their backdrop blur and paint them black.
         if (useLiquidGlass) {
-          content = LiquidGlassLayer(
-            settings: LiquidGlassSettings(
-              thickness: 20,
-              blur: 8,
-              lightIntensity: isDark ? 0.6 : 0.8,
-              glassColor: isDark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.6),
-              lightAngle: math.pi / 4,
-            ),
-            child: content,
-          );
+          content = GlassStyles.scrollable(child: content);
         }
 
         return Scaffold(
+          // The page itself draws no glass; it stays open to the wallpaper
+          // the glass shell paints behind it, and falls back to the theme's
+          // solid base when the switch is off.
+          backgroundColor: useLiquidGlass
+              ? Colors.transparent
+              : Theme.of(context).scaffoldBackgroundColor,
           extendBody: useLiquidGlass,
           appBar: AppBar(
             title: Text(context.l10n.profile2),
@@ -632,6 +625,12 @@ class _Footer extends StatelessWidget {
   }
 }
 
+/// A card on the 「我的」 page.
+///
+/// With the glass switch on it is a frosted panel — backdrop blur, a
+/// translucent fill and a hairline themed outline, so the wallpaper shows
+/// through instead of a solid block. With the switch off it stays the
+/// usual Material [Card].
 class _GlassAwareCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -643,12 +642,14 @@ class _GlassAwareCard extends StatelessWidget {
     if (ThemeService().liquidGlassEnabled) {
       return GestureDetector(
         onTap: onTap,
-        child: LiquidGlass(
-          shape: const LiquidRoundedSuperellipse(borderRadius: 36),
-          child: Container(
-            // Card/InkWell handling is abstracted. Basic container for glass contents.
-            child: child,
-          ),
+        child: GlassStyles.frosted(
+          context,
+          radius: 36,
+          // Matches the exam cards' surface treatment — an explicit, fairly
+          // opaque surface tint instead of the default near-transparent
+          // veil, which reads as a blur rather than a card.
+          tint: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+          child: child,
         ),
       );
     }
