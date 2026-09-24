@@ -175,6 +175,14 @@
   "darkMode": "Dark Mode",
   "setBackgroundImage": "Set Background Image",
   "backgroundOpacity": "Background Opacity",
+  "backgroundImageSaveFailed": "Could not set the background image: {error}",
+  "@backgroundImageSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "splashAnimation": "Splash Animation",
   "showTheSplashAnimationWhenTheAppStarts": "Show the splash animation when the app starts",
   "experimentalFeatures": "Experimental Features",

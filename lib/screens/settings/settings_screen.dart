@@ -8,7 +8,9 @@ import 'package:mysues/screens/settings/display_settings_screen.dart';
 import 'package:mysues/screens/settings/notifications_screen.dart';
 import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/services/locale_service.dart';
+import 'package:mysues/services/local_image_store.dart';
 import 'package:mysues/services/notification_service.dart';
+import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/widget_service.dart';
 import 'package:mysues/widgets/material_you.dart';
 
@@ -172,10 +174,6 @@ class SettingsScreen extends StatelessWidget {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Capture stored file paths before clearing preferences.
-      final avatarPath = prefs.getString('user_avatar_path');
-      final backgroundPath = prefs.getString('background_image_path');
-
       // Cancel scheduled local reminders while the scheduled-ID lists are
       // still readable from preferences.
       try {
@@ -186,11 +184,16 @@ class SettingsScreen extends StatelessWidget {
         // platforms or not yet initialized.
       }
 
+      // Remove the app-owned images while the preferences still point at them;
+      // their keys are dropped by prefs.clear() below.
+      await _clearStoredImages();
+
       await prefs.clear();
-      await _deleteLocalFiles(
-        avatarPath: avatarPath,
-        backgroundPath: backgroundPath,
-      );
+      await _deleteLocalFiles();
+
+      // The theme service caches these values in memory, so it has to forget
+      // them explicitly or the UI keeps pointing at the files we just deleted.
+      ThemeService().resetAfterExternalClear();
 
       // Refresh the home-screen widget so it no longer shows stale data.
       await WidgetService.updateWidget();
@@ -209,16 +212,26 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  /// Deletes the stored avatar and background image, including leftovers from
+  /// earlier versions. Runs before the preferences are wiped because the stores
+  /// resolve their file names from them.
+  Future<void> _clearStoredImages() async {
+    try {
+      await LocalImageStore.avatar.clear();
+    } catch (_) {
+      // Best effort per store.
+    }
+    try {
+      await LocalImageStore.background.clear();
+    } catch (_) {
+      // Best effort per store.
+    }
+  }
+
   /// Deletes the app-owned files stored in the documents directory: the user
   /// avatar, the custom background image, any persisted session cookies, and
   /// the WebView session cookies (mobile platforms).
-  Future<void> _deleteLocalFiles({
-    String? avatarPath,
-    String? backgroundPath,
-  }) async {
-    await _deleteFileIfExists(avatarPath);
-    await _deleteFileIfExists(backgroundPath);
-
+  Future<void> _deleteLocalFiles() async {
     final Directory docDir = await getApplicationDocumentsDirectory();
     if (await docDir.exists()) {
       await for (final entity in docDir.list()) {
@@ -243,18 +256,6 @@ class SettingsScreen extends StatelessWidget {
       } catch (_) {
         // Best effort; webview cookie manager may be unavailable.
       }
-    }
-  }
-
-  Future<void> _deleteFileIfExists(String? path) async {
-    if (path == null || path.isEmpty) return;
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (_) {
-      // Best effort.
     }
   }
 }

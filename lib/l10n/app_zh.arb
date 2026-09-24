@@ -242,6 +242,14 @@
   "darkMode": "深色模式",
   "setBackgroundImage": "设置背景图片",
   "backgroundOpacity": "背景透明度",
+  "backgroundImageSaveFailed": "背景图片设置失败：{error}",
+  "@backgroundImageSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "splashAnimation": "开屏动画",
   "showTheSplashAnimationWhenTheAppStarts": "启动应用时显示开屏动画",
   "experimentalFeatures": "实验性功能",

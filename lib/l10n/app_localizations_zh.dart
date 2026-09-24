@@ -535,6 +535,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backgroundOpacity => '背景透明度';
 
   @override
+  String backgroundImageSaveFailed(String error) {
+    return '背景图片设置失败：$error';
+  }
+
+  @override
   String get splashAnimation => '开屏动画';
 
   @override

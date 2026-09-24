@@ -8,6 +8,7 @@ import 'package:mysues/screens/profile_edit_screen.dart';
 import 'package:mysues/screens/settings/settings_screen.dart';
 import 'package:mysues/screens/about_screen.dart';
 import 'package:mysues/screens/login_webview_screen.dart'; // Import this
+import 'package:mysues/services/local_image_store.dart';
 import 'package:mysues/services/schedule_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/sync_disclaimer.dart';
@@ -41,7 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _lastSyncTime;
 
   static const String _studentIdKey = 'student_id';
-  static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _majorPrefsKey = 'user_major';
   static const String _collegePrefsKey = 'user_college';
   static const String _classPrefsKey = 'user_class';
@@ -80,17 +80,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     // Load Avatar
-    final path = prefs.getString(_avatarPrefsKey);
-    if (path != null) {
-      final file = File(path);
-      if (await file.exists()) {
-        setState(() {
-          _avatarFile = file;
-        });
-      }
-    } else {
+    final avatarFile = await LocalImageStore.avatar.load();
+    if (mounted) {
       setState(() {
-        _avatarFile = null;
+        _avatarFile = avatarFile;
       });
     }
 

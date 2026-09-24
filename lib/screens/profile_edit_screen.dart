@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/l10n/l10n.dart';
 import 'package:mysues/models/student_info.dart';
+import 'package:mysues/services/local_image_store.dart';
 import 'package:mysues/utils/profile_preference_keys.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -36,7 +36,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   late String _className;
   String? _gradeOverride;
 
-  static const String _avatarPrefsKey = 'user_avatar_path';
   static const String _nicknamePrefsKey = 'user_nickname';
   static const String _majorPrefsKey = 'user_major';
   static const String _collegePrefsKey = 'user_college';
@@ -55,14 +54,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final prefs = await SharedPreferences.getInstance();
 
     // Load Avatar
-    final avatarPath = prefs.getString(_avatarPrefsKey);
-    if (avatarPath != null) {
-      final file = File(avatarPath);
-      if (await file.exists()) {
-        setState(() {
-          _avatarFile = file;
-        });
-      }
+    final avatarFile = await LocalImageStore.avatar.load();
+    if (mounted) {
+      setState(() {
+        _avatarFile = avatarFile;
+      });
     }
 
     // Load Nickname
@@ -107,27 +103,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         type: FileType.image,
       );
 
-      if (result != null && result.files.single.path != null) {
-        final File pickedFile = File(result.files.single.path!);
-
-        final Directory appDir = await getApplicationDocumentsDirectory();
-        final String fileName =
-            'user_avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        final File savedFile = await pickedFile.copy(
-          '${appDir.path}/$fileName',
-        );
-
-        final prefs = await SharedPreferences.getInstance();
-        final String? oldPath = prefs.getString(_avatarPrefsKey);
-        if (oldPath != null) {
-          final File oldFile = File(oldPath);
-          if (await oldFile.exists()) {
-            await oldFile.delete();
-          }
-        }
-
-        await prefs.setString(_avatarPrefsKey, savedFile.path);
-
+      final pickedPath = result?.files.single.path;
+      if (pickedPath != null) {
+        final savedFile = await LocalImageStore.avatar.save(pickedPath);
+        if (!mounted) return;
         setState(() {
           _avatarFile = savedFile;
         });

@@ -1,7 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:mysues/services/local_image_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeService extends ChangeNotifier {
@@ -30,7 +28,13 @@ class ThemeService extends ChangeNotifier {
     final int? modeIndex = prefs.getInt('theme_mode');
     _liquidGlassEnabled = prefs.getBool('liquid_glass_beta') ?? false;
     _splashAnimationEnabled = prefs.getBool('splash_animation_enabled') ?? false;
-    _backgroundImagePath = prefs.getString('background_image_path');
+    try {
+      final backgroundFile = await LocalImageStore.background.load();
+      _backgroundImagePath = backgroundFile?.path;
+    } catch (_) {
+      // Never block startup because the stored image could not be resolved.
+      _backgroundImagePath = null;
+    }
     _backgroundOpacity = prefs.getDouble('background_opacity') ?? 0.5;
     
     // 0 = System, 1 = Light, 2 = Dark
@@ -83,27 +87,48 @@ class ThemeService extends ChangeNotifier {
   }
 
   Future<void> updateBackgroundImage(String sourcePath) async {
-    final dir = await getApplicationDocumentsDirectory();
-    final ext = sourcePath.contains('.') ? sourcePath.substring(sourcePath.lastIndexOf('.')) : '';
-    final destPath = '${dir.path}/background_image$ext';
-    await File(sourcePath).copy(destPath);
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('background_image_path', destPath);
-    _backgroundImagePath = destPath;
+    final file = await LocalImageStore.background.save(sourcePath);
+    _backgroundImagePath = file.path;
     notifyListeners();
   }
 
   Future<void> clearBackgroundImage() async {
-    if (_backgroundImagePath != null) {
-      final file = File(_backgroundImagePath!);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    }
+    await LocalImageStore.background.clear();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('background_image_path');
     await prefs.remove('background_opacity');
+    _backgroundImagePath = null;
+    _backgroundOpacity = 0.5;
+    notifyListeners();
+  }
+
+  /// Self-heals a background image that could not be rendered.
+  ///
+  /// Called from image error builders. Only the path that is currently stored
+  /// is acted on, so a stale error from a previous image cannot wipe a working
+  /// background. The in-memory state is cleared first to make sure the caller
+  /// stops rebuilding the broken image.
+  Future<void> handleBackgroundImageError(String failedPath) async {
+    if (_backgroundImagePath == null || _backgroundImagePath != failedPath) {
+      return;
+    }
+
+    _backgroundImagePath = null;
+    notifyListeners();
+
+    try {
+      await LocalImageStore.background.clear();
+    } catch (_) {
+      // Best effort: the background is already gone from the in-memory state.
+    }
+  }
+
+  /// Drops the cached display settings after `SharedPreferences` were wiped by
+  /// "clear all data", so the UI stops pointing at deleted files without a
+  /// restart.
+  void resetAfterExternalClear() {
+    _themeMode = ThemeMode.system;
+    _liquidGlassEnabled = false;
+    _splashAnimationEnabled = false;
     _backgroundImagePath = null;
     _backgroundOpacity = 0.5;
     notifyListeners();

@@ -21,7 +21,21 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   @override
   void initState() {
     super.initState();
+    ThemeService().addListener(_handleThemeServiceChanged);
     _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    ThemeService().removeListener(_handleThemeServiceChanged);
+    super.dispose();
+  }
+
+  /// Keeps the preview and the "set/not set" label in sync when the stored
+  /// background is dropped elsewhere (for example after an image fails to
+  /// render and the entry self-heals).
+  void _handleThemeServiceChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadSettings() async {
@@ -57,6 +71,7 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     final int themeModeIndex = currentMode == ThemeMode.system
         ? 0
         : (currentMode == ThemeMode.light ? 1 : 2);
+    final backgroundPath = ThemeService().backgroundImagePath;
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.appearanceAndDisplay)),
@@ -76,11 +91,11 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
                 leading: const Icon(Icons.wallpaper_outlined),
                 title: Text(context.l10n.setBackgroundImage),
                 subtitle: Text(
-                  ThemeService().backgroundImagePath != null
+                  backgroundPath != null
                       ? context.l10n.setValue
                       : context.l10n.notSet,
                 ),
-                trailing: ThemeService().backgroundImagePath != null
+                trailing: backgroundPath != null
                     ? IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: () async {
@@ -102,34 +117,12 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
               ),
             ],
           ),
-          if (ThemeService().backgroundImagePath != null)
+          if (backgroundPath != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Checkerboard-like background to show transparency
-                      Container(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                      ),
-                      Opacity(
-                        opacity:
-                            _previewOpacity ?? ThemeService().backgroundOpacity,
-                        child: Image.file(
-                          File(ThemeService().backgroundImagePath!),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              child: _buildBackgroundPreview(backgroundPath),
             ),
-          if (ThemeService().backgroundImagePath != null)
+          if (backgroundPath != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -208,11 +201,56 @@ class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
     }
   }
 
+  /// Drops a background image the engine refused to render. Deferred to the
+  /// next frame because it runs from an image error builder.
+  void _handleBackgroundImageError(String failedPath) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ThemeService().handleBackgroundImageError(failedPath);
+    });
+  }
+
+  Widget _buildBackgroundPreview(String backgroundPath) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Plain surface behind the image so transparency stays visible.
+            Container(color: Theme.of(context).scaffoldBackgroundColor),
+            Opacity(
+              opacity: _previewOpacity ?? ThemeService().backgroundOpacity,
+              child: Image.file(
+                File(backgroundPath),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  _handleBackgroundImageError(backgroundPath);
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickBackgroundImage() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null && result.files.single.path != null) {
-      await ThemeService().updateBackgroundImage(result.files.single.path!);
+    try {
+      final result = await FilePicker.platform.pickFiles(type: FileType.image);
+      final pickedPath = result?.files.single.path;
+      if (pickedPath == null) return;
+
+      await ThemeService().updateBackgroundImage(pickedPath);
       if (mounted) setState(() {});
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.backgroundImageSaveFailed('$error')),
+        ),
+      );
     }
   }
 

@@ -1093,6 +1093,12 @@ abstract class AppLocalizations {
   /// **'背景透明度'**
   String get backgroundOpacity;
 
+  /// No description provided for @backgroundImageSaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'背景图片设置失败：{error}'**
+  String backgroundImageSaveFailed(String error);
+
   /// No description provided for @splashAnimation.
   ///
   /// In zh, this message translates to:

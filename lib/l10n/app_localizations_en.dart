@@ -554,6 +554,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backgroundOpacity => 'Background Opacity';
 
   @override
+  String backgroundImageSaveFailed(String error) {
+    return 'Could not set the background image: $error';
+  }
+
+  @override
   String get splashAnimation => 'Splash Animation';
 
   @override

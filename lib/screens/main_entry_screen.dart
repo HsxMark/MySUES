@@ -294,6 +294,16 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
     await prefs.setBool('onboarding_completed', true);
   }
 
+  /// Drops a background image that the engine refused to render.
+  ///
+  /// Deferred to the next frame because it is triggered from an image error
+  /// builder, which must not mutate state while the widget tree is building.
+  void _handleBackgroundImageError(String failedPath) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ThemeService().handleBackgroundImageError(failedPath);
+    });
+  }
+
   Widget _buildLeftNavigationRail(BuildContext context, bool useLiquidGlass) {
     final theme = Theme.of(context);
     return ColoredBox(
@@ -425,6 +435,8 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
 
         if (!hasBg) return scaffold;
 
+        final String backgroundPath = bgPath;
+
         // Wrap with Theme override so child Scaffolds inherit transparent background
         scaffold = Theme(
           data: Theme.of(
@@ -443,11 +455,17 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
             Opacity(
               opacity: bgOpacity,
               child: Image.file(
-                File(bgPath),
+                File(backgroundPath),
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: double.infinity,
                 gaplessPlayback: true,
+                errorBuilder: (context, error, stackTrace) {
+                  _handleBackgroundImageError(backgroundPath);
+                  // Fall back to the plain theme background instead of leaving
+                  // a hole where the wallpaper used to be.
+                  return const SizedBox.shrink();
+                },
               ),
             ),
             scaffold,
