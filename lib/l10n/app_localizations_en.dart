@@ -433,8 +433,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'These courses were imported. Review them in the schedule, or adjust their study status later.';
 
   @override
-  String get extractScheduleSemesterHint =>
-      'Tick only this item to pick a semester, including past ones; combined runs use the latest semester';
+  String get extractScheduleSemesterHint => 'Tick alone to pick past terms';
 
   @override
   String get gotIt => 'Got it';

@@ -529,6 +529,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 12),
                 FilledButton.tonal(
                   onPressed: _navigateToWebLogin,
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   child: Text(context.l10n.startSync),
                 ),
               ],

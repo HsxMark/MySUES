@@ -424,7 +424,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get conflictDetailsSavedHint => '这些课程已导入，可在课表中查看，或后续修改免听/重修状态。';
 
   @override
-  String get extractScheduleSemesterHint => '只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期';
+  String get extractScheduleSemesterHint => '单选可挑选历史学期';
 
   @override
   String get gotIt => '知道了';

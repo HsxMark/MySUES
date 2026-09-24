@@ -874,7 +874,7 @@ abstract class AppLocalizations {
   /// No description provided for @extractScheduleSemesterHint.
   ///
   /// In zh, this message translates to:
-  /// **'只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期'**
+  /// **'单选可挑选历史学期'**
   String get extractScheduleSemesterHint;
 
   /// No description provided for @gotIt.

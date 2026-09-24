@@ -138,7 +138,7 @@
   "@extractConflictSummary": {"placeholders": {"count": {"type": "int"}}},
   "extractConflictDetails": "View conflicts",
   "conflictDetailsSavedHint": "These courses were imported. Review them in the schedule, or adjust their study status later.",
-  "extractScheduleSemesterHint": "Tick only this item to pick a semester, including past ones; combined runs use the latest semester",
+  "extractScheduleSemesterHint": "Tick alone to pick past terms",
   "gotIt": "Got it",
   "extractCancelledRolledBack": "Extraction cancelled. Your data was restored.",
   "extractionFailedTryAgain": "Extraction failed. Try again.",
