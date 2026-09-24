@@ -2,6 +2,18 @@
 
 MySUES follows [Semantic Versioning 2.0.0](http://semver.org/).
 
+## 1.2.2
+
+`2026-09-24`
+
+- 🌟 Add one-tap academic extraction with selectable tasks, checklist progress, retry for failed steps, and rollback when the import is cancelled. @HsxMark
+- 🌟 Add Morandi presets and reusable custom course colors, with long-press editing and deletion. @HsxMark
+- 🐛 Fix ICS exports drifting in some time zones by keeping stable Asia/Shanghai wall times. @DIMTH
+- 🐛 Fix year-of-study calculation and manual year override, scoped per student ID. @DIMTH
+- 🐛 Refresh exams immediately after an academic import and clarify that exam data requires a manual import. @HsxMark
+- 🐛 Keep custom backgrounds and avatars after app updates or storage-path changes. @HsxMark
+- 🛠 Polish the author and open-source pages, and bump the build number to `4003` so stores see a versionCode above the live 1.2.1 (`4002`). @HsxMark
+
 ## 1.2.1
 
 `2026-09-17`
