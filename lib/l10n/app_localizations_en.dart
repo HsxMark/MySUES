@@ -813,7 +813,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myColors => 'My Colors';
 
   @override
-  String get saveColor => 'Save current color';
+  String get addColor => 'Add color';
 
   @override
   String get colorSaved => 'Saved to My Colors';
@@ -822,9 +822,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get colorAlreadySaved => 'This color is already in My Colors';
 
   @override
-  String savedColorsLimitReached(int count) {
-    return 'You can save up to $count colors. Long-press a swatch to delete one first.';
-  }
+  String get colorUpdated => 'Color updated';
 
   @override
   String get deleteSavedColor => 'Delete saved color';
@@ -834,7 +832,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'This only removes the color from My Colors. Courses already using it keep their color.';
 
   @override
-  String get customColor => 'Custom';
+  String get editColor => 'Edit Color';
 
   @override
   String get chooseColor => 'Choose Color';

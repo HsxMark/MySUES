@@ -1585,11 +1585,11 @@ abstract class AppLocalizations {
   /// **'我的颜色'**
   String get myColors;
 
-  /// No description provided for @saveColor.
+  /// No description provided for @addColor.
   ///
   /// In zh, this message translates to:
-  /// **'保存当前颜色'**
-  String get saveColor;
+  /// **'添加颜色'**
+  String get addColor;
 
   /// No description provided for @colorSaved.
   ///
@@ -1603,11 +1603,11 @@ abstract class AppLocalizations {
   /// **'该颜色已在「我的颜色」中'**
   String get colorAlreadySaved;
 
-  /// No description provided for @savedColorsLimitReached.
+  /// No description provided for @colorUpdated.
   ///
   /// In zh, this message translates to:
-  /// **'最多保存 {count} 个颜色，请先长按删除'**
-  String savedColorsLimitReached(int count);
+  /// **'颜色已更新'**
+  String get colorUpdated;
 
   /// No description provided for @deleteSavedColor.
   ///
@@ -1621,11 +1621,11 @@ abstract class AppLocalizations {
   /// **'仅从「我的颜色」中移除，已使用该颜色的课程不受影响。'**
   String get savedColorDeleteNotice;
 
-  /// No description provided for @customColor.
+  /// No description provided for @editColor.
   ///
   /// In zh, this message translates to:
-  /// **'自定义'**
-  String get customColor;
+  /// **'编辑颜色'**
+  String get editColor;
 
   /// No description provided for @chooseColor.
   ///

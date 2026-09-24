@@ -6,17 +6,38 @@ import '../services/course_color_store.dart';
 import '../theme/app_tokens.dart';
 import '../theme/course_palette.dart';
 
-/// Opens the custom color sheet and resolves with the chosen `#RRGGBB` value,
-/// or null when the user dismisses it.
-Future<String?> showCourseColorPickerSheet({
+/// What the color sheet resolved with.
+@immutable
+class CourseColorSheetResult {
+  const CourseColorSheetResult.saved(String this.hex) : deleted = false;
+
+  const CourseColorSheetResult.deleted() : hex = null, deleted = true;
+
+  /// Chosen `#RRGGBB`, null when the saved color was deleted instead.
+  final String? hex;
+
+  /// True when the user deleted the saved color from the editor.
+  final bool deleted;
+}
+
+/// Opens the custom color sheet. Resolves with the chosen color, with a delete
+/// request, or with null when the user dismisses the sheet.
+///
+/// Pass [allowDelete] when editing an already saved color to show the delete
+/// action at the leading edge of the button row.
+Future<CourseColorSheetResult?> showCourseColorPickerSheet({
   required BuildContext context,
   required String initialHex,
+  bool allowDelete = false,
 }) {
-  return showModalBottomSheet<String>(
+  return showModalBottomSheet<CourseColorSheetResult>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _CustomColorSheet(initialHex: initialHex),
+    // The theme already renders a drag handle; this sheet draws its own.
+    showDragHandle: false,
+    builder: (_) =>
+        _CustomColorSheet(initialHex: initialHex, allowDelete: allowDelete),
   );
 }
 
@@ -56,28 +77,18 @@ class _CourseColorPickerState extends State<CourseColorPicker> {
     setState(() => _savedHexes = colors);
   }
 
-  Future<void> _openCustomColorSheet() async {
-    final hex = await showCourseColorPickerSheet(
+  /// Asks for a color and stores it in "My Colors" without touching the course.
+  Future<void> _addSavedColor() async {
+    final l10n = context.l10n;
+    final result = await showCourseColorPickerSheet(
       context: context,
       initialHex: widget.selectedHex,
     );
+    final hex = result?.hex;
     if (hex == null || !mounted) return;
-    widget.onChanged(hex);
-  }
-
-  Future<void> _saveCurrentColor() async {
-    final l10n = context.l10n;
-    final hex = normalizeCourseColorHex(widget.selectedHex);
-    if (hex == null) return;
 
     if (_savedHexes.contains(hex)) {
       _showMessage(l10n.colorAlreadySaved);
-      return;
-    }
-    if (_savedHexes.length >= CourseColorStore.maxSavedColors) {
-      _showMessage(
-        l10n.savedColorsLimitReached(CourseColorStore.maxSavedColors),
-      );
       return;
     }
 
@@ -87,54 +98,37 @@ class _CourseColorPickerState extends State<CourseColorPicker> {
     _showMessage(l10n.colorSaved);
   }
 
-  Future<void> _deleteSavedColor(String hex) async {
+  /// Long pressing a saved color opens its editor right away.
+  ///
+  /// Confirming replaces it in place, deleting removes it from the list.
+  /// Courses keep the color they already have either way.
+  Future<void> _editSavedColor(String hex) async {
     final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
+    final result = await showCourseColorPickerSheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.deleteSavedColor),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: courseColorFromHex(hex),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Theme.of(dialogContext).colorScheme.outlineVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Text(hex, style: Theme.of(context).textTheme.titleMedium),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(l10n.savedColorDeleteNotice),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      initialHex: hex,
+      allowDelete: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (result == null || !mounted) return;
 
-    final colors = await CourseColorStore.removeSavedColor(hex);
+    if (result.deleted) {
+      final colors = await CourseColorStore.removeSavedColor(hex);
+      if (!mounted) return;
+      setState(() => _savedHexes = colors);
+      return;
+    }
+
+    final updated = result.hex;
+    if (updated == null || updated == hex) return;
+    if (_savedHexes.contains(updated)) {
+      _showMessage(l10n.colorAlreadySaved);
+      return;
+    }
+
+    final colors = await CourseColorStore.replaceSavedColor(hex, updated);
     if (!mounted) return;
     setState(() => _savedHexes = colors);
+    _showMessage(l10n.colorUpdated);
   }
 
   void _showMessage(String message) {
@@ -230,36 +224,9 @@ class _CourseColorPickerState extends State<CourseColorPicker> {
     );
   }
 
-  Widget _buildCustomColorButton(BuildContext context, AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    return Tooltip(
-      message: l10n.customColor,
-      child: InkWell(
-        key: const ValueKey('course-color-custom'),
-        onTap: _openCustomColorSheet,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.5,
-            ),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-          ),
-          child: Icon(
-            Icons.palette_outlined,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildSavedGroup(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
+    final canAddMore = _savedHexes.length < CourseColorStore.maxSavedColors;
     return _buildSwatchGroup(context, l10n.myColors, [
       for (final hex in _savedHexes)
         _ColorSwatch(
@@ -267,26 +234,30 @@ class _CourseColorPickerState extends State<CourseColorPicker> {
           color: courseColorFromHex(hex) ?? CoursePalette.classic.first,
           selected: hex == widget.selectedHex,
           onTap: () => widget.onChanged(hex),
-          onLongPress: () => _deleteSavedColor(hex),
+          onLongPress: () => _editSavedColor(hex),
         ),
-      Tooltip(
-        message: l10n.saveColor,
-        child: InkWell(
-          key: const ValueKey('course-color-save'),
-          onTap: _saveCurrentColor,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: theme.colorScheme.outline),
+      if (canAddMore)
+        Tooltip(
+          message: l10n.addColor,
+          child: InkWell(
+            key: const ValueKey('course-color-save'),
+            onTap: _addSavedColor,
+            customBorder: const CircleBorder(),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: theme.colorScheme.outline),
+              ),
+              child: Icon(
+                Icons.add,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
             ),
-            child: Icon(Icons.add, size: 20, color: theme.colorScheme.primary),
           ),
         ),
-      ),
-      _buildCustomColorButton(context, l10n),
     ]);
   }
 
@@ -367,10 +338,34 @@ class _ColorSwatch extends StatelessWidget {
   }
 }
 
+/// Small round preview of a saved color, used by the dialogs.
+class _ColorDot extends StatelessWidget {
+  const _ColorDot({required this.hex});
+
+  final String hex;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: courseColorFromHex(hex),
+        shape: BoxShape.circle,
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+    );
+  }
+}
+
 class _CustomColorSheet extends StatefulWidget {
-  const _CustomColorSheet({required this.initialHex});
+  const _CustomColorSheet({
+    required this.initialHex,
+    required this.allowDelete,
+  });
 
   final String initialHex;
+  final bool allowDelete;
 
   @override
   State<_CustomColorSheet> createState() => _CustomColorSheetState();
@@ -423,7 +418,47 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
   void _confirm() {
     final hex = normalizeCourseColorHex(_hexController.text);
     if (hex == null) return;
-    Navigator.of(context).pop(hex);
+    Navigator.of(context).pop(CourseColorSheetResult.saved(hex));
+  }
+
+  /// Asks once more before dropping the saved color.
+  Future<void> _delete() async {
+    final l10n = context.l10n;
+    final savedHex =
+        normalizeCourseColorHex(widget.initialHex) ?? widget.initialHex;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.deleteSavedColor),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _ColorDot(hex: savedHex),
+                const SizedBox(width: AppSpacing.sm),
+                Text(savedHex, style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(l10n.savedColorDeleteNotice),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    Navigator.of(context).pop(const CourseColorSheetResult.deleted());
   }
 
   @override
@@ -453,7 +488,7 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              l10n.chooseColor,
+              widget.allowDelete ? l10n.editColor : l10n.chooseColor,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -520,8 +555,15 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
             ),
             const SizedBox(height: AppSpacing.lg),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                if (widget.allowDelete)
+                  TextButton(
+                    key: const ValueKey('course-color-delete'),
+                    onPressed: _delete,
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: Text(l10n.delete),
+                  ),
+                const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(l10n.cancel),

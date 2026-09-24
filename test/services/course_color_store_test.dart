@@ -76,6 +76,47 @@ void main() {
     expect(await CourseColorStore.removeSavedColor(null), ['#A8707A']);
   });
 
+  test('replaces a saved color without changing its position', () async {
+    SharedPreferences.setMockInitialValues({
+      'saved_course_colors_v1': '["#7E93A8", "#A8707A"]',
+    });
+
+    final colors = await CourseColorStore.replaceSavedColor(
+      '#a8707a',
+      '#123456',
+    );
+
+    expect(colors, ['#7E93A8', '#123456']);
+    expect(await CourseColorStore.loadSavedColors(), ['#7E93A8', '#123456']);
+  });
+
+  test('replacing keeps the list when the change is not possible', () async {
+    SharedPreferences.setMockInitialValues({
+      'saved_course_colors_v1': '["#7E93A8", "#A8707A"]',
+    });
+
+    // Unknown old color.
+    expect(await CourseColorStore.replaceSavedColor('#123456', '#654321'), [
+      '#7E93A8',
+      '#A8707A',
+    ]);
+    // Invalid new color.
+    expect(await CourseColorStore.replaceSavedColor('#A8707A', 'nope'), [
+      '#7E93A8',
+      '#A8707A',
+    ]);
+    // New color is already saved elsewhere.
+    expect(await CourseColorStore.replaceSavedColor('#A8707A', '#7e93a8'), [
+      '#7E93A8',
+      '#A8707A',
+    ]);
+    // Same color.
+    expect(await CourseColorStore.replaceSavedColor('#A8707A', '#a8707a'), [
+      '#7E93A8',
+      '#A8707A',
+    ]);
+  });
+
   test('ignores invalid colors without touching the list', () async {
     await CourseColorStore.addSavedColor('#A8707A');
 

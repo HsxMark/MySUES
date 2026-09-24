@@ -785,7 +785,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get myColors => '我的颜色';
 
   @override
-  String get saveColor => '保存当前颜色';
+  String get addColor => '添加颜色';
 
   @override
   String get colorSaved => '已保存到「我的颜色」';
@@ -794,9 +794,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get colorAlreadySaved => '该颜色已在「我的颜色」中';
 
   @override
-  String savedColorsLimitReached(int count) {
-    return '最多保存 $count 个颜色，请先长按删除';
-  }
+  String get colorUpdated => '颜色已更新';
 
   @override
   String get deleteSavedColor => '删除保存的颜色';
@@ -805,7 +803,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get savedColorDeleteNotice => '仅从「我的颜色」中移除，已使用该颜色的课程不受影响。';
 
   @override
-  String get customColor => '自定义';
+  String get editColor => '编辑颜色';
 
   @override
   String get chooseColor => '选择颜色';

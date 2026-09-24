@@ -49,6 +49,28 @@ abstract final class CourseColorStore {
     return updated;
   }
 
+  /// Replaces [rawOldHex] with [rawNewHex] without changing its position.
+  ///
+  /// The list is returned untouched when the old color is not saved, when the
+  /// new color is invalid, or when the new color is already saved elsewhere.
+  static Future<List<String>> replaceSavedColor(
+    String? rawOldHex,
+    String? rawNewHex,
+  ) async {
+    final colors = await loadSavedColors();
+    final oldHex = normalizeCourseColorHex(rawOldHex);
+    final newHex = normalizeCourseColorHex(rawNewHex);
+    if (oldHex == null || newHex == null) return colors;
+    if (oldHex == newHex) return colors;
+
+    final index = colors.indexOf(oldHex);
+    if (index == -1 || colors.contains(newHex)) return colors;
+
+    final updated = [...colors]..[index] = newHex;
+    await _writeColors(updated);
+    return updated;
+  }
+
   /// Forgets every saved color.
   static Future<void> clearSavedColors() async {
     final prefs = await SharedPreferences.getInstance();
