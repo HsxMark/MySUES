@@ -80,6 +80,11 @@ void main() {
 
     expect(find.widgetWithText(FilledButton, 'Start Sync'), findsOneWidget);
     expect(find.text('Academic Sync'), findsOneWidget);
+    // The sync action must stay compact so it does not stretch the card.
+    final buttonSize = tester.getSize(
+      find.widgetWithText(FilledButton, 'Start Sync'),
+    );
+    expect(buttonSize.height, lessThanOrEqualTo(40));
     expect(tester.takeException(), isNull);
   });
 }

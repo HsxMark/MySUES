@@ -953,13 +953,7 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
                     }
                   }),
                   secondary: Icon(_taskIcon(task)),
-                  title: Text(_taskTitle(context, task)),
-                  subtitle: task == ExtractTask.schedule
-                      ? Text(
-                          context.l10n.extractScheduleSemesterHint,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        )
-                      : null,
+                  title: _taskTitleWidget(context, task),
                   controlAffinity: ListTileControlAffinity.trailing,
                   dense: true,
                 ),
@@ -1004,6 +998,33 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       ExtractTask.profile => l10n.extractTaskProfile,
       ExtractTask.exams => l10n.extractTaskExams,
     };
+  }
+
+  /// Title row for the extract sheet. The schedule entry carries a short
+  /// inline hint next to its label instead of a subtitle, so every option in
+  /// the list keeps the same single-line height.
+  Widget _taskTitleWidget(BuildContext context, ExtractTask task) {
+    final title = Text(_taskTitle(context, task));
+    if (task != ExtractTask.schedule) return title;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        title,
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            context.l10n.extractScheduleSemesterHint,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   void _completeAction(Completer<bool> completer, bool value) {

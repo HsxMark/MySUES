@@ -874,7 +874,7 @@ abstract class AppLocalizations {
   /// No description provided for @extractScheduleSemesterHint.
   ///
   /// In zh, this message translates to:
-  /// **'只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期'**
+  /// **'单选可挑选历史学期'**
   String get extractScheduleSemesterHint;
 
   /// No description provided for @gotIt.
@@ -1566,6 +1566,102 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'课程颜色'**
   String get courseColor;
+
+  /// No description provided for @classicColors.
+  ///
+  /// In zh, this message translates to:
+  /// **'经典'**
+  String get classicColors;
+
+  /// No description provided for @morandiColors.
+  ///
+  /// In zh, this message translates to:
+  /// **'莫兰迪'**
+  String get morandiColors;
+
+  /// No description provided for @myColors.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的颜色'**
+  String get myColors;
+
+  /// No description provided for @addColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加颜色'**
+  String get addColor;
+
+  /// No description provided for @colorSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已保存到「我的颜色」'**
+  String get colorSaved;
+
+  /// No description provided for @colorAlreadySaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'该颜色已在「我的颜色」中'**
+  String get colorAlreadySaved;
+
+  /// No description provided for @colorUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'颜色已更新'**
+  String get colorUpdated;
+
+  /// No description provided for @deleteSavedColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除保存的颜色'**
+  String get deleteSavedColor;
+
+  /// No description provided for @savedColorDeleteNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅从「我的颜色」中移除，已使用该颜色的课程不受影响。'**
+  String get savedColorDeleteNotice;
+
+  /// No description provided for @editColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑颜色'**
+  String get editColor;
+
+  /// No description provided for @chooseColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择颜色'**
+  String get chooseColor;
+
+  /// No description provided for @hexColorCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'十六进制色值'**
+  String get hexColorCode;
+
+  /// No description provided for @invalidHexColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入 6 位十六进制颜色，例如 #A8707A'**
+  String get invalidHexColor;
+
+  /// No description provided for @hue.
+  ///
+  /// In zh, this message translates to:
+  /// **'色相'**
+  String get hue;
+
+  /// No description provided for @saturation.
+  ///
+  /// In zh, this message translates to:
+  /// **'饱和度'**
+  String get saturation;
+
+  /// No description provided for @brightness.
+  ///
+  /// In zh, this message translates to:
+  /// **'明度'**
+  String get brightness;
 
   /// No description provided for @studyStatus.
   ///

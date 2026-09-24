@@ -424,7 +424,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get conflictDetailsSavedHint => '这些课程已导入，可在课表中查看，或后续修改免听/重修状态。';
 
   @override
-  String get extractScheduleSemesterHint => '只勾选此项时可选择学期（含历史学期），多项一起提取时使用最新学期';
+  String get extractScheduleSemesterHint => '单选可挑选历史学期';
 
   @override
   String get gotIt => '知道了';
@@ -774,6 +774,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courseColor => '课程颜色';
+
+  @override
+  String get classicColors => '经典';
+
+  @override
+  String get morandiColors => '莫兰迪';
+
+  @override
+  String get myColors => '我的颜色';
+
+  @override
+  String get addColor => '添加颜色';
+
+  @override
+  String get colorSaved => '已保存到「我的颜色」';
+
+  @override
+  String get colorAlreadySaved => '该颜色已在「我的颜色」中';
+
+  @override
+  String get colorUpdated => '颜色已更新';
+
+  @override
+  String get deleteSavedColor => '删除保存的颜色';
+
+  @override
+  String get savedColorDeleteNotice => '仅从「我的颜色」中移除，已使用该颜色的课程不受影响。';
+
+  @override
+  String get editColor => '编辑颜色';
+
+  @override
+  String get chooseColor => '选择颜色';
+
+  @override
+  String get hexColorCode => '十六进制色值';
+
+  @override
+  String get invalidHexColor => '请输入 6 位十六进制颜色，例如 #A8707A';
+
+  @override
+  String get hue => '色相';
+
+  @override
+  String get saturation => '饱和度';
+
+  @override
+  String get brightness => '明度';
 
   @override
   String get studyStatus => '修读状态';

@@ -433,8 +433,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'These courses were imported. Review them in the schedule, or adjust their study status later.';
 
   @override
-  String get extractScheduleSemesterHint =>
-      'Tick only this item to pick a semester, including past ones; combined runs use the latest semester';
+  String get extractScheduleSemesterHint => 'Tick alone to pick past terms';
 
   @override
   String get gotIt => 'Got it';
@@ -802,6 +801,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courseColor => 'Course Color';
+
+  @override
+  String get classicColors => 'Classic';
+
+  @override
+  String get morandiColors => 'Morandi';
+
+  @override
+  String get myColors => 'My Colors';
+
+  @override
+  String get addColor => 'Add color';
+
+  @override
+  String get colorSaved => 'Saved to My Colors';
+
+  @override
+  String get colorAlreadySaved => 'This color is already in My Colors';
+
+  @override
+  String get colorUpdated => 'Color updated';
+
+  @override
+  String get deleteSavedColor => 'Delete saved color';
+
+  @override
+  String get savedColorDeleteNotice =>
+      'This only removes the color from My Colors. Courses already using it keep their color.';
+
+  @override
+  String get editColor => 'Edit Color';
+
+  @override
+  String get chooseColor => 'Choose Color';
+
+  @override
+  String get hexColorCode => 'Hex Code';
+
+  @override
+  String get invalidHexColor => 'Enter a 6-digit hex color, e.g. #A8707A';
+
+  @override
+  String get hue => 'Hue';
+
+  @override
+  String get saturation => 'Saturation';
+
+  @override
+  String get brightness => 'Brightness';
 
   @override
   String get studyStatus => 'Study Status';
