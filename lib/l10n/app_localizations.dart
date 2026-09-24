@@ -1579,11 +1579,47 @@ abstract class AppLocalizations {
   /// **'莫兰迪'**
   String get morandiColors;
 
-  /// No description provided for @recentColors.
+  /// No description provided for @myColors.
   ///
   /// In zh, this message translates to:
-  /// **'最近使用'**
-  String get recentColors;
+  /// **'我的颜色'**
+  String get myColors;
+
+  /// No description provided for @saveColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存当前颜色'**
+  String get saveColor;
+
+  /// No description provided for @colorSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已保存到「我的颜色」'**
+  String get colorSaved;
+
+  /// No description provided for @colorAlreadySaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'该颜色已在「我的颜色」中'**
+  String get colorAlreadySaved;
+
+  /// No description provided for @savedColorsLimitReached.
+  ///
+  /// In zh, this message translates to:
+  /// **'最多保存 {count} 个颜色，请先长按删除'**
+  String savedColorsLimitReached(int count);
+
+  /// No description provided for @deleteSavedColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除保存的颜色'**
+  String get deleteSavedColor;
+
+  /// No description provided for @savedColorDeleteNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅从「我的颜色」中移除，已使用该颜色的课程不受影响。'**
+  String get savedColorDeleteNotice;
 
   /// No description provided for @customColor.
   ///

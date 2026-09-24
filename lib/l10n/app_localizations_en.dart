@@ -810,7 +810,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get morandiColors => 'Morandi';
 
   @override
-  String get recentColors => 'Recently Used';
+  String get myColors => 'My Colors';
+
+  @override
+  String get saveColor => 'Save current color';
+
+  @override
+  String get colorSaved => 'Saved to My Colors';
+
+  @override
+  String get colorAlreadySaved => 'This color is already in My Colors';
+
+  @override
+  String savedColorsLimitReached(int count) {
+    return 'You can save up to $count colors. Long-press a swatch to delete one first.';
+  }
+
+  @override
+  String get deleteSavedColor => 'Delete saved color';
+
+  @override
+  String get savedColorDeleteNotice =>
+      'This only removes the color from My Colors. Courses already using it keep their color.';
 
   @override
   String get customColor => 'Custom';

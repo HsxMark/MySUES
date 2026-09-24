@@ -91,6 +91,16 @@ Future<void> _save(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// The color module starts collapsed, so swatch assertions and taps need it
+/// expanded first.
+Future<void> _expandColorPanel(WidgetTester tester) async {
+  final toggle = find.byKey(const ValueKey('course-color-toggle'));
+  await tester.ensureVisible(toggle);
+  await tester.pumpAndSettle();
+  await tester.tap(toggle);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -119,6 +129,7 @@ void main() {
     final host = await _openEditor(tester, course: _course(color: '#A8707A'));
 
     expect(_selectedHex(tester), '#A8707A');
+    await _expandColorPanel(tester);
     expect(find.byIcon(Icons.check), findsOneWidget);
 
     await _save(tester);
@@ -133,6 +144,7 @@ void main() {
     final host = await _openEditor(tester, course: _course(color: '#123456'));
 
     expect(_selectedHex(tester), '#123456');
+    await _expandColorPanel(tester);
     expect(find.byIcon(Icons.check), findsNothing);
 
     await _save(tester);
@@ -145,6 +157,7 @@ void main() {
     tester,
   ) async {
     final host = await _openEditor(tester);
+    await _expandColorPanel(tester);
 
     final swatch = find.byKey(const ValueKey('course-color-#6F8F86'));
     await tester.ensureVisible(swatch);

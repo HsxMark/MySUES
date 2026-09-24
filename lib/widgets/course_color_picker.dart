@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../l10n/l10n.dart';
 import '../services/course_color_store.dart';
 import '../theme/app_tokens.dart';
@@ -19,8 +20,9 @@ Future<String?> showCourseColorPickerSheet({
   );
 }
 
-/// Course color selector: the classic and Morandi preset groups, the recently
-/// used custom colors, and an entry point for picking an arbitrary color.
+/// Course color selector: a collapsible section holding the classic and Morandi
+/// preset groups, the saved "My Colors" list and an entry point for picking an
+/// arbitrary color.
 class CourseColorPicker extends StatefulWidget {
   const CourseColorPicker({
     super.key,
@@ -39,18 +41,19 @@ class CourseColorPicker extends StatefulWidget {
 }
 
 class _CourseColorPickerState extends State<CourseColorPicker> {
-  List<String> _recentHexes = const <String>[];
+  bool _expanded = false;
+  List<String> _savedHexes = const <String>[];
 
   @override
   void initState() {
     super.initState();
-    _loadRecentColors();
+    _loadSavedColors();
   }
 
-  Future<void> _loadRecentColors() async {
-    final colors = await CourseColorStore.loadRecentColors();
+  Future<void> _loadSavedColors() async {
+    final colors = await CourseColorStore.loadSavedColors();
     if (!mounted) return;
-    setState(() => _recentHexes = colors);
+    setState(() => _savedHexes = colors);
   }
 
   Future<void> _openCustomColorSheet() async {
@@ -60,7 +63,85 @@ class _CourseColorPickerState extends State<CourseColorPicker> {
     );
     if (hex == null || !mounted) return;
     widget.onChanged(hex);
-    await _loadRecentColors();
+  }
+
+  Future<void> _saveCurrentColor() async {
+    final l10n = context.l10n;
+    final hex = normalizeCourseColorHex(widget.selectedHex);
+    if (hex == null) return;
+
+    if (_savedHexes.contains(hex)) {
+      _showMessage(l10n.colorAlreadySaved);
+      return;
+    }
+    if (_savedHexes.length >= CourseColorStore.maxSavedColors) {
+      _showMessage(
+        l10n.savedColorsLimitReached(CourseColorStore.maxSavedColors),
+      );
+      return;
+    }
+
+    final colors = await CourseColorStore.addSavedColor(hex);
+    if (!mounted) return;
+    setState(() => _savedHexes = colors);
+    _showMessage(l10n.colorSaved);
+  }
+
+  Future<void> _deleteSavedColor(String hex) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.deleteSavedColor),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: courseColorFromHex(hex),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(dialogContext).colorScheme.outlineVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(hex, style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(l10n.savedColorDeleteNotice),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final colors = await CourseColorStore.removeSavedColor(hex);
+    if (!mounted) return;
+    setState(() => _savedHexes = colors);
+  }
+
+  void _showMessage(String message) {
+    // Replace the previous hint so rapid taps do not queue stale messages.
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -70,62 +151,143 @@ class _CourseColorPickerState extends State<CourseColorPicker> {
     final selectedColor =
         courseColorFromHex(widget.selectedHex) ?? CoursePalette.classic.first;
 
-    // Preset colors are already visible in their own group.
-    final presetHexes = CoursePalette.all.map(courseColorToHex).toSet();
-    final recentHexes = _recentHexes
-        .where((hex) => !presetHexes.contains(hex))
-        .toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                l10n.courseColor,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+        InkWell(
+          key: const ValueKey('course-color-toggle'),
+          onTap: () => setState(() => _expanded = !_expanded),
+          borderRadius: BorderRadius.circular(AppRadii.small),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.courseColor,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: selectedColor,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 1,
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: selectedColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant,
+                      width: 1,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  widget.selectedHex,
+                  key: const ValueKey('course-color-selected-hex'),
+                  style: theme.textTheme.labelLarge,
+                ),
+                AnimatedRotation(
+                  turns: _expanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.arrow_drop_down,
+                    size: 28,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              widget.selectedHex,
-              key: const ValueKey('course-color-selected-hex'),
-              style: theme.textTheme.labelLarge,
-            ),
-            TextButton.icon(
-              key: const ValueKey('course-color-custom'),
-              onPressed: _openCustomColorSheet,
-              icon: const Icon(Icons.palette_outlined, size: 18),
-              label: Text(l10n.customColor),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        _buildGroup(context, l10n.classicColors, CoursePalette.classic),
-        const SizedBox(height: AppSpacing.lg),
-        _buildGroup(context, l10n.morandiColors, CoursePalette.morandi),
-        if (recentHexes.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          _buildHexGroup(context, l10n.recentColors, recentHexes),
-        ],
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: _expanded
+              ? _buildPanel(context, l10n)
+              : const SizedBox(width: double.infinity),
+        ),
       ],
     );
+  }
+
+  Widget _buildPanel(BuildContext context, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildGroup(context, l10n.classicColors, CoursePalette.classic),
+          const SizedBox(height: AppSpacing.lg),
+          _buildGroup(context, l10n.morandiColors, CoursePalette.morandi),
+          const SizedBox(height: AppSpacing.lg),
+          _buildSavedGroup(context, l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomColorButton(BuildContext context, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    return Tooltip(
+      message: l10n.customColor,
+      child: InkWell(
+        key: const ValueKey('course-color-custom'),
+        onTap: _openCustomColorSheet,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
+          child: Icon(
+            Icons.palette_outlined,
+            size: 18,
+            color: theme.colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavedGroup(BuildContext context, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    return _buildSwatchGroup(context, l10n.myColors, [
+      for (final hex in _savedHexes)
+        _ColorSwatch(
+          key: ValueKey('saved-color-$hex'),
+          color: courseColorFromHex(hex) ?? CoursePalette.classic.first,
+          selected: hex == widget.selectedHex,
+          onTap: () => widget.onChanged(hex),
+          onLongPress: () => _deleteSavedColor(hex),
+        ),
+      Tooltip(
+        message: l10n.saveColor,
+        child: InkWell(
+          key: const ValueKey('course-color-save'),
+          onTap: _saveCurrentColor,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: theme.colorScheme.outline),
+            ),
+            child: Icon(Icons.add, size: 20, color: theme.colorScheme.primary),
+          ),
+        ),
+      ),
+      _buildCustomColorButton(context, l10n),
+    ]);
   }
 
   Widget _buildGroup(BuildContext context, String label, List<Color> colors) {
@@ -136,22 +298,6 @@ class _CourseColorPickerState extends State<CourseColorPicker> {
           color: color,
           selected: courseColorToHex(color) == widget.selectedHex,
           onTap: () => widget.onChanged(courseColorToHex(color)),
-        ),
-    ]);
-  }
-
-  Widget _buildHexGroup(
-    BuildContext context,
-    String label,
-    List<String> hexes,
-  ) {
-    return _buildSwatchGroup(context, label, [
-      for (final hex in hexes)
-        _ColorSwatch(
-          key: ValueKey('course-color-$hex'),
-          color: courseColorFromHex(hex) ?? CoursePalette.classic.first,
-          selected: hex == widget.selectedHex,
-          onTap: () => widget.onChanged(hex),
         ),
     ]);
   }
@@ -183,11 +329,13 @@ class _ColorSwatch extends StatelessWidget {
     required this.color,
     required this.selected,
     required this.onTap,
+    this.onLongPress,
   });
 
   final Color color;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +346,7 @@ class _ColorSwatch extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 36,
@@ -231,7 +380,6 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
   late final TextEditingController _hexController;
   late HSVColor _hsv;
   String? _errorText;
-  List<String> _recentHexes = const <String>[];
 
   @override
   void initState() {
@@ -240,19 +388,12 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
         courseColorFromHex(widget.initialHex) ?? CoursePalette.classic.first;
     _hsv = HSVColor.fromColor(color);
     _hexController = TextEditingController(text: courseColorToHex(color));
-    _loadRecentColors();
   }
 
   @override
   void dispose() {
     _hexController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadRecentColors() async {
-    final colors = await CourseColorStore.loadRecentColors();
-    if (!mounted) return;
-    setState(() => _recentHexes = colors);
   }
 
   void _applyHsv(HSVColor hsv) {
@@ -279,11 +420,9 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
     });
   }
 
-  Future<void> _confirm() async {
+  void _confirm() {
     final hex = normalizeCourseColorHex(_hexController.text);
     if (hex == null) return;
-    await CourseColorStore.addRecentColor(hex);
-    if (!mounted) return;
     Navigator.of(context).pop(hex);
   }
 
@@ -379,37 +518,6 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
                 errorText: _errorText,
               ),
             ),
-            if (_recentHexes.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                l10n.recentColors,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  for (final hex in _recentHexes)
-                    _ColorSwatch(
-                      key: ValueKey('recent-color-$hex'),
-                      color:
-                          courseColorFromHex(hex) ??
-                          CoursePalette.classic.first,
-                      selected:
-                          normalizeCourseColorHex(_hexController.text) == hex,
-                      onTap: () {
-                        final recentColor = courseColorFromHex(hex);
-                        if (recentColor == null) return;
-                        _applyHsv(HSVColor.fromColor(recentColor));
-                        _hexController.text = hex;
-                      },
-                    ),
-                ],
-              ),
-            ],
             const SizedBox(height: AppSpacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
