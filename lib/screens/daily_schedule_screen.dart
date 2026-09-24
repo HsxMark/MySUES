@@ -16,6 +16,7 @@ import 'login_webview_screen.dart';
 import 'course_catalog_screen.dart';
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
+import '../utils/lunch_session_display_helper.dart';
 import '../widgets/study_type_badge.dart';
 import 'package:mysues/l10n/localized_formatters.dart';
 import 'package:mysues/l10n/l10n.dart';
@@ -245,18 +246,21 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
     }
   }
 
-  /// 获取当天需要显示的课程
+  /// 获取当天需要显示的课程（含午间软分割：开=上/下午两场，关=合并）
   List<Course> _getCoursesForDate(DateTime date) {
     final week = _weekForDate(date);
     final dayOfWeek = date.weekday; // 1=Mon ... 7=Sun
-    final filtered = _courses
-        .where(
-          (c) =>
-              c.day == dayOfWeek &&
-              c.inWeek(week) &&
-              (!c.isHidden || (_currentTable?.showHiddenCourses ?? false)),
-        )
-        .toList();
+    final filtered = LunchSessionDisplayHelper.prepareForDisplay(
+      _courses
+          .where(
+            (c) =>
+                c.day == dayOfWeek &&
+                c.inWeek(week) &&
+                (!c.isHidden || (_currentTable?.showHiddenCourses ?? false)),
+          )
+          .toList(),
+      splitLunch: _currentTable?.splitLunchSession ?? false,
+    );
     filtered.sort(
       (a, b) => _courseStartMinutes(a).compareTo(_courseStartMinutes(b)),
     );
@@ -284,6 +288,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
+    // 必须传入展示项（含 displaySourceIds），否则合并卡删除/导出/编辑会丢下午场
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -338,12 +343,18 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         TextButton(
                           onPressed: () async {
                             try {
+                              final exportSources =
+                                  LunchSessionDisplayHelper.resolveSources(
+                                    course,
+                                    _courses,
+                                  );
                               await IcsExporter.exportCourses(
                                 context,
-                                [course],
+                                exportSources,
                                 _currentTable!,
                                 _timeDetails,
-                                fileName: 'mysues_course_${course.id}.ics',
+                                fileName:
+                                    'mysues_course_${exportSources.first.id}.ics',
                               );
                             } catch (e) {
                               if (context.mounted) {
@@ -605,7 +616,11 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
             onPressed: () async {
               Navigator.pop(context);
               Navigator.pop(context);
-              await ScheduleDataService.deleteCourse(course.id);
+              // 合并卡会同时删除库内上午场+下午场
+              await LunchSessionDisplayHelper.deleteDisplayCourse(
+                course,
+                _courses,
+              );
               _initData();
             },
             child: Text(
@@ -619,16 +634,32 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   }
 
   Future<void> _editCourse(BuildContext context, Course course) async {
+    final editTarget = LunchSessionDisplayHelper.courseForEditor(
+      course,
+      _courses,
+    );
+    final sourceIds = editTarget.displaySourceIds.isNotEmpty
+        ? editTarget.displaySourceIds
+        : LunchSessionDisplayHelper.resolveSources(
+            course,
+            _courses,
+          ).map((s) => s.id).toList();
+
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
+      MaterialPageRoute(builder: (c) => AddCourseScreen(course: editTarget)),
     );
     if (result == 'deleted') {
+      await LunchSessionDisplayHelper.deleteDisplayCourse(course, _courses);
       _initData();
       return;
     }
     if (result != null && result is Course) {
-      await ScheduleDataService.updateCourse(result);
+      await LunchSessionDisplayHelper.persistEditedCourse(
+        result,
+        _courses,
+        sourceIds: sourceIds,
+      );
       _initData();
     }
   }
