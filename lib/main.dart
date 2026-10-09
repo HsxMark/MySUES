@@ -3,9 +3,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mysues/l10n/app_localizations.dart';
 import 'package:mysues/services/locale_service.dart';
 import 'package:mysues/services/app_integrity_service.dart';
+import 'package:mysues/services/fold_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/notification_service.dart';
 import 'package:mysues/theme/app_theme.dart';
+import 'package:mysues/widgets/fold_app_shell.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:mysues/services/widget_service.dart';
 import 'screens/splash_screen.dart';
@@ -39,6 +41,10 @@ void main() async {
 
   final localeService = LocaleService();
   await localeService.loadSettings();
+
+  // Learn whether this device folds and whether the fold animation is wanted,
+  // so the shell can play it from the first frame.
+  await FoldService().loadSettings();
 
   // Verify the Android release signing certificate before rendering the app.
   await AppIntegrityService().initialize();
@@ -78,6 +84,10 @@ class MyApp extends StatelessWidget {
           locale: LocaleService().localeOverride,
           localeResolutionCallback: (locale, supportedLocales) =>
               LocaleService.resolveLocale(locale ?? const Locale('en')),
+          // The fold animation wraps the navigator, which stays a single
+          // instance, so navigation and scroll state survive it.
+          builder: (context, child) =>
+              FoldAppShell(child: child ?? const SizedBox.shrink()),
           // 切换到带底部导航的主界面
           home: ThemeService().splashAnimationEnabled
               ? const SplashScreen()

@@ -83,6 +83,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  shaders:
+    - shaders/duo_fold.frag
   assets:
     - assets/images/
     - assets/images/example/

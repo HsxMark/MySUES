@@ -2982,6 +2982,294 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'请输入{field}'**
   String requiredField(String field);
+
+  /// No description provided for @foldYes.
+  ///
+  /// In zh, this message translates to:
+  /// **'是'**
+  String get foldYes;
+
+  /// No description provided for @foldNo.
+  ///
+  /// In zh, this message translates to:
+  /// **'否'**
+  String get foldNo;
+
+  /// No description provided for @foldable.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠屏'**
+  String get foldable;
+
+  /// No description provided for @foldAnimation.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开折叠动画'**
+  String get foldAnimation;
+
+  /// No description provided for @foldAnimationSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开或合上手机时，界面像 iPhone Duo 一样折叠'**
+  String get foldAnimationSubtitle;
+
+  /// No description provided for @foldDetectionAndDebug.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠屏检测与调试'**
+  String get foldDetectionAndDebug;
+
+  /// No description provided for @foldDetectionAndDebugSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看转轴角度与各项检测依据'**
+  String get foldDetectionAndDebugSubtitle;
+
+  /// No description provided for @foldDetectResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测结果'**
+  String get foldDetectResult;
+
+  /// No description provided for @foldDetected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已检测到折叠屏设备'**
+  String get foldDetected;
+
+  /// No description provided for @foldNotDetected.
+  ///
+  /// In zh, this message translates to:
+  /// **'未检测到折叠屏硬件'**
+  String get foldNotDetected;
+
+  /// No description provided for @foldNoSensorHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'本机未提供转轴角度传感器，折叠动画不会生效'**
+  String get foldNoSensorHint;
+
+  /// No description provided for @foldLiveData.
+  ///
+  /// In zh, this message translates to:
+  /// **'实时数据'**
+  String get foldLiveData;
+
+  /// No description provided for @foldHingeAngle.
+  ///
+  /// In zh, this message translates to:
+  /// **'转轴角度'**
+  String get foldHingeAngle;
+
+  /// No description provided for @foldOpenRatio.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开程度'**
+  String get foldOpenRatio;
+
+  /// No description provided for @foldPosture.
+  ///
+  /// In zh, this message translates to:
+  /// **'屏幕姿态'**
+  String get foldPosture;
+
+  /// No description provided for @foldPostureFlat.
+  ///
+  /// In zh, this message translates to:
+  /// **'展平'**
+  String get foldPostureFlat;
+
+  /// No description provided for @foldPostureHalfOpened.
+  ///
+  /// In zh, this message translates to:
+  /// **'半开'**
+  String get foldPostureHalfOpened;
+
+  /// No description provided for @foldPostureUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get foldPostureUnknown;
+
+  /// No description provided for @foldStatePlaying.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠动画播放中'**
+  String get foldStatePlaying;
+
+  /// No description provided for @foldStateIdle.
+  ///
+  /// In zh, this message translates to:
+  /// **'空闲'**
+  String get foldStateIdle;
+
+  /// No description provided for @foldDetectionSignals.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测依据'**
+  String get foldDetectionSignals;
+
+  /// No description provided for @foldSignalHingeSensor.
+  ///
+  /// In zh, this message translates to:
+  /// **'转轴角度传感器'**
+  String get foldSignalHingeSensor;
+
+  /// No description provided for @foldSignalHingeFeature.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统特性声明'**
+  String get foldSignalHingeFeature;
+
+  /// No description provided for @foldSignalWindowCrease.
+  ///
+  /// In zh, this message translates to:
+  /// **'窗口折痕信息'**
+  String get foldSignalWindowCrease;
+
+  /// No description provided for @foldSensors.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠相关传感器'**
+  String get foldSensors;
+
+  /// No description provided for @foldPreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠效果预览'**
+  String get foldPreview;
+
+  /// No description provided for @foldPreviewHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'真机折叠时，上面的画面会随之弯折'**
+  String get foldPreviewHint;
+
+  /// No description provided for @foldManualPreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动预览'**
+  String get foldManualPreview;
+
+  /// No description provided for @foldFollowDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随真机角度'**
+  String get foldFollowDevice;
+
+  /// No description provided for @foldRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新检测'**
+  String get foldRefresh;
+
+  /// No description provided for @foldAngleUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无数据'**
+  String get foldAngleUnavailable;
+
+  /// No description provided for @foldGlassTilt.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃倾角'**
+  String get foldGlassTilt;
+
+  /// No description provided for @foldTuning.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠效果调节'**
+  String get foldTuning;
+
+  /// No description provided for @foldPaneMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠半边'**
+  String get foldPaneMode;
+
+  /// No description provided for @foldPaneLeft.
+  ///
+  /// In zh, this message translates to:
+  /// **'左半折叠（右半静止）'**
+  String get foldPaneLeft;
+
+  /// No description provided for @foldPaneRight.
+  ///
+  /// In zh, this message translates to:
+  /// **'右半折叠（左半静止）'**
+  String get foldPaneRight;
+
+  /// No description provided for @foldPaneBoth.
+  ///
+  /// In zh, this message translates to:
+  /// **'左右各折一半'**
+  String get foldPaneBoth;
+
+  /// No description provided for @foldBlurSpread.
+  ///
+  /// In zh, this message translates to:
+  /// **'模糊强度'**
+  String get foldBlurSpread;
+
+  /// No description provided for @foldDarkening.
+  ///
+  /// In zh, this message translates to:
+  /// **'暗化强度'**
+  String get foldDarkening;
+
+  /// No description provided for @foldEyeDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'视点距离'**
+  String get foldEyeDistance;
+
+  /// No description provided for @foldPanel.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前面板'**
+  String get foldPanel;
+
+  /// No description provided for @foldPanelInner.
+  ///
+  /// In zh, this message translates to:
+  /// **'内屏（展开）'**
+  String get foldPanelInner;
+
+  /// No description provided for @foldPanelCover.
+  ///
+  /// In zh, this message translates to:
+  /// **'外屏（合上）'**
+  String get foldPanelCover;
+
+  /// No description provided for @foldDriveApp.
+  ///
+  /// In zh, this message translates to:
+  /// **'驱动整个 App'**
+  String get foldDriveApp;
+
+  /// No description provided for @foldOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'已开启'**
+  String get foldOn;
+
+  /// No description provided for @foldOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'已关闭'**
+  String get foldOff;
+
+  /// No description provided for @foldDeadZone.
+  ///
+  /// In zh, this message translates to:
+  /// **'死区'**
+  String get foldDeadZone;
+
+  /// No description provided for @foldIntensity.
+  ///
+  /// In zh, this message translates to:
+  /// **'折叠强度'**
+  String get foldIntensity;
 }
 
 class _AppLocalizationsDelegate

@@ -1570,4 +1570,148 @@ class AppLocalizationsZh extends AppLocalizations {
   String requiredField(String field) {
     return '请输入$field';
   }
+
+  @override
+  String get foldYes => '是';
+
+  @override
+  String get foldNo => '否';
+
+  @override
+  String get foldable => '折叠屏';
+
+  @override
+  String get foldAnimation => '展开折叠动画';
+
+  @override
+  String get foldAnimationSubtitle => '展开或合上手机时，界面像 iPhone Duo 一样折叠';
+
+  @override
+  String get foldDetectionAndDebug => '折叠屏检测与调试';
+
+  @override
+  String get foldDetectionAndDebugSubtitle => '查看转轴角度与各项检测依据';
+
+  @override
+  String get foldDetectResult => '检测结果';
+
+  @override
+  String get foldDetected => '已检测到折叠屏设备';
+
+  @override
+  String get foldNotDetected => '未检测到折叠屏硬件';
+
+  @override
+  String get foldNoSensorHint => '本机未提供转轴角度传感器，折叠动画不会生效';
+
+  @override
+  String get foldLiveData => '实时数据';
+
+  @override
+  String get foldHingeAngle => '转轴角度';
+
+  @override
+  String get foldOpenRatio => '展开程度';
+
+  @override
+  String get foldPosture => '屏幕姿态';
+
+  @override
+  String get foldPostureFlat => '展平';
+
+  @override
+  String get foldPostureHalfOpened => '半开';
+
+  @override
+  String get foldPostureUnknown => '未知';
+
+  @override
+  String get foldStatePlaying => '折叠动画播放中';
+
+  @override
+  String get foldStateIdle => '空闲';
+
+  @override
+  String get foldDetectionSignals => '检测依据';
+
+  @override
+  String get foldSignalHingeSensor => '转轴角度传感器';
+
+  @override
+  String get foldSignalHingeFeature => '系统特性声明';
+
+  @override
+  String get foldSignalWindowCrease => '窗口折痕信息';
+
+  @override
+  String get foldSensors => '折叠相关传感器';
+
+  @override
+  String get foldPreview => '折叠效果预览';
+
+  @override
+  String get foldPreviewHint => '真机折叠时，上面的画面会随之弯折';
+
+  @override
+  String get foldManualPreview => '手动预览';
+
+  @override
+  String get foldFollowDevice => '跟随真机角度';
+
+  @override
+  String get foldRefresh => '重新检测';
+
+  @override
+  String get foldAngleUnavailable => '暂无数据';
+
+  @override
+  String get foldGlassTilt => '玻璃倾角';
+
+  @override
+  String get foldTuning => '折叠效果调节';
+
+  @override
+  String get foldPaneMode => '折叠半边';
+
+  @override
+  String get foldPaneLeft => '左半折叠（右半静止）';
+
+  @override
+  String get foldPaneRight => '右半折叠（左半静止）';
+
+  @override
+  String get foldPaneBoth => '左右各折一半';
+
+  @override
+  String get foldBlurSpread => '模糊强度';
+
+  @override
+  String get foldDarkening => '暗化强度';
+
+  @override
+  String get foldEyeDistance => '视点距离';
+
+  @override
+  String get foldPanel => '当前面板';
+
+  @override
+  String get foldPanelInner => '内屏（展开）';
+
+  @override
+  String get foldPanelCover => '外屏（合上）';
+
+  @override
+  String get foldDriveApp => '驱动整个 App';
+
+  @override
+  String get foldOn => '已开启';
+
+  @override
+  String get foldOff => '已关闭';
+
+  @override
+  String get foldDeadZone => '死区';
+
+  @override
+  String get foldIntensity => '折叠强度';
 }

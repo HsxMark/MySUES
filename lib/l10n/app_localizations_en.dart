@@ -1664,4 +1664,152 @@ class AppLocalizationsEn extends AppLocalizations {
   String requiredField(String field) {
     return 'Enter $field';
   }
+
+  @override
+  String get foldYes => 'Yes';
+
+  @override
+  String get foldNo => 'No';
+
+  @override
+  String get foldable => 'Foldable';
+
+  @override
+  String get foldAnimation => 'Fold animation';
+
+  @override
+  String get foldAnimationSubtitle =>
+      'Folds the interface like iPhone Duo as you open or close the phone';
+
+  @override
+  String get foldDetectionAndDebug => 'Foldable detection & debug';
+
+  @override
+  String get foldDetectionAndDebugSubtitle =>
+      'Inspect the hinge angle and every detection signal';
+
+  @override
+  String get foldDetectResult => 'Detection result';
+
+  @override
+  String get foldDetected => 'Foldable device detected';
+
+  @override
+  String get foldNotDetected => 'No foldable hardware detected';
+
+  @override
+  String get foldNoSensorHint =>
+      'This device exposes no hinge angle sensor, so the fold animation stays off';
+
+  @override
+  String get foldLiveData => 'Live data';
+
+  @override
+  String get foldHingeAngle => 'Hinge angle';
+
+  @override
+  String get foldOpenRatio => 'Open';
+
+  @override
+  String get foldPosture => 'Posture';
+
+  @override
+  String get foldPostureFlat => 'Flat';
+
+  @override
+  String get foldPostureHalfOpened => 'Half opened';
+
+  @override
+  String get foldPostureUnknown => 'Unknown';
+
+  @override
+  String get foldStatePlaying => 'Fold animation playing';
+
+  @override
+  String get foldStateIdle => 'Idle';
+
+  @override
+  String get foldDetectionSignals => 'Detection signals';
+
+  @override
+  String get foldSignalHingeSensor => 'Hinge angle sensor';
+
+  @override
+  String get foldSignalHingeFeature => 'System feature flag';
+
+  @override
+  String get foldSignalWindowCrease => 'Window crease';
+
+  @override
+  String get foldSensors => 'Fold-related sensors';
+
+  @override
+  String get foldPreview => 'Fold preview';
+
+  @override
+  String get foldPreviewHint =>
+      'The picture above bends with the phone as you fold it';
+
+  @override
+  String get foldManualPreview => 'Manual preview';
+
+  @override
+  String get foldFollowDevice => 'Follow the device';
+
+  @override
+  String get foldRefresh => 'Re-check';
+
+  @override
+  String get foldAngleUnavailable => 'No data';
+
+  @override
+  String get foldGlassTilt => 'Glass tilt';
+
+  @override
+  String get foldTuning => 'Fold tuning';
+
+  @override
+  String get foldPaneMode => 'Bending half';
+
+  @override
+  String get foldPaneLeft => 'Left bends (right still)';
+
+  @override
+  String get foldPaneRight => 'Right bends (left still)';
+
+  @override
+  String get foldPaneBoth => 'Both bend halfway';
+
+  @override
+  String get foldBlurSpread => 'Blur';
+
+  @override
+  String get foldDarkening => 'Darkening';
+
+  @override
+  String get foldEyeDistance => 'Eye distance';
+
+  @override
+  String get foldPanel => 'Panel';
+
+  @override
+  String get foldPanelInner => 'Inner (unfolded)';
+
+  @override
+  String get foldPanelCover => 'Cover (closed)';
+
+  @override
+  String get foldDriveApp => 'Drive the whole app';
+
+  @override
+  String get foldOn => 'On';
+
+  @override
+  String get foldOff => 'Off';
+
+  @override
+  String get foldDeadZone => 'Dead zone';
+
+  @override
+  String get foldIntensity => 'Fold strength';
 }

@@ -12,6 +12,7 @@ import 'package:mysues/services/local_image_store.dart';
 import 'package:mysues/services/notification_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/widget_service.dart';
+import 'package:mysues/widgets/fold_settings_section.dart';
 import 'package:mysues/widgets/material_you.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -63,6 +64,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+          const FoldSettingsSection(),
           AppSectionHeader(context.l10n.dataAndPrivacy),
           AppCardSection(
             children: [
