@@ -28,6 +28,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   late bool _showOtherWeekCourse;
   late bool _showFloatingButton;
   late bool _showHiddenCourses;
+  late bool _splitLunchSession;
 
   @override
   void initState() {
@@ -47,6 +48,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       _showOtherWeekCourse = widget.table!.showOtherWeekCourse;
       _showFloatingButton = widget.table!.showFloatingButton;
       _showHiddenCourses = widget.table!.showHiddenCourses;
+      _splitLunchSession = widget.table!.splitLunchSession;
     } else {
       _nameController = TextEditingController();
       _maxWeekController = TextEditingController(text: '30');
@@ -61,6 +63,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       _showOtherWeekCourse = true;
       _showFloatingButton = true;
       _showHiddenCourses = false;
+      _splitLunchSession = false;
     }
   }
 
@@ -172,6 +175,12 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             value: _showHiddenCourses,
             onChanged: (v) => setState(() => _showHiddenCourses = v),
           ),
+          SwitchListTile(
+            title: Text(context.l10n.splitLunchSession),
+            subtitle: Text(context.l10n.splitLunchSessionHint),
+            value: _splitLunchSession,
+            onChanged: (v) => setState(() => _splitLunchSession = v),
+          ),
           if (widget.table != null) ...[
             const Divider(),
             Padding(
@@ -265,6 +274,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       widget.table!.showOtherWeekCourse = _showOtherWeekCourse;
       widget.table!.showFloatingButton = _showFloatingButton;
       widget.table!.showHiddenCourses = _showHiddenCourses;
+      widget.table!.splitLunchSession = _splitLunchSession;
       Navigator.pop(context, widget.table);
     } else {
       final newTable = ScheduleTable(
@@ -279,6 +289,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
         showOtherWeekCourse: _showOtherWeekCourse,
         showFloatingButton: _showFloatingButton,
         showHiddenCourses: _showHiddenCourses,
+        splitLunchSession: _splitLunchSession,
       );
       Navigator.pop(context, newTable);
     }

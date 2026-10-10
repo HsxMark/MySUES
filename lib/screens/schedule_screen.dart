@@ -16,6 +16,7 @@ import 'login_webview_screen.dart'; // Import
 import 'course_catalog_screen.dart';
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
+import '../utils/lunch_session_display_helper.dart';
 import '../utils/screen_breakpoints.dart';
 import '../widgets/study_type_badge.dart';
 import 'package:mysues/l10n/localized_formatters.dart';
@@ -148,6 +149,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   // _injectDemoCourses removed here
+
+  /// 展示层午间分场：关=合并上下午场，开=拆跨午课（不改存储数据）
+  List<Course> _displayCourses(List<Course> source) {
+    return LunchSessionDisplayHelper.prepareForDisplay(
+      source,
+      splitLunch: _currentTable?.splitLunchSession ?? false,
+    );
+  }
 
   String _getTimeRange(Course course) {
     if (course.startTime != null &&
@@ -314,6 +323,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
+    // 必须传入展示项（含 displaySourceIds），否则合并卡删除/导出/编辑会丢下午场
     if (_useLargeScreenDetailPanel(context)) {
       _showCourseDetailSidePanel(context, course);
       return;
@@ -485,12 +495,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                   TextButton(
                     onPressed: () async {
                       try {
+                        final exportSources =
+                            LunchSessionDisplayHelper.resolveSources(
+                              course,
+                              _courses,
+                            );
                         await IcsExporter.exportCourses(
                           context,
-                          [course],
+                          exportSources,
                           _currentTable!,
                           _timeDetails,
-                          fileName: 'mysues_course_${course.id}.ics',
+                          fileName:
+                              'mysues_course_${exportSources.first.id}.ics',
                         );
                       } catch (e) {
                         if (context.mounted) {
@@ -728,7 +744,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
             onPressed: () async {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Close sheet
-              await ScheduleDataService.deleteCourse(course.id);
+              // 合并卡会同时删除库内上午场+下午场
+              await LunchSessionDisplayHelper.deleteDisplayCourse(
+                course,
+                _courses,
+              );
               _initData();
             },
             child: Text(
@@ -742,19 +762,35 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Future<void> _editCourse(BuildContext context, Course course) async {
+    // course 为展示项；编辑器目标与 sourceIds 由 helper 统一解析
+    final editTarget = LunchSessionDisplayHelper.courseForEditor(
+      course,
+      _courses,
+    );
+    final sourceIds = editTarget.displaySourceIds.isNotEmpty
+        ? editTarget.displaySourceIds
+        : LunchSessionDisplayHelper.resolveSources(
+            course,
+            _courses,
+          ).map((s) => s.id).toList();
+
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (c) => AddCourseScreen(course: course)),
+      MaterialPageRoute(builder: (c) => AddCourseScreen(course: editTarget)),
     );
 
-    // If result is strict string 'deleted', it was deleted
     if (result == 'deleted') {
+      await LunchSessionDisplayHelper.deleteDisplayCourse(course, _courses);
       _initData();
       return;
     }
 
     if (result != null && result is Course) {
-      await ScheduleDataService.updateCourse(result);
+      await LunchSessionDisplayHelper.persistEditedCourse(
+        result,
+        _courses,
+        sourceIds: sourceIds,
+      );
       _initData();
     }
   }
@@ -1581,15 +1617,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           // Generic Course Builder
                           ...() {
                             final List<Widget> widgets = [];
-                            final activeCourses = _courses
-                                .where(
-                                  (c) =>
-                                      c.inWeek(weekNum) &&
-                                      (!c.isHidden ||
-                                          (_currentTable?.showHiddenCourses ??
-                                              false)),
-                                )
-                                .toList();
+                            final activeCourses = _displayCourses(
+                              _courses
+                                  .where(
+                                    (c) =>
+                                        c.inWeek(weekNum) &&
+                                        (!c.isHidden ||
+                                            (_currentTable?.showHiddenCourses ??
+                                                false)),
+                                  )
+                                  .toList(),
+                            );
 
                             // Set to track occupied slots to prevent overlapping
                             // Format: "day-node" e.g. "1-3" (Monday, Node 3)
@@ -1651,6 +1689,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                   colIndex: flexColIndex[course] ?? 0,
                                   totalCols: flexTotalCols[course] ?? 1,
                                   onTap: () {
+                                    // 传展示项，保留 pair id
                                     widget.onCourseTap?.call(
                                       course,
                                       _currentWeek,
@@ -1675,16 +1714,18 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                 w <= _currentTable!.maxWeek;
                                 w++
                               ) {
-                                final futureCourses = _courses
-                                    .where(
-                                      (c) =>
-                                          c.inWeek(w) &&
-                                          (!c.isHidden ||
-                                              (_currentTable
-                                                      ?.showHiddenCourses ??
-                                                  false)),
-                                    )
-                                    .toList();
+                                final futureCourses = _displayCourses(
+                                  _courses
+                                      .where(
+                                        (c) =>
+                                            c.inWeek(w) &&
+                                            (!c.isHidden ||
+                                                (_currentTable
+                                                        ?.showHiddenCourses ??
+                                                    false)),
+                                      )
+                                      .toList(),
+                                );
 
                                 for (var course in futureCourses) {
                                   // Check if this course's slots are already filled

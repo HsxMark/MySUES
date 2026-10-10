@@ -6,6 +6,7 @@ import 'package:mysues/services/schedule_service.dart';
 import 'package:mysues/models/schedule_table.dart';
 import 'package:mysues/models/time_table.dart';
 import 'package:mysues/utils/building_time_override.dart';
+import 'package:mysues/utils/lunch_session_display_helper.dart';
 import 'package:mysues/l10n/app_localizations.dart';
 import 'package:mysues/services/locale_service.dart';
 
@@ -105,16 +106,17 @@ class WidgetService {
     required AppLocalizations l10n,
   }) {
     final week = _calculateWeekForDate(date, table.startDateObj);
-    final courses =
-        allCourses
-            .where(
-              (course) =>
-                  course.day == date.weekday &&
-                  course.inWeek(week) &&
-                  (!course.isHidden || table.showHiddenCourses),
-            )
-            .toList()
-          ..sort((a, b) => a.startNode.compareTo(b.startNode));
+    final courses = LunchSessionDisplayHelper.prepareForDisplay(
+      allCourses
+          .where(
+            (course) =>
+                course.day == date.weekday &&
+                course.inWeek(week) &&
+                (!course.isHidden || table.showHiddenCourses),
+          )
+          .toList(),
+      splitLunch: table.splitLunchSession,
+    )..sort((a, b) => a.startNode.compareTo(b.startNode));
 
     return {
       'date': _formatDate(date),

@@ -23,6 +23,11 @@ class ScheduleTable {
   bool showFloatingButton;
   bool showHiddenCourses;
 
+  /// 午间分场显示：默认关闭。
+  /// 关闭时将导入拆开的上/下午场在 UI 上视觉合并为一块；
+  /// 打开时跨午课程显示为上午场与下午场两张卡片（软分割，不绘制午休分割线）。
+  bool splitLunchSession;
+
   ScheduleTable({
     this.id = 0,
     required this.tableName,
@@ -42,6 +47,7 @@ class ScheduleTable {
     this.showTime = false,
     this.showFloatingButton = true,
     this.showHiddenCourses = false,
+    this.splitLunchSession = false,
   });
 
   factory ScheduleTable.fromJson(Map<String, dynamic> json) {
@@ -64,6 +70,7 @@ class ScheduleTable {
       showTime: json['showTime'] as bool? ?? false,
       showFloatingButton: json['showFloatingButton'] as bool? ?? true,
       showHiddenCourses: json['showHiddenCourses'] as bool? ?? false,
+      splitLunchSession: json['splitLunchSession'] as bool? ?? false,
     );
   }
 
@@ -87,6 +94,7 @@ class ScheduleTable {
       'showTime': showTime,
       'showFloatingButton': showFloatingButton,
       'showHiddenCourses': showHiddenCourses,
+      'splitLunchSession': splitLunchSession,
     };
   }
 

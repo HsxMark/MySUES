@@ -25,6 +25,10 @@ class Course {
   CourseStudyType studyType; // 免听/重修/正常修读
   bool isHidden = false;
 
+  /// 仅展示层：午间合并卡对应的库内源课程 id（可能上下半场各一条）。
+  /// 不参与 toJson/fromJson，避免写入本地存储。
+  List<int> displaySourceIds = const [];
+
   Course({
     this.id = 0,
     required this.courseName,
